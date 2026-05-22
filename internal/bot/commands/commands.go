@@ -3,6 +3,7 @@ package commands
 import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/snowflake/v2"
+	"github.com/disgoorg/omit"
 )
 
 // CommandDef wraps a slash command definition with its metadata.
@@ -150,14 +151,58 @@ func Register() []discord.ApplicationCommandCreate {
 			Name:        "uptime",
 			Description: "Show how long PulseKeep has been running since last restart",
 		},
+
+		// ── /balance ───────────────────────────────────────
+		discord.SlashCommandCreate{
+			Name:        "balance",
+			Description: "Check your current PulseKeep balance",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionUser{
+					Name:        "user",
+					Description: "The user to check the balance of (defaults to yourself)",
+					Required:    false,
+				},
+			},
+		},
+
+		// ── /daily ─────────────────────────────────────────
+		discord.SlashCommandCreate{
+			Name:        "daily",
+			Description: "Claim your daily Pulses reward",
+		},
+
+		// ── /work ──────────────────────────────────────────
+		discord.SlashCommandCreate{
+			Name:        "work",
+			Description: "Work a shift to earn some Pulses",
+		},
+
+		// ── /pay ───────────────────────────────────────────
+		discord.SlashCommandCreate{
+			Name:        "pay",
+			Description: "Send Pulses to another user",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionUser{
+					Name:        "recipient",
+					Description: "The user to send Pulses to",
+					Required:    true,
+				},
+				discord.ApplicationCommandOptionInt{
+					Name:        "amount",
+					Description: "The amount of Pulses to send",
+					Required:    true,
+					MinValue:    ptrInt(1),
+				},
+			},
+		},
 	}
 }
 
 // ── Helpers ───────────────────────────────────────────────
 
-// ptrPermissions converts a discord.Permissions into a *discord.Permissions.
-func ptrPermissions(p discord.Permissions) *discord.Permissions {
-	return &p
+// ptrPermissions converts a discord.Permissions into a omit.Omit[*discord.Permissions].
+func ptrPermissions(p discord.Permissions) omit.Omit[*discord.Permissions] {
+	return omit.NewPtr(p)
 }
 
 // ptrInt converts an int to *int for option min/max values.

@@ -24,3 +24,9 @@ export const commandLogs = pgTable('command_logs', {
   commandName: varchar('command_name', { length: 50 }).notNull(),
   executedAt: timestamp('executed_at').defaultNow().notNull(),
 })
+
+export const userEconomy = pgTable('user_economy', {
+  userId: varchar('user_id', { length: 20 }).primaryKey(),
+  balance: integer('balance').default(0).notNull(),
+  lastDailyClaim: timestamp('last_daily_claim'),
+})

@@ -48,6 +48,10 @@ To keep permissions simple and perfectly secure, all channels will inherit permi
 1.  `#rules-and-info` — Server guidelines, code of conduct, and bot invitation link.
 2.  `#announcements` — Product updates, changelogs, and key releases.
 3.  `#status-logs` — Automated bot status notifications and uptime reports.
+4.  `#welcome` — **(Override: Bot ALLOW Send Messages)** Welcome messages for new members.
+
+*Example Welcome Message (Webhook/Bot):*
+> "Welcome to the PulseKeep Community, [User]! Please read `#rules-and-info` and check out `#announcements` for the latest updates."
 
 ---
 
@@ -80,10 +84,10 @@ To keep permissions simple and perfectly secure, all channels will inherit permi
     *   Attach Files: `ALLOW`
 
 #### Channels (Inheriting All Permissions)
-1.  `#welcome` — Entry point for new users (verification instructions).
-2.  `#general-chat` — Core main text channel for general community interaction.
-3.  `#bot-discussion` — Ask questions about bot usage and features.
-4.  `#showcase` — Share configurations, servers, and panels powered by PulseKeep.
+1.  `#general-chat` — Core main text channel for general community interaction.
+2.  `#bot-discussion` — Ask questions about bot usage and features.
+3.  `#showcase` — Share configurations, servers, and panels powered by PulseKeep.
+4.  `#economy-chat` — Channel for users to use economy commands (`/daily`, `/work`, etc.).
 
 ---
 
@@ -194,3 +198,16 @@ To keep permissions simple and perfectly secure, all channels will inherit permi
 1.  `#staff-chat` — Coordination channel for the support and moderation team.
 2.  `#mod-logs` — Automated moderation logging (timeouts, kicks, bans).
 3.  `#ticket-archives` — Dynamic transcripts of closed tickets posted by the bot.
+
+---
+
+## 🪝 3. Webhook Integration
+
+For a premium experience, PulseKeep can utilize Discord Webhooks to post high-quality, formatted logs without rate-limiting the main bot client.
+
+1.  Navigate to **Server Settings > Integrations > Webhooks**.
+2.  Create Webhooks for:
+    *   `#announcements` (Name: "PulseKeep News")
+    *   `#status-logs` (Name: "PulseKeep Status")
+    *   `#mod-logs` (Name: "PulseKeep Audit")
+3.  Provide these Webhook URLs to the PulseKeep configuration to enable rich embeds for server events.
