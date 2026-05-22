@@ -1,0 +1,42 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Go coverage output
+*.out
+
+# Vendor directory
+# vendor/
+
+# Environment Variables — never commit secrets!
+.env
+.env.*
+!.env.example
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Fly.io
+.fly/
+
+# Build output
+dist/
+target/
+
+# Node dependencies
+node_modules/

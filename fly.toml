@@ -1,0 +1,48 @@
+# fly.toml app configuration file for PulseKeep
+#
+# See https://fly.io/docs/reference/configuration/ for information about all available options.
+# To deploy: 
+#   1. fly launch (to provision the app)
+#   2. fly secrets set DISCORD_TOKEN="..." DATABASE_URL="..." PORT="8080" (to set variables securely)
+#   3. fly deploy (to push live changes)
+
+app = "pulsekeep"
+primary_region = "lax"
+
+[deployment]
+  # CRITICAL: Recreate strategy stops the old machine BEFORE starting the new one.
+  # This prevents two instances of the bot connecting to the Discord gateway simultaneously, 
+  # which would cause immediate rate limiting, reconnect loops, or token suspension by Discord.
+  strategy = "recreate"
+  kill_timeout = "5s"
+  kill_signal = "SIGTERM"
+
+[env]
+  PORT = "8080"
+
+[[services]]
+  http_checks = []
+  internal_port = 8080
+  processes = ["app"]
+  protocol = "tcp"
+  script_checks = []
+
+  [services.concurrency]
+    hard_limit = 25
+    soft_limit = 20
+    type = "connections"
+
+  [[services.ports]]
+    force_https = true
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [[services.tcp_checks]]
+    grace_period = "1s"
+    interval = "15s"
+    restart_limit = 0
+    timeout = "2s"
