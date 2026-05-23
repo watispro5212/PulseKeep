@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<<<<<<< HEAD
     <header class="header">
         <div class="container nav-container">
             <a href="#top" class="logo-area" aria-label="PulseKeep home">
@@ -31,10 +32,37 @@
             <a href="#support" class="btn btn-primary">
                 <i class="fa-brands fa-discord" aria-hidden="true"></i>
                 Support
+=======
+
+    <!-- Glowing Background blobs -->
+    <div class="blob blob-purple"></div>
+    <div class="blob blob-cyan"></div>
+    <div class="blob blob-pink"></div>
+
+    <!-- Navigation Header -->
+    <header class="header" id="main-header">
+        <div class="container nav-container">
+            <a href="index.html" class="logo-area">
+                <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo" id="pulsekeep-logo-img">
+                <span class="logo-text">Pulse<span class="accent">Keep</span></span>
             </a>
+            <nav class="nav-links">
+                <a href="index.html" class="active">Home</a>
+                <a href="commands.html">Commands</a>
+                <a href="status.html">Status</a>
+                <a href="team.html">Team</a>
+            </nav>
+            <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary" id="btn-invite-nav">
+                <i class="fa-brands fa-discord"></i> Invite Bot
+>>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
+            </a>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
         </div>
     </header>
 
+<<<<<<< HEAD
     <main id="top">
         <section class="hero section-band">
             <div class="container hero-container">
@@ -234,6 +262,34 @@
                     <a href="terms.html" class="btn btn-secondary">
                         <i class="fa-solid fa-book" aria-hidden="true"></i>
                         Terms
+=======
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav" id="mobile-nav">
+        <a href="index.html" class="active">Home</a>
+        <a href="commands.html">Commands</a>
+        <a href="status.html">Status</a>
+        <a href="team.html">Team</a>
+        <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary btn-large" style="margin-top: 1rem;">
+            <i class="fa-brands fa-discord"></i> Invite Bot
+        </a>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container hero-container">
+            <div class="hero-content">
+                <div class="badge-pulsing" id="bot-status-badge">
+                    <span class="pulse-dot green"></span>
+                    <span class="badge-text">PulseKeep Service Online</span>
+                </div>
+                <h1 class="hero-title">Keep Your Server <span class="gradient-text">Safe, Active & Monitored</span></h1>
+                <p class="hero-subtitle">
+                    PulseKeep is an ultra-fast, Go-powered Discord sentinel delivering robust log streams, category-secure private support tickets, and high-fidelity analytics.
+                </p>
+                <div class="hero-actions">
+                    <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary btn-large" id="btn-invite-hero">
+                        <i class="fa-brands fa-discord"></i> Add to Discord
+>>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
                     </a>
                     <a href="privacy.html" class="btn btn-secondary">
                         <i class="fa-solid fa-lock" aria-hidden="true"></i>
@@ -244,6 +300,7 @@
         </section>
     </main>
 
+<<<<<<< HEAD
     <footer class="footer">
         <div class="container footer-container">
             <div class="footer-brand">
@@ -256,6 +313,106 @@
                 <a href="https://github.com/watispro/pulsekeep">GitHub</a>
                 <a href="privacy.html">Privacy</a>
                 <a href="terms.html">Terms</a>
+=======
+    <!-- Statistics Section -->
+    <section id="statistics" class="statistics">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Operational Health</h2>
+                <p class="section-subtitle">Real-time statistics fetched dynamically from our running Fly.io cluster.</p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card scroll-reveal" id="stat-servers-card">
+                    <div class="stat-icon"><i class="fa-solid fa-server"></i></div>
+                    <div class="stat-value" id="stat-servers">--</div>
+                    <div class="stat-label">Guilds Guarded</div>
+                </div>
+                <div class="stat-card scroll-reveal" id="stat-users-card">
+                    <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                    <div class="stat-value" id="stat-users">--</div>
+                    <div class="stat-label">Active Users</div>
+                </div>
+                <div class="stat-card scroll-reveal" id="stat-commands-card">
+                    <div class="stat-icon"><i class="fa-solid fa-terminal"></i></div>
+                    <div class="stat-value" id="stat-commands">--</div>
+                    <div class="stat-label">Commands Processed</div>
+                </div>
+                <div class="stat-card scroll-reveal" id="stat-uptime-card">
+                    <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+                    <div class="stat-value" id="stat-uptime">--</div>
+                    <div class="stat-label">System Uptime</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Premium Features</h2>
+                <p class="section-subtitle">Powering servers with state-of-the-art Go and Node architectures.</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card scroll-reveal" id="feat-logs">
+                    <div class="feature-icon"><i class="fa-solid fa-receipt"></i></div>
+                    <h3>Intelligent Log Streams</h3>
+                    <p>Real-time audit telemetry. Monitors edited messages, channel changes, role adjustments, and moderation events instantly.</p>
+                </div>
+                
+                <div class="feature-card scroll-reveal" id="feat-tickets">
+                    <div class="feature-icon"><i class="fa-solid fa-ticket"></i></div>
+                    <h3>Category-Secure Tickets</h3>
+                    <p>Ticket generation using secure category parent permissions. No messy channel overrides, fully isolated and audit-logged.</p>
+                </div>
+                
+                <div class="feature-card scroll-reveal" id="feat-performance">
+                    <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+                    <h3>Go-Optimized Performance</h3>
+                    <p>Built with Go 1.26 and Gin, powered by an optimized in-memory cache system. Under 10ms response times for core actions.</p>
+                </div>
+                
+                <div class="feature-card scroll-reveal" id="feat-database">
+                    <div class="feature-icon"><i class="fa-solid fa-database"></i></div>
+                    <h3>Drizzle ORM Backend</h3>
+                    <p>Consistent schema migrations and blazing fast persistence layer backed by Drizzle, Node.js, and Postgres.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Discord CTA Callout -->
+    <section id="support" class="cta-callout">
+        <div class="container cta-container">
+            <div class="cta-content">
+                <h2>Need Immediate Help or Setup Support?</h2>
+                <p>Join our dedicated Discord support server built on secure, category-level permission blueprints. Interact with our staff and community directly.</p>
+                <a href="https://discord.gg/pulsekeep" class="btn btn-secondary btn-large" id="btn-discord-server">
+                    <i class="fa-brands fa-discord"></i> Join Support Server
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <a href="index.html" class="logo-area">
+                    <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo" style="height: 32px; width: 32px;">
+                    <span class="logo-text">Pulse<span class="accent">Keep</span></span>
+                </a>
+                <p>© 2026 PulseKeep Bot. Designed with rich premium aesthetics. Stably hosted on Fly.io and Netlify.</p>
+            </div>
+            <div class="footer-links">
+                <a href="commands.html">Commands</a>
+                <a href="status.html">Live Status</a>
+                <a href="https://github.com/watispro/pulsekeep">Open Source</a>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms of Service</a>
+>>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
             </div>
         </div>
     </footer>

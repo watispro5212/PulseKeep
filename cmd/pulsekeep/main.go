@@ -16,25 +16,27 @@ import (
 )
 
 func main() {
-	// 1. Load Config
 	cfg := config.LoadConfig()
-
-	// 2. Init Database
 	database := db.Connect(cfg.DatabaseURL)
 	defer database.Close()
-
-	// 3. Init Cache
 	memCache := cache.New()
-	_ = memCache // We will pass this to handlers later
+	_ = memCache
 
+<<<<<<< HEAD
 	// 4. Init Web Server
 	server := api.NewServer(cfg.Port, cfg.AllowedOrigin, database)
+=======
+	discordBot := bot.New(cfg.DiscordToken, database)
+
+	server := api.NewServer(cfg.Port, discordBot)
+>>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
 	go func() {
 		if err := server.Start(); err != nil {
 			log.Fatalf("Web server failed: %v", err)
 		}
 	}()
 
+<<<<<<< HEAD
 	// 5. Init Bot
 	var discordBot *bot.Bot
 
@@ -46,28 +48,30 @@ func main() {
 		if err := discordBot.Start(ctx); err != nil {
 			log.Fatalf("Failed to start Discord bot: %v", err)
 		}
+=======
+	ctx := context.Background()
+	if err := discordBot.Start(ctx); err != nil {
+		log.Fatalf("Failed to start Discord bot: %v", err)
+>>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
 	}
 
-	log.Println("PulseKeep (Go version) is running. Press CTRL+C to exit.")
+	log.Println("PulseKeep (Go version) is running with sharding. Press CTRL+C to exit.")
 
-	// Wait for shutdown signal (SIGINT / SIGTERM / os.Interrupt)
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-s
 
 	log.Println("Shutdown signal received. Initiating graceful cleanup...")
-
-	// Create a context with 5s timeout to allow ongoing operations to drain cleanly
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// 1. Gracefully shut down the web server
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("Error shutting down web server: %v", err)
 	} else {
 		log.Println("Web server shut down successfully.")
 	}
 
+<<<<<<< HEAD
 	// 2. Stop the Discord Bot connection
 	if discordBot != nil {
 		log.Println("Stopping Discord bot connection...")
@@ -75,4 +79,9 @@ func main() {
 		log.Println("Discord bot connection stopped cleanly.")
 	}
 	log.Println("PulseKeep stopped cleanly. Farewell!")
+=======
+	log.Println("Stopping Discord bot connection...")
+	discordBot.Stop(shutdownCtx)
+	log.Println("Discord bot connection stopped cleanly. Farewell!")
+>>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
 }
