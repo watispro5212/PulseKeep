@@ -4,60 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy | PulseKeep</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="blob blob-purple"></div>
     <div class="blob blob-cyan"></div>
+    <div class="blob blob-pink"></div>
 
-    <header class="header">
+    <header class="header" id="main-header">
         <div class="container nav-container">
             <a href="index.html" class="logo-area">
-                <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo" id="pulsekeep-logo-img">
+                <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo">
                 <span class="logo-text">Pulse<span class="accent">Keep</span></span>
             </a>
             <nav class="nav-links">
-                <a href="index.html#features">Features</a>
-                <a href="index.html#statistics">Live Stats</a>
-                <a href="index.html#support">Support</a>
+                <a href="index.html">Home</a>
+                <a href="commands.html">Commands</a>
+                <a href="status.html">Status</a>
+                <a href="team.html">Team</a>
             </nav>
-            <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary" id="btn-invite-nav">
+            <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
                 <i class="fa-brands fa-discord"></i> Invite Bot
             </a>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
         </div>
     </header>
 
-    <main class="container" style="padding-top: 150px; padding-bottom: 80px;">
-        <div class="feature-card" style="max-width: 800px; margin: 0 auto; text-align: left; padding: 3rem;">
-            <h1 style="font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: 1rem;">Privacy Policy</h1>
-            <p style="color: var(--text-muted); margin-bottom: 2rem;">Last Updated: May 2026</p>
+    <nav class="mobile-nav" id="mobile-nav">
+        <a href="index.html">Home</a>
+        <a href="commands.html">Commands</a>
+        <a href="status.html">Status</a>
+        <a href="team.html">Team</a>
+    </nav>
 
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">1. Information We Collect</h3>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6;">When you invite PulseKeep to your Discord server or use its commands, we may collect and store the following information:</p>
-            <ul style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6; margin-left: 1.5rem;">
+    <section class="hero-small">
+        <div class="container">
+            <h1 class="hero-title"><span class="gradient-text">Privacy Policy</span></h1>
+            <p class="hero-subtitle">How we collect, use, and protect your data.</p>
+        </div>
+    </section>
+
+    <main class="container content-section">
+        <div class="legal-content scroll-reveal">
+            <p class="last-updated">Last Updated: May 2026</p>
+
+            <h3>1. Information We Collect</h3>
+            <p>When you invite PulseKeep to your Discord server or use its commands, we may collect and store the following information:</p>
+            <ul>
                 <li><strong>Discord IDs:</strong> We store User IDs, Guild (Server) IDs, and Channel IDs to associate economy balances, settings, and logs.</li>
                 <li><strong>Command Usage:</strong> We log when commands are executed for statistical and debugging purposes.</li>
                 <li><strong>Message Content:</strong> We DO NOT log or store the content of your messages unless specifically required for a command to function (e.g., the <code>/announce</code> command temporarily processes your input to generate the announcement).</li>
             </ul>
 
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">2. How We Use Your Information</h3>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6;">The information we collect is used strictly for the operation and improvement of the PulseKeep bot:</p>
-            <ul style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6; margin-left: 1.5rem;">
+            <h3>2. How We Use Your Information</h3>
+            <p>The information we collect is used strictly for the operation and improvement of the PulseKeep bot:</p>
+            <ul>
                 <li>To maintain your economy balances and cooldowns.</li>
                 <li>To provide the moderation and utility commands you request.</li>
                 <li>To display aggregate statistics on our website (e.g., total commands run).</li>
             </ul>
 
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">3. Data Sharing and Security</h3>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6;">We do not sell, trade, or otherwise transfer your personal information to outside parties. Your data is stored securely in our PostgreSQL database.</p>
+            <h3>3. Data Sharing and Security</h3>
+            <p>We do not sell, trade, or otherwise transfer your personal information to outside parties. Your data is stored securely in our PostgreSQL database.</p>
 
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">4. Your Rights</h3>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6;">You have the right to request the deletion of your data. To do so, please join our support server and open a ticket. We will promptly remove your User ID and associated records from our database.</p>
+            <h3>4. Your Rights</h3>
+            <p>You have the right to request the deletion of your data. To do so, please join our support server and open a ticket. We will promptly remove your User ID and associated records from our database.</p>
 
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">5. Contact Us</h3>
-            <p style="color: var(--text-muted); line-height: 1.6;">If you have any questions about this Privacy Policy, please contact us via our Discord Support Server.</p>
+            <h3>5. Contact Us</h3>
+            <p>If you have any questions about this Privacy Policy, please contact us via our <a href="https://discord.gg/pulsekeep" style="color: var(--secondary);">Discord Support Server</a>.</p>
         </div>
     </main>
 
@@ -65,15 +83,15 @@
         <div class="container footer-container">
             <div class="footer-brand">
                 <a href="index.html" class="logo-area">
-                    <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo">
+                    <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo" style="height: 32px; width: 32px;">
                     <span class="logo-text">Pulse<span class="accent">Keep</span></span>
                 </a>
                 <p>The ultimate Discord sentinel. Fast, secure, and Go-powered.</p>
             </div>
             <div class="footer-links">
-                <a href="privacy.html">Privacy Policy</a>
+                <a href="privacy.html" class="active">Privacy Policy</a>
                 <a href="terms.html">Terms of Service</a>
-                <a href="https://discord.gg/your-invite-link">Support Server</a>
+                <a href="https://discord.gg/pulsekeep">Support Server</a>
             </div>
         </div>
     </footer>

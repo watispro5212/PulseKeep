@@ -1,9 +1,49 @@
 /* ==========================================================
-   PulseKeep Web App — Live Stats + Animations
+   PulseKeep Web App — Live Stats + Animations + UI Interactivity
    ========================================================== */
 
 // Configuration — dynamically use current host for API calls
 const API_BASE_URL = window.location.origin;
+
+// ── Mobile Menu Toggle ─────────────────────────────────────
+function initMobileMenu() {
+    const toggle = document.getElementById('mobile-menu-toggle');
+    const mobileNav = document.getElementById('mobile-nav');
+    
+    if (!toggle || !mobileNav) return;
+    
+    toggle.addEventListener('click', () => {
+        mobileNav.classList.toggle('active');
+        const icon = toggle.querySelector('i');
+        if (mobileNav.classList.contains('active')) {
+            icon.className = 'fa-solid fa-xmark';
+        } else {
+            icon.className = 'fa-solid fa-bars';
+        }
+    });
+    
+    // Close menu when clicking a link
+    mobileNav.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            mobileNav.classList.remove('active');
+            toggle.querySelector('i').className = 'fa-solid fa-bars';
+        });
+    });
+}
+
+// ── Header Scroll Effect ──────────────────────────────────
+function initHeaderScroll() {
+    const header = document.getElementById('main-header');
+    if (!header) return;
+    
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    });
+}
 
 // ── Animated Counter ──────────────────────────────────────
 function animateCounter(element, target, suffix = '') {
@@ -80,7 +120,8 @@ async function fetchStats() {
         }
 
         // Show online status
-        if (pulseDot) pulseDot.classList.add('green');
+        if (pulseDot) pulseDot.classList.remove('offline');
+        if (statusBadge) statusBadge.classList.remove('offline');
         if (badgeText) badgeText.textContent = 'PulseKeep Service Online';
 
     } catch (err) {
@@ -96,10 +137,11 @@ async function fetchStats() {
         if (document.getElementById('api-speed')) document.getElementById('api-speed').textContent = '— ms';
 
         if (pulseDot) {
-            pulseDot.classList.remove('green');
-            pulseDot.style.backgroundColor = '#ef4444';
-            pulseDot.style.boxShadow = '0 0 10px #ef4444';
+            pulseDot.classList.add('offline');
+            pulseDot.style.backgroundColor = 'var(--red-error)';
+            pulseDot.style.boxShadow = '0 0 15px var(--red-glow)';
         }
+        if (statusBadge) statusBadge.classList.add('offline');
         if (badgeText) badgeText.textContent = 'PulseKeep Service Offline';
     }
 }
@@ -113,10 +155,9 @@ function initScrollAnimations() {
                 observer.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.15 });
+    }, { threshold: 0.1 });
 
-    document.querySelectorAll('.stat-card, .feature-card, .cta-container').forEach((el) => {
-        el.classList.add('scroll-reveal');
+    document.querySelectorAll('.scroll-reveal').forEach((el) => {
         observer.observe(el);
     });
 }
@@ -134,28 +175,13 @@ function initSmoothScroll() {
     });
 }
 
-// ── Header Glass Effect on Scroll ─────────────────────────
-function initHeaderScroll() {
-    const header = document.querySelector('.header');
-    if (!header) return;
-
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 60) {
-            header.style.backgroundColor = 'rgba(7, 8, 13, 0.92)';
-            header.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.4)';
-        } else {
-            header.style.backgroundColor = 'rgba(7, 8, 13, 0.7)';
-            header.style.boxShadow = 'none';
-        }
-    });
-}
-
 // ── Initialize on DOM Ready ───────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    fetchStats();
+    initMobileMenu();
+    initHeaderScroll();
     initScrollAnimations();
     initSmoothScroll();
-    initHeaderScroll();
+    fetchStats();
 
     // Refresh stats every 60 seconds
     setInterval(fetchStats, 60_000);

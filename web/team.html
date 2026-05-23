@@ -11,8 +11,9 @@
 <body>
     <div class="blob blob-purple"></div>
     <div class="blob blob-cyan"></div>
+    <div class="blob blob-pink"></div>
 
-    <header class="header">
+    <header class="header" id="main-header">
         <div class="container nav-container">
             <a href="index.html" class="logo-area">
                 <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo">
@@ -27,8 +28,18 @@
             <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
                 <i class="fa-brands fa-discord"></i> Invite Bot
             </a>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
         </div>
     </header>
+
+    <nav class="mobile-nav" id="mobile-nav">
+        <a href="index.html">Home</a>
+        <a href="commands.html">Commands</a>
+        <a href="status.html">Status</a>
+        <a href="team.html" class="active">Team</a>
+    </nav>
 
     <section class="hero-small">
         <div class="container">
@@ -39,13 +50,14 @@
 
     <section class="container content-section">
         <div class="team-grid">
-            <div class="team-card">
-                <img src="https://cdn.discordapp.com/avatars/1320058519642177668/a_0.png" alt="Leader" class="team-avatar">
+            <div class="team-card scroll-reveal">
+                <img src="https://cdn.discordapp.com/avatars/1320058519642177668/a_0.png" alt="watispro" class="team-avatar">
                 <h3>watispro</h3>
                 <div class="team-role">Lead Developer & Team Leader</div>
                 <p>Architect of the PulseKeep Go core and Fly.io deployment strategy.</p>
                 <div class="team-social">
-                    <a href="https://discord.com/users/1320058519642177668"><i class="fa-brands fa-discord"></i> Profile</a>
+                    <a href="https://discord.com/users/1320058519642177668" aria-label="Discord Profile"><i class="fa-brands fa-discord"></i></a>
+                    <a href="https://github.com/watispro" aria-label="GitHub Profile"><i class="fa-brands fa-github"></i></a>
                 </div>
             </div>
         </div>
@@ -54,7 +66,10 @@
     <footer class="footer">
         <div class="container footer-container">
             <div class="footer-brand">
-                <span class="logo-text">Pulse<span class="accent">Keep</span></span>
+                <a href="index.html" class="logo-area">
+                    <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo" style="height: 32px; width: 32px;">
+                    <span class="logo-text">Pulse<span class="accent">Keep</span></span>
+                </a>
                 <p>© 2026 PulseKeep Bot.</p>
             </div>
             <div class="footer-links">
@@ -65,5 +80,6 @@
             </div>
         </div>
     </footer>
+    <script src="app.js"></script>
 </body>
 </html>
