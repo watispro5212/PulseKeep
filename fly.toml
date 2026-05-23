@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # fly.toml app configuration file for pulsekeep
+=======
+# fly.toml app configuration file generated for pulsekeep on 2026-05-23T23:10:02Z
+>>>>>>> f8c057fe475a18e6e9c3ee83db6be4cf0a57007f
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -21,18 +25,14 @@ primary_region = 'lax'
   processes = ['app']
 
   [[http_service.checks]]
-    grace_period = "15s"
-    interval = "30s"
-    method = "GET"
-    timeout = "5s"
-    path = "/health"
-
-[deployment]
-  strategy = "recreate"
-  kill_timeout = "10s"
-  kill_signal = "SIGTERM"
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '15s'
+    method = 'GET'
+    path = '/health'
 
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
+  memory_mb = 1024
