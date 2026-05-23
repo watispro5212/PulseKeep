@@ -4,78 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms of Service | PulseKeep</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta name="description" content="PulseKeep terms of service for Discord bot usage.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="blob blob-purple"></div>
-    <div class="blob blob-cyan"></div>
-
     <header class="header">
         <div class="container nav-container">
-            <a href="index.html" class="logo-area">
-                <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo" id="pulsekeep-logo-img">
-                <span class="logo-text">Pulse<span class="accent">Keep</span></span>
+            <a href="index.html" class="logo-area" aria-label="PulseKeep home">
+                <img src="assets/logo.png" alt="" class="nav-logo">
+                <span class="logo-text">PulseKeep</span>
             </a>
-            <nav class="nav-links">
+            <nav class="nav-links" aria-label="Primary navigation">
                 <a href="index.html#features">Features</a>
-                <a href="index.html#statistics">Live Stats</a>
-                <a href="index.html#support">Support</a>
+                <a href="index.html#statistics">Status</a>
+                <a href="index.html#commands">Commands</a>
+                <a href="privacy.html">Privacy</a>
             </nav>
-            <a href="https://discord.com/oauth2/authorize?client_id=1234567890&permissions=8&scope=bot%20applications.commands" class="btn btn-primary" id="btn-invite-nav">
-                <i class="fa-brands fa-discord"></i> Invite Bot
+            <a href="index.html#support" class="btn btn-primary">
+                <i class="fa-brands fa-discord" aria-hidden="true"></i>
+                Support
             </a>
         </div>
     </header>
 
-    <main class="container" style="padding-top: 150px; padding-bottom: 80px;">
-        <div class="feature-card" style="max-width: 800px; margin: 0 auto; text-align: left; padding: 3rem;">
-            <h1 style="font-family: var(--font-heading); font-size: 2.5rem; margin-bottom: 1rem;">Terms of Service</h1>
-            <p style="color: var(--text-muted); margin-bottom: 2rem;">Last Updated: May 2026</p>
+    <main class="legal-main">
+        <article class="container legal-card">
+            <span class="eyebrow">Agreement</span>
+            <h1>Terms of Service</h1>
+            <p>Last updated: May 2026</p>
 
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">1. Acceptance of Terms</h3>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6;">By inviting the PulseKeep bot to your Discord server or using its features, you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please remove the bot from your server.</p>
+            <h2>Acceptance</h2>
+            <p>By inviting PulseKeep to a Discord server or using its commands, you agree to these terms and to Discord's own terms and community guidelines.</p>
 
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">2. Description of Service</h3>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6;">PulseKeep provides moderation tools, an economy system, and ticketing utilities for Discord servers. The service is provided "as is" and we reserve the right to modify, suspend, or discontinue any part of the service at any time without notice.</p>
+            <h2>Service description</h2>
+            <p>PulseKeep provides moderation, logging, utility, ticketing, analytics, and economy features for Discord servers. Features may change as the project evolves.</p>
 
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">3. User Conduct</h3>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6;">You agree not to use PulseKeep to:</p>
-            <ul style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6; margin-left: 1.5rem;">
-                <li>Violate the Discord Terms of Service or Community Guidelines.</li>
-                <li>Spam commands or intentionally attempt to degrade the bot's performance.</li>
-                <li>Exploit bugs or glitches in the economy system.</li>
-                <li>Facilitate any illegal or unauthorized activities.</li>
+            <h2>Responsible use</h2>
+            <ul>
+                <li>Do not use PulseKeep to harass users, spam commands, or violate Discord rules.</li>
+                <li>Do not attempt to exploit bugs, bypass permissions, or degrade service availability.</li>
+                <li>Server staff are responsible for moderation decisions made with PulseKeep commands.</li>
             </ul>
 
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">4. Limitation of Liability</h3>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6;">In no event shall the creators or operators of PulseKeep be liable for any direct, indirect, incidental, or consequential damages resulting from the use or inability to use the bot. We are not responsible for moderation actions taken by server staff using our tools.</p>
+            <h2>Availability</h2>
+            <p>The service is provided as is. PulseKeep may experience downtime during maintenance, deploys, upstream provider incidents, or configuration changes.</p>
 
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">5. Changes to Terms</h3>
-            <p style="margin-bottom: 1rem; color: var(--text-muted); line-height: 1.6;">We reserve the right to update these terms at any time. Continued use of PulseKeep after changes constitutes acceptance of the new terms.</p>
+            <h2>Limitation of liability</h2>
+            <p>PulseKeep's operators are not liable for indirect, incidental, or consequential damages related to bot usage, configuration mistakes, moderation actions, or service interruptions.</p>
 
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem;">6. Contact</h3>
-            <p style="color: var(--text-muted); line-height: 1.6;">For any questions regarding these Terms of Service, please contact us via our official Support Server.</p>
-        </div>
+            <h2>Changes</h2>
+            <p>These terms may be updated over time. Continued use of PulseKeep after changes means you accept the updated terms.</p>
+        </article>
     </main>
 
     <footer class="footer">
         <div class="container footer-container">
             <div class="footer-brand">
-                <a href="index.html" class="logo-area">
-                    <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo">
-                    <span class="logo-text">Pulse<span class="accent">Keep</span></span>
-                </a>
-                <p>The ultimate Discord sentinel. Fast, secure, and Go-powered.</p>
+                <span class="logo-text">PulseKeep</span>
+                <p>Fast, secure Discord operations hosted with Fly.io and Netlify.</p>
             </div>
             <div class="footer-links">
-                <a href="privacy.html">Privacy Policy</a>
-                <a href="terms.html">Terms of Service</a>
-                <a href="https://discord.gg/your-invite-link">Support Server</a>
+                <a href="index.html#features">Features</a>
+                <a href="index.html#statistics">Status</a>
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html">Terms</a>
             </div>
         </div>
     </footer>
-    <script src="app.js"></script>
 </body>
 </html>

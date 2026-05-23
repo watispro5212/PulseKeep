@@ -1,213 +1,249 @@
-# PulseKeep Support Server Blueprint
+# PulseKeep Discord Server Blueprint
 
-This document contains a comprehensive plan for creating and configuring a fully functional Discord support server for the **PulseKeep** bot. All channels inside this server are organized into thematic categories and are designed to inherit their permissions directly from the parent category.
+This blueprint is the recommended layout for a PulseKeep support and testing server. It keeps permissions category-first, gives staff a clear support workflow, and gives members a clean place to discover commands through PulseKeep's interactive Discord menu.
 
----
+## Core Goals
 
-## 👥 1. Role Configurations & Hierarchy
+- Keep public channels readable and low-noise.
+- Give support staff one obvious ticket workflow.
+- Keep bot testing contained to sandbox channels.
+- Use category permissions first, with channel overrides only when they are truly needed.
+- Make `/help`, `/menu`, and the ticket panel the main way users interact with PulseKeep.
 
-Create the following roles in order (from top to bottom). The hierarchy is designed for secure server operation, clear styling, and effective permission delegation.
+## Role Hierarchy
 
-| Role Name | Recommended Hex Color | Core Purpose / Description | Essential Server Permissions |
-| :--- | :---: | :--- | :--- |
-| **Founder 👑** | `#E74C3C` (Red) | Server owner and project lead. | **Administrator** (Full permissions bypass) |
-| **Administrator ⚙️** | `#E67E22` (Orange) | Senior staff, full operational control. | Manage Server, Manage Channels, Manage Roles, View Audit Log, Kick Members, Ban Members, Moderate Members, Manage Messages |
-| **Moderator 🛡️** | `#2ECC71` (Green) | Chat and behavior moderation. | Kick Members, Ban Members, Moderate Members, Manage Messages, Mute Members, Deafen Members, Move Members, Timeout Members |
-| **Support Team 🎫** | `#3498DB` (Blue) | Ticketing and user support handlers. | Manage Messages, Read Message History, Send Messages, Use Slash Commands, Attach Files, Embed Links |
-| **PulseKeep Bot 🤖** | `#9B59B6` (Purple) | The active bot instance. | Manage Messages, Send Messages, Embed Links, Attach Files, Read Message History, Add Reactions, Use External Emojis |
-| **Server Booster ✨** | `#FD79A8` (Pink) | Users actively boosting the server. | Change Nickname, Send Files, Use External Emojis, Add Reactions, Send Messages in Threads |
-| **Verified Member ✅** | `#95A5A6` (Grey) | Standard members who passed verification. | View Channels, Send Messages, Read Message History, Add Reactions, Use External Emojis, Use Slash Commands |
-| **@everyone** | Default | Base guest permissions (pre-verification). | View Channels (Specific lobbies only), Read Message History |
+Create roles in this order from highest to lowest.
 
----
+| Role | Color | Purpose | Key Permissions |
+| --- | --- | --- | --- |
+| Founder | `#E74C3C` | Project owner and final authority. | Administrator |
+| Administrator | `#E67E22` | Senior operations and server configuration. | Manage Server, Manage Channels, Manage Roles, View Audit Log, Ban Members, Kick Members, Moderate Members |
+| Moderator | `#2ECC71` | Community safety and chat moderation. | Manage Messages, Moderate Members, Kick Members, Ban Members, View Audit Log |
+| Support Team | `#3498DB` | Handles tickets, setup help, and customer questions. | Manage Messages, Send Messages, Attach Files, Embed Links, Read Message History |
+| PulseKeep Bot | `#9B59B6` | The bot account. | Manage Messages, Send Messages, Embed Links, Attach Files, Read Message History, Use Slash Commands |
+| Server Booster | `#FD79A8` | Trusted supporters with small perks. | Attach Files, Embed Links, Use External Emojis |
+| Verified Member | `#95A5A6` | Standard trusted community member. | View Channels, Send Messages, Read Message History, Use Slash Commands |
+| @everyone | Default | Pre-verification visitors. | View only the welcome/rules area |
 
-## 📁 2. Category-Level Permissions & Channels
+## Channel Layout
 
-To keep permissions simple and perfectly secure, all channels will inherit permissions from their parent category. Adjust category permissions according to the tables below, and do not specify individual channel overrides except where explicitly noted.
+### 1. Information
 
-### Category 1: 📢 | INFORMATION & NEWS
-**Purpose**: Read-only resources, rules, updates, and announcements.
+Use this category for read-only server information.
 
-#### Category Permissions Matrix
-*   **Founder 👑 / Administrator ⚙️ / Moderator 🛡️**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Manage Messages: `ALLOW`
-*   **PulseKeep Bot 🤖**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Embed Links: `ALLOW`
-*   **@everyone / Verified Member ✅**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `DENY`
-    *   Send Messages in Threads: `DENY`
-    *   Add Reactions: `ALLOW`
-    *   Read Message History: `ALLOW`
+Channels:
 
-#### Channels (Inheriting All Permissions)
-1.  `#rules-and-info` — Server guidelines, code of conduct, and bot invitation link.
-2.  `#announcements` — Product updates, changelogs, and key releases.
-3.  `#status-logs` — Automated bot status notifications and uptime reports.
-4.  `#welcome` — **(Override: Bot ALLOW Send Messages)** Welcome messages for new members.
+- `rules-and-info`: Rules, useful links, bot invite, and support expectations.
+- `announcements`: Product updates, releases, outages, and important changes.
+- `status-logs`: Automated deploy, uptime, and incident notices.
+- `welcome`: New member greeting and first steps.
 
-*Example Welcome Message (Webhook/Bot):*
-> "Welcome to the PulseKeep Community, [User]! Please read `#rules-and-info` and check out `#announcements` for the latest updates."
+Permissions:
 
----
+- Staff can view, send, and manage messages.
+- PulseKeep Bot can view, send, and embed links.
+- Verified Member and @everyone can view and read history.
+- Verified Member and @everyone cannot send messages.
 
-### Category 2: 💬 | PULSEKEEP COMMUNITY
-**Purpose**: General chat, discussions, community events, and user interaction.
+Recommended pinned message for `rules-and-info`:
 
-#### Category Permissions Matrix
-*   **Founder 👑 / Administrator ⚙️ / Moderator 🛡️**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Manage Messages: `ALLOW`
-*   **Server Booster ✨**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Embed Links: `ALLOW`
-    *   Attach Files: `ALLOW`
-*   **Verified Member ✅**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Embed Links: `DENY` (Prevents link-spam from non-trusted members)
-    *   Attach Files: `DENY` (Prevents image-spam from non-trusted members)
-    *   Read Message History: `ALLOW`
-    *   Add Reactions: `ALLOW`
-*   **@everyone**:
-    *   View Channel: `DENY` (Force users to pass gatekeeping verification)
-*   **PulseKeep Bot 🤖**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Embed Links: `ALLOW`
-    *   Attach Files: `ALLOW`
+```text
+Welcome to PulseKeep.
 
-#### Channels (Inheriting All Permissions)
-1.  `#general-chat` — Core main text channel for general community interaction.
-2.  `#bot-discussion` — Ask questions about bot usage and features.
-3.  `#showcase` — Share configurations, servers, and panels powered by PulseKeep.
-4.  `#economy-chat` — Channel for users to use economy commands (`/daily`, `/work`, etc.).
+Start here:
+1. Read the rules.
+2. Use /help or /menu to browse commands.
+3. Use the ticket panel in #open-a-ticket when you need private setup help.
 
----
+Do not post bot tokens, database URLs, or private server logs in public channels.
+```
 
-### Category 3: 🎫 | CLIENT SUPPORT
-**Purpose**: Entrance lobby for ticketing, help commands, and general assistance.
+### 2. Community
 
-#### Category Permissions Matrix
-*   **Founder 👑 / Administrator ⚙️ / Moderator 🛡️ / Support Team 🎫**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Manage Messages: `ALLOW`
-*   **Verified Member ✅**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Read Message History: `ALLOW`
-    *   Use Slash Commands: `ALLOW`
-*   **@everyone**:
-    *   View Channel: `DENY`
-*   **PulseKeep Bot 🤖**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Embed Links: `ALLOW`
-    *   Attach Files: `ALLOW`
+Use this category for normal conversation.
 
-#### Channels (Inheriting All Permissions)
-1.  `#support-faq` — Curated read-only channel with answers to common errors and guides.
-2.  `#open-a-ticket` — Contains a sticky panel command (via PulseKeep Bot) enabling users to react/button-click to open a private ticket.
-3.  `#pre-sales` — Inquiries regarding premium features or custom setups before buying.
+Channels:
 
----
+- `general-chat`: Main community chat.
+- `bot-discussion`: Usage questions and feature ideas.
+- `showcase`: Server setups, panels, and PulseKeep configurations.
+- `economy-chat`: Member economy commands such as `/daily`, `/work`, `/balance`, `/profile`, `/coinflip`, `/leaderboard`, and `/pay`.
 
-### Category 4: 🔒 | ACTIVE SUPPORT TICKETS
-**Purpose**: Dynamically generated private channels where users receive support.
+Permissions:
 
-#### Category Permissions Matrix
-*   **Founder 👑 / Administrator ⚙️ / Support Team 🎫**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Read Message History: `ALLOW`
-    *   Attach Files: `ALLOW`
-    *   Embed Links: `ALLOW`
-    *   Manage Messages: `ALLOW`
-*   **PulseKeep Bot 🤖**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Embed Links: `ALLOW`
-    *   Attach Files: `ALLOW`
-*   **@everyone / Verified Member ✅**:
-    *   View Channel: `DENY` (Strict isolation — ensure user private data is shielded)
-    *   Send Messages: `DENY`
+- Verified Member can view, send messages, use slash commands, react, and read history.
+- Server Booster can also attach files and embed links.
+- Staff can manage messages.
+- @everyone cannot view this category.
 
-> [!NOTE]
-> **Dynamic Override**: When a user clicks "Open Ticket" in `#open-a-ticket`, the bot generates a new channel in this category (e.g., `#ticket-1042`) and appends **only one override**: grant the *ticket creator* `View Channel: ALLOW` and `Send Messages: ALLOW` permissions. All other users remain locked out, inheriting the base category's hidden settings.
+Recommended settings:
 
-#### Channels (Generated Dynamically)
-*   `#ticket-XXXX` — Private ticket chat channels.
+- Slowmode: 3 seconds in `general-chat`.
+- Slowmode: 5 seconds in `economy-chat`.
+- Disable link embeds for normal members unless you trust the community.
 
----
+### 3. Command Center
 
-### Category 5: 🤖 | BOT TESTING & SANDBOX
-**Purpose**: Sandbox region for members to interact with the bot and try features safely.
+Use this category to make PulseKeep's interactive command experience easy to find.
 
-#### Category Permissions Matrix
-*   **Founder 👑 / Administrator ⚙️ / Moderator 🛡️**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Manage Messages: `ALLOW`
-*   **Verified Member ✅**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Use Slash Commands: `ALLOW`
-    *   Read Message History: `ALLOW`
-    *   *Channel setting hint*: Turn on a 5-second slowmode on sandbox channels to protect performance.
-*   **@everyone**:
-    *   View Channel: `DENY`
-*   **PulseKeep Bot 🤖**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Embed Links: `ALLOW`
-    *   Attach Files: `ALLOW`
-    *   Add Reactions: `ALLOW`
+Channels:
 
-#### Channels (Inheriting All Permissions)
-1.  `#sandbox-1` — Public spam channel for trying commands.
-2.  `#sandbox-2` — Secondary test channel for advanced setup commands.
+- `command-menu`: The permanent PulseKeep command menu.
+- `bot-sandbox`: General testing for slash commands.
+- `moderation-lab`: Staff-only testing for moderation commands.
 
----
+Permissions:
 
-### Category 6: 🛡️ | STAFF QUARTERS (PRIVATE)
-**Purpose**: Hidden internal coordination, staff chats, and bot administration.
+- Verified Member can view `command-menu` and `bot-sandbox`.
+- Verified Member can use slash commands in both.
+- Moderator and above can view and use `moderation-lab`.
+- PulseKeep Bot can send messages and embed links everywhere in the category.
 
-#### Category Permissions Matrix
-*   **Founder 👑 / Administrator ⚙️ / Moderator 🛡️ / Support Team 🎫**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Read Message History: `ALLOW`
-    *   Attach Files: `ALLOW`
-    *   Embed Links: `ALLOW`
-    *   Manage Messages: `ALLOW`
-*   **PulseKeep Bot 🤖**:
-    *   View Channel: `ALLOW`
-    *   Send Messages: `ALLOW`
-    *   Embed Links: `ALLOW`
-*   **@everyone / Verified Member ✅**:
-    *   View Channel: `DENY` (Staff-only area is completely hidden)
+Setup:
 
-#### Channels (Inheriting All Permissions)
-1.  `#staff-chat` — Coordination channel for the support and moderation team.
-2.  `#mod-logs` — Automated moderation logging (timeouts, kicks, bans).
-3.  `#ticket-archives` — Dynamic transcripts of closed tickets posted by the bot.
+1. In `command-menu`, run `/menu`.
+2. Pin the bot's interactive command browser message.
+3. Tell users to use the dropdown to switch between Utility, Moderation, Economy, and Tickets.
+4. Keep normal chatting out of this channel so the menu is always visible.
 
----
+Command aliases:
 
-## 🪝 3. Webhook Integration
+- `/help`: Opens the interactive command browser privately.
+- `/menu`: Opens the same interactive command browser privately.
+- `!menu`: Posts the menu publicly in a text channel.
+- `!help`: Posts the menu publicly in a text channel.
 
-For a premium experience, PulseKeep can utilize Discord Webhooks to post high-quality, formatted logs without rate-limiting the main bot client.
+### 4. Client Support
 
-1.  Navigate to **Server Settings > Integrations > Webhooks**.
-2.  Create Webhooks for:
-    *   `#announcements` (Name: "PulseKeep News")
-    *   `#status-logs` (Name: "PulseKeep Status")
-    *   `#mod-logs` (Name: "PulseKeep Audit")
-3.  Provide these Webhook URLs to the PulseKeep configuration to enable rich embeds for server events.
+Use this category for support entry points.
+
+Channels:
+
+- `support-faq`: Answers to common setup, deploy, and permission issues.
+- `open-a-ticket`: The permanent ticket panel.
+- `pre-sales`: Questions about premium features, setup help, and custom work.
+
+Permissions:
+
+- Verified Member can view, send messages, read history, and use slash commands.
+- Support Team, Moderator, Administrator, and Founder can manage messages.
+- @everyone cannot view this category.
+- PulseKeep Bot can send messages, embed links, and attach files.
+
+Setup:
+
+1. In `open-a-ticket`, run `/ticketpanel`.
+2. Pin the ticket panel.
+3. Keep the channel locked to support questions only.
+4. Ask users to include server name, command or feature, expected behavior, actual behavior, and any safe error text.
+
+Recommended `support-faq` topics:
+
+- Fly.io deploy checklist.
+- Netlify website checklist.
+- Missing Discord permissions.
+- Bot token and secret safety.
+- Database connection troubleshooting.
+- Slash commands not appearing.
+
+### 5. Active Tickets
+
+Use this category for private ticket channels.
+
+Channels:
+
+- `ticket-0001`, `ticket-0002`, and so on, generated by the bot once ticket creation is fully implemented.
+
+Base category permissions:
+
+- Founder, Administrator, and Support Team can view, send, attach files, embed links, and read history.
+- PulseKeep Bot can view, send, embed links, attach files, and manage channels if ticket creation is enabled.
+- @everyone and Verified Member cannot view.
+
+Dynamic ticket override:
+
+- The ticket creator gets View Channel, Send Messages, Attach Files, and Read Message History.
+- Do not add broad member-role overrides inside ticket channels.
+- Archive closed ticket transcripts into `ticket-archives`.
+
+### 6. Staff Operations
+
+Use this category for private internal work.
+
+Channels:
+
+- `staff-chat`: Coordination and escalation.
+- `mod-logs`: Moderation actions, audit events, and security notes.
+- `ticket-archives`: Closed ticket transcripts and summaries.
+- `deploy-logs`: Fly.io, Netlify, database migration, and incident notes.
+
+Permissions:
+
+- Founder, Administrator, Moderator, and Support Team can view and send.
+- Only Administrator and Founder should manage channels and roles.
+- PulseKeep Bot can send logs and embeds.
+- @everyone, Verified Member, and Server Booster cannot view.
+
+## Interactive Command Menu
+
+PulseKeep now includes a command-first interactive menu for Discord. It is designed to reduce support questions and make command discovery feel built into the bot.
+
+Menu entry points:
+
+- `/help`: Private interactive command menu.
+- `/menu`: Private interactive command menu.
+- `!help`: Public menu reply for legacy text-command users.
+- `!menu`: Public menu reply for legacy text-command users.
+
+Menu categories:
+
+- Overview: Summary of every command group.
+- Utility: `/ping`, `/help`, `/menu`, `/stats`, `/uptime`, `/serverinfo`, `/userinfo`, `/avatar`.
+- Moderation: `/purge`, `/kick`, `/ban`, `/announce`.
+- Economy: `/balance`, `/profile`, `/daily`, `/work`, `/coinflip`, `/pay`, `/leaderboard`.
+- Tickets: `/ticketpanel` and the Open Ticket button.
+
+Recommended server setup:
+
+1. Put `/menu` in `command-menu`.
+2. Put `/ticketpanel` in `open-a-ticket`.
+3. Pin both bot messages.
+4. Mention `/help` in the welcome/rules channel.
+5. Keep sandbox testing in `bot-sandbox` so support channels stay clean.
+
+## Permission Checklist
+
+Before launching the server, confirm:
+
+- Members cannot see staff channels.
+- Members cannot see active tickets unless they own that ticket.
+- Members can use slash commands in command and sandbox channels.
+- PulseKeep Bot has Send Messages, Embed Links, Attach Files, Read Message History, and Use Slash Commands.
+- PulseKeep Bot has Manage Channels only if automated ticket channel creation is enabled.
+- Staff moderation commands are protected by Discord permissions.
+
+## Launch Checklist
+
+1. Create roles and categories.
+2. Apply category permissions.
+3. Create channels.
+4. Invite PulseKeep with the required scopes: `bot` and `applications.commands`.
+5. Run `/menu` in `command-menu`.
+6. Run `/ticketpanel` in `open-a-ticket`.
+7. Pin the generated bot messages.
+8. Test `/help`, `/menu`, `!menu`, and the ticket button.
+9. Test member visibility with a non-staff account.
+10. Publish the website and link it in `rules-and-info`.
+
+## Webhook Recommendations
+
+Create separate webhooks for clean operational messages:
+
+| Channel | Webhook Name | Use |
+| --- | --- | --- |
+| `announcements` | PulseKeep News | Releases and major updates |
+| `status-logs` | PulseKeep Status | Uptime, deploys, incidents |
+| `mod-logs` | PulseKeep Audit | Moderation and audit events |
+| `deploy-logs` | PulseKeep Deploy | Fly.io, Netlify, and database deployment notes |
+
+Do not post secrets, full database URLs, bot tokens, or private user data through webhooks.

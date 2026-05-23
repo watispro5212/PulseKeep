@@ -1,109 +1,91 @@
 # PulseKeep
 
-> **The Ultimate Discord Sentinel** — Fast, secure, and Go-powered.
+PulseKeep is a Go-powered Discord bot and static website for moderation, audit logging, support tickets, economy commands, and live service analytics.
 
-PulseKeep is a high-performance Discord bot built with Go, designed for server monitoring, secure ticket management, and real-time health analytics.
+## What Is Included
 
----
+- Discord bot runtime built with Go and Disgo.
+- Gin API with `/health` and `/stats` endpoints for deploy checks and the website.
+- Netlify-ready static website in `web/`.
+- Fly.io deployment config tuned for a single always-on Discord bot machine.
+- Drizzle/Postgres schema for guild settings, command logs, bot stats, and economy balances.
+- Graceful shutdown on `SIGTERM` so deploys do not leave duplicate gateway sessions behind.
 
-## ✨ Features
+## Project Layout
 
-- **Slash Commands** — `/ping`, `/help`, `/stats`, `/serverinfo`, `/userinfo`, `/avatar`, `/purge`, `/kick`, `/ban`, `/announce`, `/uptime`
-- **Graceful Shutdown** — Handles `SIGTERM` cleanly so Fly.io updates never crash the bot or trigger Discord token suspensions
-- **Live Stats API** — Gin web server exposing `/stats` and `/health` endpoints consumed by the Netlify landing page
-- **In-Memory Cache** — Thread-safe `sync.RWMutex` cache for rapid data access
-- **PostgreSQL Backend** — Drizzle ORM + pgx for schema management and persistence
-- **CORS-Enabled API** — Ready for cross-origin consumption from the Netlify frontend
-
----
-
-## 🗂 Project Structure
-
-```
+```text
 PulseKeep/
-├── cmd/pulsekeep/         # Main entrypoint
-├── internal/
-│   ├── api/               # Gin web server (stats + health endpoints)
-│   ├── bot/               # Discord bot + event handlers
-│   │   └── commands/      # Slash command definitions & handlers
-│   ├── cache/             # In-memory thread-safe cache
-│   ├── config/            # Environment config loader
-│   └── db/                # PostgreSQL connection via pgx
-├── db/
-│   └── schema.ts          # Drizzle ORM schema
-├── web/                   # Netlify landing page
-│   ├── index.html
-│   ├── style.css
-│   ├── app.js
-│   └── assets/
-├── Dockerfile             # Multi-stage Go build
-├── fly.toml               # Fly.io deployment (recreate strategy)
-├── netlify.toml           # Netlify publish config
-├── server.md              # Discord support server blueprint
-└── go.mod
+  cmd/pulsekeep/          Go entrypoint
+  internal/api/           Gin API server
+  internal/bot/           Discord gateway client
+  internal/cache/         Thread-safe in-memory cache
+  internal/config/        Environment loading
+  internal/db/            Postgres connection helper
+  db/schema.ts            Drizzle schema
+  web/                    Netlify static website
+  fly.toml                Fly.io app config
+  netlify.toml            Netlify static hosting config
 ```
 
----
-
-## 🚀 Deployment
-
-### Bot → Fly.io
+## Local Development
 
 ```bash
-# 1. Install flyctl
-# https://fly.io/docs/hands-on/install-flyctl/
+cp .env.example .env
+go run ./cmd/pulsekeep
+```
 
-# 2. Launch the app (first time only)
+For API-only local testing without a Discord token:
+
+```bash
+BOT_DISABLED=true go run ./cmd/pulsekeep
+```
+
+Then open the website from `web/index.html` or serve the folder with any static server. When the site runs on localhost, it reads stats from `http://localhost:8080`; in production it reads the Fly app URL from the `pulsekeep-api` meta tag in `web/index.html`.
+
+## Fly.io Deployment
+
+```bash
 fly launch --no-deploy
-
-# 3. Set secrets (never commit these!)
 fly secrets set DISCORD_TOKEN="your-token-here"
 fly secrets set DATABASE_URL="postgresql://..."
-
-# 4. Deploy
+fly secrets set ALLOWED_ORIGIN="https://your-netlify-site.netlify.app"
 fly deploy
 ```
 
-> **Note**: The `fly.toml` is configured with `strategy = "recreate"` to ensure the old instance is fully stopped before the new one starts. This prevents duplicate Discord gateway connections which would cause rate limiting or token suspension.
+The Fly config keeps one machine running because Discord bots should not be auto-stopped while connected to the gateway. It also checks `/health` during deploys.
 
-### Website → Netlify
+## Netlify Deployment
+
+Use `web` as the publish directory. No build command is required.
 
 ```bash
-# Option A: Netlify CLI
 netlify deploy --dir=web --prod
-
-# Option B: Netlify Dashboard
-# Connect your GitHub repo and set Publish directory to: web
 ```
 
----
+Before publishing, update the `pulsekeep-api` meta tag in `web/index.html` if the Fly app name changes.
 
-## 🛠 Local Development
+## Environment Variables
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `DISCORD_TOKEN` | For full bot mode | Discord bot token from the Discord Developer Portal. |
+| `DATABASE_URL` | For database features | Postgres connection string. |
+| `PORT` | No | HTTP port, defaults to `8080`. |
+| `ALLOWED_ORIGIN` | No | Comma-separated browser origins allowed to call the API. Use the Netlify site URL in production. |
+| `BOT_DISABLED` | No | Set to `true` to run API-only mode without opening a Discord gateway connection. |
+
+## Database
 
 ```bash
-# Copy and fill in your secrets
-cp .env.example .env
-
-# Run the bot
-go run ./cmd/pulsekeep
-
-# Run DB migrations (requires Node.js)
 npm install
+npm run db:generate
 npm run db:migrate
 ```
 
----
+## Verification
 
-## 📋 Environment Variables
+```bash
+go test ./...
+```
 
-| Variable | Description | Required |
-|---|---|---|
-| `DISCORD_TOKEN` | Your bot token from the Discord Developer Portal | ✅ |
-| `DATABASE_URL` | PostgreSQL connection string | ✅ |
-| `PORT` | HTTP port for the stats server (default: `8080`) | ❌ |
-
----
-
-## 📜 License
-
-MIT © 2026 watispro
+The static site has no build step; validate it by opening the Netlify publish directory or serving `web/` locally.

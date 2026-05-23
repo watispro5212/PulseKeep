@@ -1,145 +1,123 @@
-/* ==========================================================
-   PulseKeep Web App — Live Stats + Animations
-   ========================================================== */
+const apiMeta = document.querySelector('meta[name="pulsekeep-api"]');
+const configuredApi = apiMeta?.getAttribute('content')?.trim();
+const isLocalHost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+const API_BASE_URL = isLocalHost ? 'http://localhost:8080' : configuredApi;
 
-// Configuration — change this to your Fly.io app URL when deployed
-const API_BASE_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:8080'
-    : 'https://pulsekeep.fly.dev';
+const statEls = {
+    servers: document.getElementById('stat-servers'),
+    users: document.getElementById('stat-users'),
+    commands: document.getElementById('stat-commands'),
+    uptime: document.getElementById('stat-uptime'),
+};
 
-// ── Animated Counter ──────────────────────────────────────
-function animateCounter(element, target, suffix = '') {
-    const isNumber = typeof target === 'number';
-    if (!isNumber) {
-        element.textContent = target;
+function setStatus(state, message) {
+    const badgeText = document.querySelector('#bot-status-badge .badge-text');
+    const dot = document.querySelector('#bot-status-badge .pulse-dot');
+
+    if (badgeText) badgeText.textContent = message;
+    if (!dot) return;
+
+    dot.classList.remove('online', 'offline');
+    if (state) dot.classList.add(state);
+}
+
+function animateCounter(element, target) {
+    if (!element) return;
+    const value = Number(target);
+
+    if (!Number.isFinite(value)) {
+        element.textContent = '--';
         return;
     }
 
-    const duration = 2000;
-    const frameDuration = 1000 / 60;
-    const totalFrames = Math.round(duration / frameDuration);
-    let frame = 0;
+    const duration = 900;
+    const start = performance.now();
 
-    const counter = setInterval(() => {
-        frame++;
-        const progress = easeOutCubic(frame / totalFrames);
-        const currentValue = Math.round(target * progress);
+    function tick(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        element.textContent = Math.round(value * eased).toLocaleString('en-US');
 
-        element.textContent = formatNumber(currentValue) + suffix;
-
-        if (frame === totalFrames) {
-            clearInterval(counter);
-            element.textContent = formatNumber(target) + suffix;
+        if (progress < 1) {
+            requestAnimationFrame(tick);
         }
-    }, frameDuration);
+    }
+
+    requestAnimationFrame(tick);
 }
 
-function easeOutCubic(t) {
-    return 1 - Math.pow(1 - t, 3);
+function setStatsFallback() {
+    Object.values(statEls).forEach((element) => {
+        if (element) element.textContent = '--';
+    });
 }
 
-function formatNumber(num) {
-    return num.toLocaleString('en-US');
-}
-
-// ── Fetch Live Stats from API ─────────────────────────────
 async function fetchStats() {
-    const statusBadge = document.getElementById('bot-status-badge');
-    const badgeText = statusBadge?.querySelector('.badge-text');
-    const pulseDot = statusBadge?.querySelector('.pulse-dot');
+    if (!API_BASE_URL) {
+        setStatsFallback();
+        setStatus('offline', 'PulseKeep API not configured');
+        return;
+    }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/stats`, {
-            signal: AbortSignal.timeout(8000),
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+        const response = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/stats`, {
+            signal: controller.signal,
+            headers: { Accept: 'application/json' },
         });
+        clearTimeout(timeout);
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`Stats request failed with HTTP ${response.status}`);
+        }
 
         const data = await response.json();
-
-        // Populate stat cards with animated counters
-        animateCounter(document.getElementById('stat-servers'), data.servers || 0);
-        animateCounter(document.getElementById('stat-users'), data.users || 0);
-        animateCounter(document.getElementById('stat-commands'), data.commands_run || 0);
-        
-        const uptimeEl = document.getElementById('stat-uptime');
-        if (uptimeEl) uptimeEl.textContent = data.uptime || '—';
-
-        // Show online status
-        if (pulseDot) pulseDot.classList.add('green');
-        if (badgeText) badgeText.textContent = 'PulseKeep Service Online';
-
-    } catch (err) {
-        console.warn('Could not reach PulseKeep API:', err.message);
-
-        // Fallback to offline state
-        document.getElementById('stat-servers').textContent = '—';
-        document.getElementById('stat-users').textContent = '—';
-        document.getElementById('stat-commands').textContent = '—';
-        document.getElementById('stat-uptime').textContent = '—';
-
-        if (pulseDot) {
-            pulseDot.classList.remove('green');
-            pulseDot.style.backgroundColor = '#ef4444';
-            pulseDot.style.boxShadow = '0 0 10px #ef4444';
-        }
-        if (badgeText) badgeText.textContent = 'PulseKeep Service Offline';
+        animateCounter(statEls.servers, data.servers);
+        animateCounter(statEls.users, data.users);
+        animateCounter(statEls.commands, data.commands_run);
+        if (statEls.uptime) statEls.uptime.textContent = data.uptime || '--';
+        setStatus('online', 'PulseKeep service online');
+    } catch (error) {
+        console.warn('Could not reach PulseKeep API:', error.message);
+        setStatsFallback();
+        setStatus('offline', 'PulseKeep service offline');
     }
 }
 
-// ── Intersection Observer for Scroll Animations ───────────
+function initSmoothScroll() {
+    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener('click', (event) => {
+            const targetId = anchor.getAttribute('href');
+            const target = targetId ? document.querySelector(targetId) : null;
+
+            if (!target) return;
+            event.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+}
+
 function initScrollAnimations() {
+    if (!('IntersectionObserver' in window)) return;
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-                observer.unobserve(entry.target);
-            }
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
         });
-    }, { threshold: 0.15 });
+    }, { threshold: 0.12 });
 
-    document.querySelectorAll('.stat-card, .feature-card, .cta-container').forEach((el) => {
-        el.classList.add('scroll-reveal');
-        observer.observe(el);
+    document.querySelectorAll('.stat-card, .feature-card, .command-group, .setup-steps li').forEach((element) => {
+        element.classList.add('scroll-reveal');
+        observer.observe(element);
     });
 }
 
-// ── Smooth Scroll for Nav Links ───────────────────────────
-function initSmoothScroll() {
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
-    });
-}
-
-// ── Header Glass Effect on Scroll ─────────────────────────
-function initHeaderScroll() {
-    const header = document.querySelector('.header');
-    if (!header) return;
-
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 60) {
-            header.style.backgroundColor = 'rgba(7, 8, 13, 0.92)';
-            header.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.4)';
-        } else {
-            header.style.backgroundColor = 'rgba(7, 8, 13, 0.7)';
-            header.style.boxShadow = 'none';
-        }
-    });
-}
-
-// ── Initialize on DOM Ready ───────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     fetchStats();
-    initScrollAnimations();
     initSmoothScroll();
-    initHeaderScroll();
-
-    // Refresh stats every 60 seconds
-    setInterval(fetchStats, 60_000);
+    initScrollAnimations();
+    window.setInterval(fetchStats, 60_000);
 });

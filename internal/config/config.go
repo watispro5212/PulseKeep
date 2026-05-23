@@ -8,9 +8,11 @@ import (
 )
 
 type Config struct {
-	DiscordToken string
-	DatabaseURL  string
-	Port         string
+	DiscordToken  string
+	DatabaseURL   string
+	Port          string
+	AllowedOrigin string
+	BotDisabled   bool
 }
 
 func LoadConfig() *Config {
@@ -18,13 +20,15 @@ func LoadConfig() *Config {
 	_ = godotenv.Load()
 
 	token := os.Getenv("DISCORD_TOKEN")
-	if token == "" {
-		log.Fatal("DISCORD_TOKEN is required")
+	botDisabled := os.Getenv("BOT_DISABLED") == "true"
+	if token == "" && !botDisabled {
+		log.Println("DISCORD_TOKEN is not set; starting API only. Set BOT_DISABLED=true to silence this warning.")
+		botDisabled = true
 	}
 
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		log.Fatal("DATABASE_URL is required")
+		log.Println("DATABASE_URL is not set; database-backed features will be disabled.")
 	}
 
 	port := os.Getenv("PORT")
@@ -32,9 +36,16 @@ func LoadConfig() *Config {
 		port = "8080"
 	}
 
+	allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
+	if allowedOrigin == "" {
+		allowedOrigin = "*"
+	}
+
 	return &Config{
-		DiscordToken: token,
-		DatabaseURL:  dbURL,
-		Port:         port,
+		DiscordToken:  token,
+		DatabaseURL:   dbURL,
+		Port:          port,
+		AllowedOrigin: allowedOrigin,
+		BotDisabled:   botDisabled,
 	}
 }

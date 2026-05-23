@@ -3,177 +3,263 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PulseKeep — The Ultimate Discord Sentinel</title>
-    
-    <!-- SEO Optimization -->
-    <meta name="description" content="Keep your Discord server healthy, secure, and monitored with PulseKeep. Dynamic logs, secure ticketing, and state-of-the-art server analytics.">
-    <meta name="keywords" content="Discord Bot, PulseKeep, Logging, Tickets, Discord Security, Go Bot">
-    
-    <!-- Modern Typography -->
+    <title>PulseKeep - Discord moderation, tickets, and server analytics</title>
+    <meta name="description" content="PulseKeep is a fast Go-powered Discord bot for moderation, audit logging, secure tickets, economy commands, and live server health analytics.">
+    <meta name="keywords" content="Discord bot, moderation bot, audit logs, Discord tickets, PulseKeep">
+    <meta name="theme-color" content="#0b0f19">
+    <meta name="pulsekeep-api" content="https://pulsekeep-weathered-dust-2479.fly.dev">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
-    
-    <!-- FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Styling -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <!-- Glowing Background blobs -->
-    <div class="blob blob-purple"></div>
-    <div class="blob blob-cyan"></div>
-
-    <!-- Navigation Header -->
     <header class="header">
         <div class="container nav-container">
-            <a href="#" class="logo-area">
-                <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo" id="pulsekeep-logo-img">
-                <span class="logo-text">Pulse<span class="accent">Keep</span></span>
+            <a href="#top" class="logo-area" aria-label="PulseKeep home">
+                <img src="assets/logo.png" alt="" class="nav-logo">
+                <span class="logo-text">PulseKeep</span>
             </a>
-            <nav class="nav-links">
+            <nav class="nav-links" aria-label="Primary navigation">
                 <a href="#features">Features</a>
-                <a href="#statistics">Live Stats</a>
-                <a href="#support">Support</a>
+                <a href="#statistics">Status</a>
+                <a href="#commands">Commands</a>
+                <a href="#setup">Setup</a>
             </nav>
-            <a href="https://discord.com/oauth2/authorize?client_id=1234567890&permissions=8&scope=bot%20applications.commands" class="btn btn-primary" id="btn-invite-nav">
-                <i class="fa-brands fa-discord"></i> Invite Bot
+            <a href="#support" class="btn btn-primary">
+                <i class="fa-brands fa-discord" aria-hidden="true"></i>
+                Support
             </a>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container hero-container">
-            <div class="hero-content">
-                <div class="badge-pulsing" id="bot-status-badge">
-                    <span class="pulse-dot green"></span>
-                    <span class="badge-text">PulseKeep Service Online</span>
+    <main id="top">
+        <section class="hero section-band">
+            <div class="container hero-container">
+                <div class="hero-content">
+                    <div class="status-pill" id="bot-status-badge">
+                        <span class="pulse-dot" aria-hidden="true"></span>
+                        <span class="badge-text">Checking PulseKeep service</span>
+                    </div>
+                    <h1>Moderation, tickets, and analytics for busy Discord servers.</h1>
+                    <p class="hero-subtitle">
+                        PulseKeep keeps communities organized with fast slash commands, audit-friendly logs, secure support workflows, and a live health API built for Fly.io and Netlify.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#setup" class="btn btn-primary btn-large">
+                            <i class="fa-solid fa-rocket" aria-hidden="true"></i>
+                            Start setup
+                        </a>
+                        <a href="#commands" class="btn btn-secondary btn-large">
+                            <i class="fa-solid fa-terminal" aria-hidden="true"></i>
+                            View commands
+                        </a>
+                    </div>
+                    <div class="hero-proof" aria-label="PulseKeep highlights">
+                        <span><strong>Go</strong> runtime</span>
+                        <span><strong>Fly.io</strong> bot API</span>
+                        <span><strong>Netlify</strong> website</span>
+                    </div>
                 </div>
-                <h1 class="hero-title">Keep Your Server <span class="gradient-text">Safe, Active & Monitored</span></h1>
-                <p class="hero-subtitle">
-                    PulseKeep is an ultra-fast, Go-powered Discord sentinel delivering robust log streams, category-secure private support tickets, and high-fidelity analytics.
-                </p>
-                <div class="hero-actions">
-                    <a href="https://discord.com/oauth2/authorize?client_id=1234567890&permissions=8&scope=bot%20applications.commands" class="btn btn-primary btn-large" id="btn-invite-hero">
-                        <i class="fa-brands fa-discord"></i> Add to Discord
+
+                <div class="hero-panel" aria-label="PulseKeep live operations preview">
+                    <div class="panel-header">
+                        <img src="assets/logo.png" alt="PulseKeep logo" class="panel-logo">
+                        <div>
+                            <span class="eyebrow">Live operations</span>
+                            <h2>PulseKeep control room</h2>
+                        </div>
+                    </div>
+                    <div class="signal-list">
+                        <div class="signal-row">
+                            <span class="signal-icon audit"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+                            <div>
+                                <strong>Audit stream</strong>
+                                <span>Role, channel, message, and moderation changes</span>
+                            </div>
+                        </div>
+                        <div class="signal-row">
+                            <span class="signal-icon tickets"><i class="fa-solid fa-ticket" aria-hidden="true"></i></span>
+                            <div>
+                                <strong>Ticket desk</strong>
+                                <span>Private support channels with staff visibility</span>
+                            </div>
+                        </div>
+                        <div class="signal-row">
+                            <span class="signal-icon economy"><i class="fa-solid fa-coins" aria-hidden="true"></i></span>
+                            <div>
+                                <strong>Economy loop</strong>
+                                <span>Daily streaks, work shifts, coinflips, leaderboards, balances, and payments</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="statistics" class="statistics">
+            <div class="container">
+                <div class="section-header">
+                    <span class="eyebrow">Runtime status</span>
+                    <h2>Live API health from Fly.io</h2>
+                    <p>Fetched directly by the Netlify site with graceful fallback when the backend is unavailable.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <article class="stat-card">
+                        <i class="fa-solid fa-server" aria-hidden="true"></i>
+                        <strong id="stat-servers">--</strong>
+                        <span>Guilds guarded</span>
+                    </article>
+                    <article class="stat-card">
+                        <i class="fa-solid fa-users" aria-hidden="true"></i>
+                        <strong id="stat-users">--</strong>
+                        <span>Active users</span>
+                    </article>
+                    <article class="stat-card">
+                        <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+                        <strong id="stat-commands">--</strong>
+                        <span>Commands run</span>
+                    </article>
+                    <article class="stat-card">
+                        <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                        <strong id="stat-uptime">--</strong>
+                        <span>API uptime</span>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features section-band">
+            <div class="container">
+                <div class="section-header left">
+                    <span class="eyebrow">What it handles</span>
+                    <h2>Everything a staff team needs without a messy dashboard.</h2>
+                    <p>PulseKeep focuses on practical moderation and community operations that Discord servers repeat every day.</p>
+                </div>
+
+                <div class="features-grid">
+                    <article class="feature-card">
+                        <i class="fa-solid fa-receipt" aria-hidden="true"></i>
+                        <h3>Audit-ready logging</h3>
+                        <p>Track moderation events, edited messages, channel updates, role changes, and command usage in a format staff can scan quickly.</p>
+                    </article>
+                    <article class="feature-card">
+                        <i class="fa-solid fa-ticket" aria-hidden="true"></i>
+                        <h3>Private tickets</h3>
+                        <p>Use category-level permission patterns for cleaner support channels that are easier to reason about and safer to maintain.</p>
+                    </article>
+                    <article class="feature-card">
+                        <i class="fa-solid fa-gavel" aria-hidden="true"></i>
+                        <h3>Moderation tools</h3>
+                        <p>Run purge, kick, ban, announce, user lookup, avatar, and server information commands with Discord permission checks.</p>
+                    </article>
+                    <article class="feature-card">
+                        <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                        <h3>Operational analytics</h3>
+                        <p>Expose lightweight stats and health endpoints for the website, deploy checks, uptime tools, and future dashboards.</p>
+                    </article>
+                    <article class="feature-card">
+                        <i class="fa-solid fa-database" aria-hidden="true"></i>
+                        <h3>Postgres persistence</h3>
+                        <p>Keep guild settings, command logs, and economy balances in a Drizzle-managed Postgres schema.</p>
+                    </article>
+                    <article class="feature-card">
+                        <i class="fa-solid fa-cloud" aria-hidden="true"></i>
+                        <h3>Deploy-friendly runtime</h3>
+                        <p>Designed for one always-on Fly.io machine with graceful shutdown, API-only startup support, and Netlify static hosting.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="commands" class="commands">
+            <div class="container">
+                <div class="section-header">
+                    <span class="eyebrow">Command surface</span>
+                    <h2>Built-in commands for staff and members.</h2>
+                </div>
+
+                <div class="command-layout">
+                    <article class="command-group">
+                        <h3><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Moderation</h3>
+                        <p><code>/purge</code> <code>/kick</code> <code>/ban</code> <code>/announce</code></p>
+                    </article>
+                    <article class="command-group">
+                        <h3><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Utility</h3>
+                        <p><code>/ping</code> <code>/help</code> <code>/stats</code> <code>/uptime</code> <code>/serverinfo</code> <code>/userinfo</code> <code>/avatar</code></p>
+                    </article>
+                    <article class="command-group">
+                        <h3><i class="fa-solid fa-coins" aria-hidden="true"></i> Economy</h3>
+                        <p><code>/balance</code> <code>/profile</code> <code>/daily</code> <code>/work</code> <code>/coinflip</code> <code>/pay</code> <code>/leaderboard</code></p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="setup" class="setup section-band">
+            <div class="container setup-grid">
+                <div>
+                    <span class="eyebrow">Deployment path</span>
+                    <h2>Clear setup for Fly.io, Netlify, and Postgres.</h2>
+                    <p>PulseKeep can run its API even before every secret is configured, which makes first deploys easier to debug. Add secrets when you are ready for the full Discord bot.</p>
+                </div>
+                <ol class="setup-steps">
+                    <li>
+                        <strong>Deploy the Go service to Fly.io</strong>
+                        <span>Use `fly deploy`, then confirm `/health` returns status and uptime.</span>
+                    </li>
+                    <li>
+                        <strong>Set production secrets</strong>
+                        <span>Add `DISCORD_TOKEN`, `DATABASE_URL`, and optionally `ALLOWED_ORIGIN` for the Netlify domain.</span>
+                    </li>
+                    <li>
+                        <strong>Publish the static site on Netlify</strong>
+                        <span>Set the publish directory to `web`; the site fetches live stats from the Fly app.</span>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="support" class="support">
+            <div class="container support-container">
+                <div>
+                    <span class="eyebrow">Support</span>
+                    <h2>Need help wiring the bot into your server?</h2>
+                    <p>Use the README deployment guide, review the server blueprint, and replace the placeholder support invite with your production Discord invite when ready.</p>
+                </div>
+                <div class="support-actions">
+                    <a href="terms.html" class="btn btn-secondary">
+                        <i class="fa-solid fa-book" aria-hidden="true"></i>
+                        Terms
                     </a>
-                    <a href="#features" class="btn btn-secondary btn-large" id="btn-explore-hero">
-                        Explore Features
+                    <a href="privacy.html" class="btn btn-secondary">
+                        <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                        Privacy
                     </a>
                 </div>
             </div>
-            <div class="hero-visual">
-                <div class="logo-wrapper">
-                    <img src="assets/logo.png" alt="PulseKeep Hologram" class="hero-logo-large" id="pulsekeep-hero-img">
-                    <div class="logo-pulse-ring"></div>
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <!-- Statistics Section -->
-    <section id="statistics" class="statistics">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Operational Health</h2>
-                <p class="section-subtitle">Real-time statistics fetched dynamically from our running Fly.io cluster.</p>
-            </div>
-            
-            <div class="stats-grid">
-                <div class="stat-card" id="stat-servers-card">
-                    <div class="stat-icon"><i class="fa-solid fa-server"></i></div>
-                    <div class="stat-value" id="stat-servers">--</div>
-                    <div class="stat-label">Guilds Guarded</div>
-                </div>
-                <div class="stat-card" id="stat-users-card">
-                    <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
-                    <div class="stat-value" id="stat-users">--</div>
-                    <div class="stat-label">Active Users</div>
-                </div>
-                <div class="stat-card" id="stat-commands-card">
-                    <div class="stat-icon"><i class="fa-solid fa-terminal"></i></div>
-                    <div class="stat-value" id="stat-commands">--</div>
-                    <div class="stat-label">Commands Processed</div>
-                </div>
-                <div class="stat-card" id="stat-uptime-card">
-                    <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
-                    <div class="stat-value" id="stat-uptime">--</div>
-                    <div class="stat-label">System Uptime</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="features">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Premium Features</h2>
-                <p class="section-subtitle">Powering servers with state-of-the-art Go and Node architectures.</p>
-            </div>
-            
-            <div class="features-grid">
-                <div class="feature-card" id="feat-logs">
-                    <div class="feature-icon"><i class="fa-solid fa-receipt"></i></div>
-                    <h3>Intelligent Log Streams</h3>
-                    <p>Real-time audit telemetry. Monitors edited messages, channel changes, role adjustments, and moderation events instantly.</p>
-                </div>
-                
-                <div class="feature-card" id="feat-tickets">
-                    <div class="feature-icon"><i class="fa-solid fa-ticket"></i></div>
-                    <h3>Category-Secure Tickets</h3>
-                    <p>Ticket generation using secure category parent permissions. No messy channel overrides, fully isolated and audit-logged.</p>
-                </div>
-                
-                <div class="feature-card" id="feat-performance">
-                    <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
-                    <h3>Go-Optimized Performance</h3>
-                    <p>Built with Go 1.26 and Gin, powered by an optimized in-memory cache system. Under 10ms response times for core actions.</p>
-                </div>
-                
-                <div class="feature-card" id="feat-database">
-                    <div class="feature-icon"><i class="fa-solid fa-database"></i></div>
-                    <h3>Drizzle ORM Backend</h3>
-                    <p>Consistent schema migrations and blazing fast persistence layer backed by Drizzle, Node.js, and Postgres.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Discord CTA Callout -->
-    <section id="support" class="cta-callout">
-        <div class="container cta-container">
-            <div class="cta-content">
-                <h2>Need Immediate Help or Setup Support?</h2>
-                <p>Join our dedicated Discord support server built on secure, category-level permission blueprints. Interact with our staff and community directly.</p>
-                <a href="https://discord.gg/pulsekeep" class="btn btn-secondary btn-large" id="btn-discord-server">
-                    <i class="fa-brands fa-discord"></i> Join Support Server
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
     <footer class="footer">
         <div class="container footer-container">
             <div class="footer-brand">
-                <span class="logo-text">Pulse<span class="accent">Keep</span></span>
-                <p>© 2026 PulseKeep Bot. Designed with rich premium aesthetics. Stably hosted on Fly.io and Netlify.</p>
+                <span class="logo-text">PulseKeep</span>
+                <p>Fast, secure Discord operations hosted with Fly.io and Netlify.</p>
             </div>
             <div class="footer-links">
                 <a href="#features">Features</a>
-                <a href="#statistics">Live Status</a>
-                <a href="https://github.com/watispro/pulsekeep">Open Source</a>
-                <a href="privacy.html">Privacy Policy</a>
-                <a href="terms.html">Terms of Service</a>
+                <a href="#statistics">Status</a>
+                <a href="https://github.com/watispro/pulsekeep">GitHub</a>
+                <a href="privacy.html">Privacy</a>
+                <a href="terms.html">Terms</a>
             </div>
         </div>
     </footer>
 
-    <!-- App Script -->
     <script src="app.js"></script>
 </body>
 </html>

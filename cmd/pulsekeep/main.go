@@ -28,7 +28,7 @@ func main() {
 	_ = memCache // We will pass this to handlers later
 
 	// 4. Init Web Server
-	server := api.NewServer(cfg.Port)
+	server := api.NewServer(cfg.Port, cfg.AllowedOrigin, database)
 	go func() {
 		if err := server.Start(); err != nil {
 			log.Fatalf("Web server failed: %v", err)
@@ -36,11 +36,16 @@ func main() {
 	}()
 
 	// 5. Init Bot
-	discordBot := bot.New(cfg.DiscordToken)
+	var discordBot *bot.Bot
 
-	ctx := context.Background()
-	if err := discordBot.Start(ctx); err != nil {
-		log.Fatalf("Failed to start Discord bot: %v", err)
+	if cfg.BotDisabled {
+		log.Println("Discord bot is disabled; API endpoints are still available.")
+	} else {
+		discordBot = bot.New(cfg.DiscordToken)
+		ctx := context.Background()
+		if err := discordBot.Start(ctx); err != nil {
+			log.Fatalf("Failed to start Discord bot: %v", err)
+		}
 	}
 
 	log.Println("PulseKeep (Go version) is running. Press CTRL+C to exit.")
@@ -64,7 +69,10 @@ func main() {
 	}
 
 	// 2. Stop the Discord Bot connection
-	log.Println("Stopping Discord bot connection...")
-	discordBot.Stop(shutdownCtx)
-	log.Println("Discord bot connection stopped cleanly. Farewell!")
+	if discordBot != nil {
+		log.Println("Stopping Discord bot connection...")
+		discordBot.Stop(shutdownCtx)
+		log.Println("Discord bot connection stopped cleanly.")
+	}
+	log.Println("PulseKeep stopped cleanly. Farewell!")
 }
