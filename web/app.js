@@ -2,10 +2,8 @@
    PulseKeep Web App — Live Stats + Animations
    ========================================================== */
 
-// Configuration — change this to your Fly.io app URL when deployed
-const API_BASE_URL = window.location.hostname === 'localhost'
-    ? 'http://localhost:8080'
-    : 'https://pulsekeep.fly.dev';
+// Configuration — dynamically use current host for API calls
+const API_BASE_URL = window.location.origin;
 
 // ── Animated Counter ──────────────────────────────────────
 function animateCounter(element, target, suffix = '') {
@@ -65,6 +63,22 @@ async function fetchStats() {
         const uptimeEl = document.getElementById('stat-uptime');
         if (uptimeEl) uptimeEl.textContent = data.uptime || '—';
 
+        // Update status page specific elements
+        const latencyEl = document.getElementById('stat-latency');
+        if (latencyEl) latencyEl.textContent = `${data.latency || 0} ms`;
+
+        const apiSpeedEl = document.getElementById('api-speed');
+        if (apiSpeedEl) {
+            const startTime = performance.now();
+            try {
+                await fetch(`${API_BASE_URL}/health`);
+                const duration = Math.round(performance.now() - startTime);
+                apiSpeedEl.textContent = `${duration} ms`;
+            } catch (e) {
+                apiSpeedEl.textContent = '— ms';
+            }
+        }
+
         // Show online status
         if (pulseDot) pulseDot.classList.add('green');
         if (badgeText) badgeText.textContent = 'PulseKeep Service Online';
@@ -77,6 +91,9 @@ async function fetchStats() {
         document.getElementById('stat-users').textContent = '—';
         document.getElementById('stat-commands').textContent = '—';
         document.getElementById('stat-uptime').textContent = '—';
+
+        if (document.getElementById('stat-latency')) document.getElementById('stat-latency').textContent = '— ms';
+        if (document.getElementById('api-speed')) document.getElementById('api-speed').textContent = '— ms';
 
         if (pulseDot) {
             pulseDot.classList.remove('green');
