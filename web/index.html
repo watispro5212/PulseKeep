@@ -25,24 +25,40 @@
     <!-- Glowing Background blobs -->
     <div class="blob blob-purple"></div>
     <div class="blob blob-cyan"></div>
+    <div class="blob blob-pink"></div>
 
     <!-- Navigation Header -->
-    <header class="header">
+    <header class="header" id="main-header">
         <div class="container nav-container">
-            <a href="#" class="logo-area">
+            <a href="index.html" class="logo-area">
                 <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo" id="pulsekeep-logo-img">
                 <span class="logo-text">Pulse<span class="accent">Keep</span></span>
             </a>
-            <nav class="nav-links"><a href="index.html">Home</a><a href="commands.html">Commands</a><a href="status.html">Status</a><a href="team.html">Team</a>
-                <a href="#features">Features</a>
-                <a href="#statistics">Live Stats</a>
-                <a href="#support">Support</a>
+            <nav class="nav-links">
+                <a href="index.html" class="active">Home</a>
+                <a href="commands.html">Commands</a>
+                <a href="status.html">Status</a>
+                <a href="team.html">Team</a>
             </nav>
             <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary" id="btn-invite-nav">
                 <i class="fa-brands fa-discord"></i> Invite Bot
             </a>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
         </div>
     </header>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav" id="mobile-nav">
+        <a href="index.html" class="active">Home</a>
+        <a href="commands.html">Commands</a>
+        <a href="status.html">Status</a>
+        <a href="team.html">Team</a>
+        <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary btn-large" style="margin-top: 1rem;">
+            <i class="fa-brands fa-discord"></i> Invite Bot
+        </a>
+    </nav>
 
     <!-- Hero Section -->
     <section class="hero">
@@ -83,22 +99,22 @@
             </div>
             
             <div class="stats-grid">
-                <div class="stat-card" id="stat-servers-card">
+                <div class="stat-card scroll-reveal" id="stat-servers-card">
                     <div class="stat-icon"><i class="fa-solid fa-server"></i></div>
                     <div class="stat-value" id="stat-servers">--</div>
                     <div class="stat-label">Guilds Guarded</div>
                 </div>
-                <div class="stat-card" id="stat-users-card">
+                <div class="stat-card scroll-reveal" id="stat-users-card">
                     <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
                     <div class="stat-value" id="stat-users">--</div>
                     <div class="stat-label">Active Users</div>
                 </div>
-                <div class="stat-card" id="stat-commands-card">
+                <div class="stat-card scroll-reveal" id="stat-commands-card">
                     <div class="stat-icon"><i class="fa-solid fa-terminal"></i></div>
                     <div class="stat-value" id="stat-commands">--</div>
                     <div class="stat-label">Commands Processed</div>
                 </div>
-                <div class="stat-card" id="stat-uptime-card">
+                <div class="stat-card scroll-reveal" id="stat-uptime-card">
                     <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
                     <div class="stat-value" id="stat-uptime">--</div>
                     <div class="stat-label">System Uptime</div>
@@ -116,25 +132,25 @@
             </div>
             
             <div class="features-grid">
-                <div class="feature-card" id="feat-logs">
+                <div class="feature-card scroll-reveal" id="feat-logs">
                     <div class="feature-icon"><i class="fa-solid fa-receipt"></i></div>
                     <h3>Intelligent Log Streams</h3>
                     <p>Real-time audit telemetry. Monitors edited messages, channel changes, role adjustments, and moderation events instantly.</p>
                 </div>
                 
-                <div class="feature-card" id="feat-tickets">
+                <div class="feature-card scroll-reveal" id="feat-tickets">
                     <div class="feature-icon"><i class="fa-solid fa-ticket"></i></div>
                     <h3>Category-Secure Tickets</h3>
                     <p>Ticket generation using secure category parent permissions. No messy channel overrides, fully isolated and audit-logged.</p>
                 </div>
                 
-                <div class="feature-card" id="feat-performance">
+                <div class="feature-card scroll-reveal" id="feat-performance">
                     <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
                     <h3>Go-Optimized Performance</h3>
                     <p>Built with Go 1.26 and Gin, powered by an optimized in-memory cache system. Under 10ms response times for core actions.</p>
                 </div>
                 
-                <div class="feature-card" id="feat-database">
+                <div class="feature-card scroll-reveal" id="feat-database">
                     <div class="feature-icon"><i class="fa-solid fa-database"></i></div>
                     <h3>Drizzle ORM Backend</h3>
                     <p>Consistent schema migrations and blazing fast persistence layer backed by Drizzle, Node.js, and Postgres.</p>
@@ -160,12 +176,15 @@
     <footer class="footer">
         <div class="container footer-container">
             <div class="footer-brand">
-                <span class="logo-text">Pulse<span class="accent">Keep</span></span>
+                <a href="index.html" class="logo-area">
+                    <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo" style="height: 32px; width: 32px;">
+                    <span class="logo-text">Pulse<span class="accent">Keep</span></span>
+                </a>
                 <p>© 2026 PulseKeep Bot. Designed with rich premium aesthetics. Stably hosted on Fly.io and Netlify.</p>
             </div>
             <div class="footer-links">
-                <a href="#features">Features</a>
-                <a href="#statistics">Live Status</a>
+                <a href="commands.html">Commands</a>
+                <a href="status.html">Live Status</a>
                 <a href="https://github.com/watispro/pulsekeep">Open Source</a>
                 <a href="privacy.html">Privacy Policy</a>
                 <a href="terms.html">Terms of Service</a>

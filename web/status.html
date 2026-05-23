@@ -11,8 +11,9 @@
 <body>
     <div class="blob blob-purple"></div>
     <div class="blob blob-cyan"></div>
+    <div class="blob blob-pink"></div>
 
-    <header class="header">
+    <header class="header" id="main-header">
         <div class="container nav-container">
             <a href="index.html" class="logo-area">
                 <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo">
@@ -27,8 +28,18 @@
             <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
                 <i class="fa-brands fa-discord"></i> Invite Bot
             </a>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
         </div>
     </header>
+
+    <nav class="mobile-nav" id="mobile-nav">
+        <a href="index.html">Home</a>
+        <a href="commands.html">Commands</a>
+        <a href="status.html" class="active">Status</a>
+        <a href="team.html">Team</a>
+    </nav>
 
     <section class="hero-small">
         <div class="container">
@@ -38,28 +49,32 @@
     </section>
 
     <section class="container content-section">
-        <div class="status-board">
+        <div class="status-board scroll-reveal">
             <div class="badge-pulsing" id="bot-status-badge">
                 <span class="pulse-dot green"></span>
                 <span class="badge-text">All Systems Operational</span>
             </div>
 
-            <div class="stats-grid">
-                <div class="stat-card">
+            <div class="status-metrics">
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="fa-solid fa-satellite-dish"></i></div>
                     <div class="stat-label">Bot Latency</div>
                     <div class="stat-value" id="stat-latency">-- ms</div>
                 </div>
-                <div class="stat-card">
+                <div class="metric-card">
+                    <div class="metric-icon"><i class="fa-solid fa-gauge-high"></i></div>
                     <div class="stat-label">API Response Time</div>
                     <div class="stat-value" id="api-speed">-- ms</div>
                 </div>
-                <div class="stat-card">
+                <div class="metric-card">
+                    <div class="metric-icon" style="color: var(--green-success);"><i class="fa-solid fa-database"></i></div>
                     <div class="stat-label">Database Health</div>
-                    <div class="stat-value" style="color: #00ff00;">Healthy</div>
+                    <div class="stat-value" style="color: var(--green-success);">Healthy</div>
                 </div>
-                <div class="stat-card">
+                <div class="metric-card">
+                    <div class="metric-icon" style="color: var(--green-success);"><i class="fa-solid fa-shard"></i></div>
                     <div class="stat-label">Shard #0</div>
-                    <div class="stat-value" style="color: #00ff00;">Connected</div>
+                    <div class="stat-value" style="color: var(--green-success);">Connected</div>
                 </div>
             </div>
         </div>
@@ -68,7 +83,10 @@
     <footer class="footer">
         <div class="container footer-container">
             <div class="footer-brand">
-                <span class="logo-text">Pulse<span class="accent">Keep</span></span>
+                <a href="index.html" class="logo-area">
+                    <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo" style="height: 32px; width: 32px;">
+                    <span class="logo-text">Pulse<span class="accent">Keep</span></span>
+                </a>
                 <p>© 2026 PulseKeep Bot.</p>
             </div>
             <div class="footer-links">
