@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status — PulseKeep</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="blob blob-purple"></div>
+    <div class="blob blob-cyan"></div>
+
+    <header class="header">
+        <div class="container nav-container">
+            <a href="index.html" class="logo-area">
+                <img src="assets/logo.png" alt="PulseKeep Logo" class="nav-logo">
+                <span class="logo-text">Pulse<span class="accent">Keep</span></span>
+            </a>
+            <nav class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="commands.html">Commands</a>
+                <a href="status.html" class="active">Status</a>
+                <a href="team.html">Team</a>
+            </nav>
+            <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
+                <i class="fa-brands fa-discord"></i> Invite Bot
+            </a>
+        </div>
+    </header>
+
+    <section class="hero-small">
+        <div class="container">
+            <h1 class="hero-title">System <span class="gradient-text">Status</span></h1>
+            <p class="hero-subtitle">Real-time health and performance metrics for the PulseKeep network.</p>
+        </div>
+    </section>
+
+    <section class="container content-section">
+        <div class="status-board">
+            <div class="badge-pulsing" id="bot-status-badge">
+                <span class="pulse-dot green"></span>
+                <span class="badge-text">All Systems Operational</span>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Bot Latency</div>
+                    <div class="stat-value" id="stat-latency">-- ms</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">API Response Time</div>
+                    <div class="stat-value" id="api-speed">-- ms</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Database Health</div>
+                    <div class="stat-value" style="color: #00ff00;">Healthy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Shard #0</div>
+                    <div class="stat-value" style="color: #00ff00;">Connected</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <span class="logo-text">Pulse<span class="accent">Keep</span></span>
+                <p>© 2026 PulseKeep Bot.</p>
+            </div>
+            <div class="footer-links">
+                <a href="index.html">Home</a>
+                <a href="commands.html">Commands</a>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+    <script src="app.js"></script>
+</body>
+</html>
