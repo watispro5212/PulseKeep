@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for pulsekeep on 2026-05-22T23:53:55Z
+# fly.toml app configuration file generated for pulsekeep-weathered-dust-2479 on 2026-05-23T00:37:50Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'pulsekeep'
+app = 'pulsekeep-weathered-dust-2479'
 primary_region = 'lax'
 
 [build]
@@ -19,7 +19,6 @@ primary_region = 'lax'
   min_machines_running = 1
   processes = ['app']
 
-<<<<<<< HEAD
   [[http_service.checks]]
     grace_period = "15s"
     interval = "30s"
@@ -32,8 +31,6 @@ primary_region = 'lax'
   kill_timeout = "10s"
   kill_signal = "SIGTERM"
 
-=======
->>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'

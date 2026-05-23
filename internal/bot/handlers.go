@@ -11,34 +11,17 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
-<<<<<<< HEAD
 	"github.com/watispro/pulsekeep/internal/bot/commands"
 	"github.com/watispro/pulsekeep/internal/bot/economy"
-=======
-	"github.com/disgoorg/disgo/sharding"
-	"github.com/disgoorg/snowflake/v2"
-	"github.com/watispro/pulsekeep/internal/bot/commands"
-	"github.com/watispro/pulsekeep/internal/db"
->>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
 )
 
 type Bot struct {
-	Client    bot.Client
-	DB        *db.Database
-	StartTime time.Time
+	Client *bot.Client
 }
 
-<<<<<<< HEAD
 func New(token string) *Bot {
 	startedAt := time.Now()
 	economyStore := economy.NewStore()
-=======
-func New(token string, database *db.Database) *Bot {
-	cmdDefs := commands.GetCommands(database)
-
-	// Track start time (will be updated when bot is ready)
-	startTime := time.Now()
->>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
 
 	client, err := disgo.New(token,
 		bot.WithGatewayConfigOpts(
@@ -46,30 +29,14 @@ func New(token string, database *db.Database) *Bot {
 				gateway.IntentGuilds,
 				gateway.IntentGuildMessages,
 				gateway.IntentMessageContent,
-				gateway.IntentGuildMembers,
 			),
 		),
-		bot.WithShardManagerConfigOpts(
-			sharding.WithShardCount(1),
-			sharding.WithShardIDs(0),
-		),
-		bot.WithEventListenerFunc(func(e *events.ApplicationCommandInteractionCreate) {
-			data := e.Data
-			if cmd, ok := cmdDefs[data.CommandName()]; ok {
-				ctx := &commands.CommandContext{
-					Event: e,
-					DB:    database,
-				}
-				// Log command execution
-				guildID := "0"
-				if e.GuildID() != nil {
-					guildID = e.GuildID().String()
-				}
-				database.IncrementCommandRun(context.Background(), guildID, e.User().ID.String(), data.CommandName())
-
-				if err := cmd.Handler(ctx); err != nil {
-					log.Printf("Error handling command %s: %v", data.CommandName(), err)
-				}
+		bot.WithEventListenerFunc(func(e *events.MessageCreate) {
+			if e.Message.Author.Bot {
+				return
+			}
+			if e.Message.Content == "!ping" {
+				_, _ = e.Client().Rest.CreateMessage(e.ChannelID, discord.NewMessageCreate().WithContent("Pong from Go PulseKeep!"))
 			}
 			if e.Message.Content == "!menu" || e.Message.Content == "!help" {
 				_, _ = e.Client().Rest.CreateMessage(e.ChannelID, commands.MenuMessage("", false).WithMessageReferenceByID(e.Message.ID))
@@ -154,85 +121,21 @@ func New(token string, database *db.Database) *Bot {
 		}),
 		bot.WithEventListenerFunc(func(e *events.Ready) {
 			log.Printf("Bot is ready as %s#%s", e.User.Username, e.User.Discriminator)
-<<<<<<< HEAD
 			if _, err := e.Client().Rest.SetGlobalCommands(e.Client().ApplicationID, commands.Register()); err != nil {
 				log.Printf("failed to register global slash commands: %v", err)
 			}
-=======
-			// Update start time to actual ready time
-			startTime = time.Now()
-			if _, err := e.Client().Rest.SetGlobalCommands(e.Client().ApplicationID, commands.Register(database)); err != nil {
-				log.Printf("Failed to register global commands: %v", err)
-			} else {
-				log.Println("Successfully registered global slash commands")
-			}
-		}),
-		bot.WithEventListenerFunc(func(e *events.MessageDelete) {
-			if e.GuildID == nil {
-				return
-			}
-			cfg, err := database.GetGuildConfig(context.Background(), e.GuildID.String())
-			if err != nil || cfg.LogChannelID == nil {
-				return
-			}
-			logChanID, _ := snowflake.Parse(*cfg.LogChannelID)
-			embed := discord.NewEmbed().
-				WithTitle("Message Deleted").
-				WithDescription(fmt.Sprintf("A message was deleted in <#%s>", e.ChannelID)).
-				WithColor(0xff0000)
-			_, _ = e.Client().Rest.CreateMessage(logChanID, discord.MessageCreate{Embeds: []discord.Embed{embed}})
-		}),
-		bot.WithEventListenerFunc(func(e *events.MessageUpdate) {
-			if e.GuildID == nil || e.Message.Author.Bot {
-				return
-			}
-			cfg, err := database.GetGuildConfig(context.Background(), e.GuildID.String())
-			if err != nil || cfg.LogChannelID == nil {
-				return
-			}
-			logChanID, _ := snowflake.Parse(*cfg.LogChannelID)
-			embed := discord.NewEmbed().
-				WithTitle("Message Edited").
-				WithDescription(fmt.Sprintf("A message was edited in <#%s>", e.ChannelID)).
-				AddField("Old Content", e.OldMessage.Content, false).
-				AddField("New Content", e.Message.Content, false).
-				WithColor(0xffff00)
-			_, _ = e.Client().Rest.CreateMessage(logChanID, discord.MessageCreate{Embeds: []discord.Embed{embed}})
-		}),
-		bot.WithEventListenerFunc(func(e *events.GuildMemberJoin) {
-			cfg, err := database.GetGuildConfig(context.Background(), e.GuildID.String())
-			if err != nil || cfg.LogChannelID == nil {
-				return
-			}
-			logChanID, _ := snowflake.Parse(*cfg.LogChannelID)
-			embed := discord.NewEmbed().
-				WithTitle("Member Joined").
-				WithDescription(fmt.Sprintf("%s (%s) joined the server.", e.Member.User.Tag(), e.Member.User.ID)).
-				WithColor(0x00ff00)
-			_, _ = e.Client().Rest.CreateMessage(logChanID, discord.MessageCreate{Embeds: []discord.Embed{embed}})
-		}),
-		bot.WithEventListenerFunc(func(e *events.GuildMemberLeave) {
-			cfg, err := database.GetGuildConfig(context.Background(), e.GuildID.String())
-			if err != nil || cfg.LogChannelID == nil {
-				return
-			}
-			logChanID, _ := snowflake.Parse(*cfg.LogChannelID)
-			embed := discord.NewEmbed().
-				WithTitle("Member Left").
-				WithDescription(fmt.Sprintf("%s (%s) left the server.", e.User.Tag(), e.User.ID)).
-				WithColor(0xffa500)
-			_, _ = e.Client().Rest.CreateMessage(logChanID, discord.MessageCreate{Embeds: []discord.Embed{embed}})
->>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
 		}),
 	)
+
 	if err != nil {
 		log.Fatalf("error while building disgo instance: %s", err)
 	}
-	return &Bot{Client: *client, DB: database, StartTime: startTime}
+
+	return &Bot{Client: client}
 }
 
 func (b *Bot) Start(ctx context.Context) error {
-	return b.Client.OpenShardManager(ctx)
+	return b.Client.OpenGateway(ctx)
 }
 
 func (b *Bot) Stop(ctx context.Context) {

@@ -3,61 +3,31 @@ package api
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
-<<<<<<< HEAD
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/watispro/pulsekeep/internal/db"
-=======
-	"time"
-
-	"github.com/gin-gonic/gin"
-	"github.com/watispro/pulsekeep/internal/bot"
->>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
 )
-
-// formatDuration returns a human-readable uptime string
-func formatDuration(d time.Duration) string {
-	total := int(d.Seconds())
-	days := total / 86400
-	hours := (total % 86400) / 3600
-	minutes := (total % 3600) / 60
-
-	if days > 0 {
-		return fmt.Sprintf("%dd %dh %dm", days, hours, minutes)
-	}
-	if hours > 0 {
-		return fmt.Sprintf("%dh %dm", hours, minutes)
-	}
-	return fmt.Sprintf("%dm", minutes)
-}
 
 type Server struct {
 	httpServer *http.Server
 	port       string
-<<<<<<< HEAD
 	startedAt  time.Time
 	database   *db.Database
 }
 
 func NewServer(port string, allowedOrigin string, database *db.Database) *Server {
 	// Set Gin to release mode in production
-=======
-	Bot        *bot.Bot
-}
-
-func NewServer(port string, discordBot *bot.Bot) *Server {
->>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
 	gin.SetMode(gin.ReleaseMode)
 
 	startedAt := time.Now()
 	r := gin.Default()
 
+	// CORS Middleware to allow Netlify frontend to securely fetch stats from Fly.io backend
 	r.Use(func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
 		if allowedOrigin == "*" || origin == allowedOrigin || isAllowedOrigin(origin, allowedOrigin) {
@@ -98,7 +68,6 @@ func NewServer(port string, discordBot *bot.Bot) *Server {
 	})
 
 	r.GET("/stats", func(c *gin.Context) {
-<<<<<<< HEAD
 		c.JSON(http.StatusOK, gin.H{
 			"bot":          "PulseKeep v5.0",
 			"status":       "online",
@@ -113,45 +82,6 @@ func NewServer(port string, discordBot *bot.Bot) *Server {
 				"audit_logs",
 				"economy",
 			},
-=======
-		servers := 0
-		users := 0
-		commandsRun := 0
-		latency := 0
-		uptime := "—"
-
-		if discordBot != nil {
-			// Count servers and users from the cache
-			for g := range discordBot.Client.Caches.Guilds() {
-				servers++
-				users += g.MemberCount
-			}
-			// Get gateway latency
-			latency = int(discordBot.Client.Gateway.Latency().Milliseconds())
-			// Calculate uptime from bot start time
-			startTime := discordBot.StartTime
-			if !startTime.IsZero() {
-				duration := time.Since(startTime)
-				uptime = formatDuration(duration)
-			}
-			// Get command run count from database if available
-			if discordBot.DB != nil {
-				count, err := discordBot.DB.GetCommandsRunCount(c.Request.Context())
-				if err == nil {
-					commandsRun = count
-				}
-			}
-		}
-
-		c.JSON(200, gin.H{
-			"bot":          "PulseKeep v5.0",
-			"status":       "online",
-			"servers":      servers,
-			"users":        users,
-			"commands_run": commandsRun,
-			"uptime":       uptime,
-			"latency":      latency,
->>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
 		})
 	})
 
@@ -161,14 +91,9 @@ func NewServer(port string, discordBot *bot.Bot) *Server {
 			Handler:           r,
 			ReadHeaderTimeout: 5 * time.Second,
 		},
-<<<<<<< HEAD
 		port:      port,
 		startedAt: startedAt,
 		database:  database,
-=======
-		port: port,
-		Bot:  discordBot,
->>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
 	}
 }
 
@@ -184,7 +109,6 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	log.Println("Shutting down web server gracefully...")
 	return s.httpServer.Shutdown(ctx)
 }
-<<<<<<< HEAD
 
 func isAllowedOrigin(origin string, allowedOrigins string) bool {
 	if origin == "" || allowedOrigins == "" {
@@ -230,5 +154,3 @@ func formatUnit(value int, suffix string) string {
 	}
 	return strings.TrimSpace(strings.Join([]string{strconv.Itoa(value), suffix}, ""))
 }
-=======
->>>>>>> 3e3c91af610d865bc7a95aea623510c44dcca715
