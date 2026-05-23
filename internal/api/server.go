@@ -3,12 +3,30 @@ package api
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/watispro/pulsekeep/internal/bot"
 )
+
+// formatDuration returns a human-readable uptime string
+func formatDuration(d time.Duration) string {
+	total := int(d.Seconds())
+	days := total / 86400
+	hours := (total % 86400) / 3600
+	minutes := (total % 3600) / 60
+
+	if days > 0 {
+		return fmt.Sprintf("%dd %dh %dm", days, hours, minutes)
+	}
+	if hours > 0 {
+		return fmt.Sprintf("%dh %dm", hours, minutes)
+	}
+	return fmt.Sprintf("%dm", minutes)
+}
 
 type Server struct {
 	httpServer *http.Server
@@ -42,14 +60,31 @@ func NewServer(port string, discordBot *bot.Bot) *Server {
 	r.GET("/stats", func(c *gin.Context) {
 		servers := 0
 		users := 0
+		commandsRun := 0
 		latency := 0
+		uptime := "—"
 
 		if discordBot != nil {
+			// Count servers and users from the cache
 			for g := range discordBot.Client.Caches.Guilds() {
 				servers++
 				users += g.MemberCount
 			}
+			// Get gateway latency
 			latency = int(discordBot.Client.Gateway.Latency().Milliseconds())
+			// Calculate uptime from bot start time
+			startTime := discordBot.StartTime
+			if !startTime.IsZero() {
+				duration := time.Since(startTime)
+				uptime = formatDuration(duration)
+			}
+			// Get command run count from database if available
+			if discordBot.DB != nil {
+				count, err := discordBot.DB.GetCommandsRunCount(c.Request.Context())
+				if err == nil {
+					commandsRun = count
+				}
+			}
 		}
 
 		c.JSON(200, gin.H{
@@ -57,8 +92,8 @@ func NewServer(port string, discordBot *bot.Bot) *Server {
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
-			"commands_run": 8412,
-			"uptime":       "99.99%",
+			"commands_run": commandsRun,
+			"uptime":       uptime,
 			"latency":      latency,
 		})
 	})

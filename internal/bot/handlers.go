@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
@@ -17,12 +18,16 @@ import (
 )
 
 type Bot struct {
-	Client bot.Client
-	DB     *db.Database
+	Client    bot.Client
+	DB        *db.Database
+	StartTime time.Time
 }
 
 func New(token string, database *db.Database) *Bot {
 	cmdDefs := commands.GetCommands(database)
+
+	// Track start time (will be updated when bot is ready)
+	startTime := time.Now()
 
 	client, err := disgo.New(token,
 		bot.WithGatewayConfigOpts(
@@ -44,6 +49,13 @@ func New(token string, database *db.Database) *Bot {
 					Event: e,
 					DB:    database,
 				}
+				// Log command execution
+				guildID := "0"
+				if e.GuildID() != nil {
+					guildID = e.GuildID().String()
+				}
+				database.IncrementCommandRun(context.Background(), guildID, e.User().ID.String(), data.CommandName())
+
 				if err := cmd.Handler(ctx); err != nil {
 					log.Printf("Error handling command %s: %v", data.CommandName(), err)
 				}
@@ -51,6 +63,8 @@ func New(token string, database *db.Database) *Bot {
 		}),
 		bot.WithEventListenerFunc(func(e *events.Ready) {
 			log.Printf("Bot is ready as %s#%s", e.User.Username, e.User.Discriminator)
+			// Update start time to actual ready time
+			startTime = time.Now()
 			if _, err := e.Client().Rest.SetGlobalCommands(e.Client().ApplicationID, commands.Register(database)); err != nil {
 				log.Printf("Failed to register global commands: %v", err)
 			} else {
@@ -117,7 +131,7 @@ func New(token string, database *db.Database) *Bot {
 	if err != nil {
 		log.Fatalf("error while building disgo instance: %s", err)
 	}
-	return &Bot{Client: *client, DB: database}
+	return &Bot{Client: *client, DB: database, StartTime: startTime}
 }
 
 func (b *Bot) Start(ctx context.Context) error {
