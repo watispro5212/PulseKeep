@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for pulsekeep-weathered-dust-2479 on 2026-05-22T18:49:35-05:00
+# fly.toml app configuration file generated for pulsekeep-weathered-dust-2479 on 2026-05-23T00:37:50Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -25,7 +25,8 @@ primary_region = 'lax'
   kill_signal = "SIGTERM"
 
 [[vm]]
-  memory = '1gb'
+  memory = '2gb'
   cpu_kind = 'shared'
-  cpus = 1
-  memory_mb = 1024
+  cpus = 2
+  memory_mb = 2048
+  size = 'shared-cpu-2x'
