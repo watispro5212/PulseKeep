@@ -29,4 +29,17 @@ export const userEconomy = pgTable('user_economy', {
   userId: varchar('user_id', { length: 20 }).primaryKey(),
   balance: integer('balance').default(0).notNull(),
   lastDailyClaim: timestamp('last_daily_claim'),
+  lastWork: timestamp('last_work'),
+  lastRob: timestamp('last_rob'),
+  totalEarned: integer('total_earned').default(0).notNull(),
+  totalGambled: integer('total_gambled').default(0).notNull(),
+  transactions: integer('transactions').default(0).notNull(),
+})
+
+export const userInventory = pgTable('user_inventory', {
+  id: serial('id').primaryKey(),
+  userId: varchar('user_id', { length: 20 }).notNull(),
+  itemId: varchar('item_id', { length: 50 }).notNull(),
+  itemName: varchar('item_name', { length: 100 }).notNull(),
+  quantity: integer('quantity').default(1).notNull(),
 })
