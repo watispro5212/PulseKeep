@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team - PulseKeep</title>
-    <meta name="description" content="Meet the PulseKeep project team and learn how the bot is maintained.">
+    <title>Support - PulseKeep</title>
+    <meta name="description" content="PulseKeep support resources, setup checklist, Top.gg review notes, and useful links.">
     <meta name="theme-color" content="#0b0f19">
     <meta name="pulsekeep-api" content="https://pulsekeep.fly.dev">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,8 +24,8 @@
                 <a href="index.html">Home</a>
                 <a href="commands.html">Commands</a>
                 <a href="status.html">Status</a>
-                <a href="team.html" class="active">Team</a>
-                <a href="support.html">Support</a>
+                <a href="team.html">Team</a>
+                <a href="support.html" class="active">Support</a>
             </nav>
             <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
                 <i class="fa-brands fa-discord" aria-hidden="true"></i>
@@ -47,28 +47,36 @@
     <main>
         <section class="hero-small section-band">
             <div class="container">
-                <span class="eyebrow">Project team</span>
-                <h1 class="hero-title">Built for real Discord staff work.</h1>
-                <p class="hero-subtitle">PulseKeep is maintained as a practical Go-powered Discord bot with a public website, live status API, and review-friendly documentation.</p>
+                <span class="eyebrow">Support and review links</span>
+                <h1 class="hero-title">Help reviewers and admins test PulseKeep fast.</h1>
+                <p class="hero-subtitle">This page gathers the links and setup notes you will want available before submitting PulseKeep to Top.gg.</p>
             </div>
         </section>
 
         <section class="container content-section">
-            <div class="team-grid">
-                <article class="team-card">
-                    <i class="fa-solid fa-code" aria-hidden="true"></i>
-                    <h3>Bot engineering</h3>
-                    <p>Go runtime, Discord slash commands, graceful deploy behavior, health checks, and command handling.</p>
+            <div class="listing-grid">
+                <article class="support-panel">
+                    <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+                    <h3>Top.gg review checklist</h3>
+                    <div class="copy-block">
+                        <div><strong>Bot online</strong><span>Keep PulseKeep running during the review window.</span></div>
+                        <div><strong>Invite works</strong><span>Use the public OAuth invite link and make sure it includes <code>bot</code> and <code>applications.commands</code>.</span></div>
+                        <div><strong>Help command works</strong><span>Reviewers should be able to run <code>/help</code>, <code>/menu</code>, or <code>/ping</code> immediately.</span></div>
+                        <div><strong>Public pages exist</strong><span>Commands, status, privacy policy, terms, and support pages are now present.</span></div>
+                    </div>
                 </article>
-                <article class="team-card">
-                    <i class="fa-solid fa-database" aria-hidden="true"></i>
-                    <h3>Data and operations</h3>
-                    <p>Postgres-backed guild configuration, command usage, economy balances, and deployment readiness.</p>
-                </article>
-                <article class="team-card">
-                    <i class="fa-solid fa-life-ring" aria-hidden="true"></i>
-                    <h3>Community support</h3>
-                    <p>Server setup guidance, command discovery, support resources, and policy pages for bot directories.</p>
+
+                <article class="support-panel">
+                    <i class="fa-solid fa-link" aria-hidden="true"></i>
+                    <h3>Useful links</h3>
+                    <div class="copy-block">
+                        <div><strong>Website</strong><span><a href="index.html">PulseKeep homepage</a></span></div>
+                        <div><strong>Commands</strong><span><a href="commands.html">Command reference</a></span></div>
+                        <div><strong>Status</strong><span><a href="status.html">Live Fly.io status</a></span></div>
+                        <div><strong>API</strong><span><a href="https://pulsekeep.fly.dev/health">https://pulsekeep.fly.dev/health</a></span></div>
+                        <div><strong>Privacy</strong><span><a href="privacy.html">Privacy policy</a></span></div>
+                        <div><strong>Terms</strong><span><a href="terms.html">Terms of service</a></span></div>
+                    </div>
                 </article>
             </div>
         </section>
@@ -78,12 +86,11 @@
         <div class="container footer-container">
             <div class="footer-brand">
                 <span class="logo-text">PulseKeep</span>
-                <p>Maintained for Discord communities and staff teams.</p>
+                <p>Support and submission resources.</p>
             </div>
             <div class="footer-links">
                 <a href="commands.html">Commands</a>
                 <a href="status.html">Status</a>
-                <a href="support.html">Support</a>
                 <a href="privacy.html">Privacy</a>
                 <a href="terms.html">Terms</a>
             </div>

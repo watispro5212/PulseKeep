@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy | PulseKeep</title>
+    <title>Privacy Policy - PulseKeep</title>
     <meta name="description" content="PulseKeep privacy policy for Discord bot data handling.">
+    <meta name="theme-color" content="#0b0f19">
+    <meta name="pulsekeep-api" content="https://pulsekeep.fly.dev">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,43 +21,39 @@
                 <span class="logo-text">PulseKeep</span>
             </a>
             <nav class="nav-links" aria-label="Primary navigation">
-                <a href="index.html#features">Features</a>
-                <a href="index.html#statistics">Status</a>
-                <a href="index.html#commands">Commands</a>
-                <a href="terms.html">Terms</a>
+                <a href="index.html">Home</a>
+                <a href="commands.html">Commands</a>
+                <a href="status.html">Status</a>
+                <a href="team.html">Team</a>
+                <a href="support.html">Support</a>
             </nav>
-            <a href="index.html#support" class="btn btn-primary">
+            <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
                 <i class="fa-brands fa-discord" aria-hidden="true"></i>
-                Support
+                Invite Bot
             </a>
         </div>
     </header>
 
     <main class="legal-main">
-        <article class="container legal-card">
-            <span class="eyebrow">Policy</span>
+        <article class="legal-card">
+            <span class="eyebrow">Legal</span>
             <h1>Privacy Policy</h1>
-            <p>Last updated: May 2026</p>
+            <p>Last updated: May 23, 2026</p>
 
-            <h2>Information we collect</h2>
-            <p>PulseKeep may store Discord user IDs, guild IDs, channel IDs, guild configuration, economy balances, cooldown timestamps, and command usage records needed to operate the bot.</p>
-            <p>PulseKeep does not sell user data. Message content is not stored for general logging unless a command explicitly needs the submitted text to complete the requested action.</p>
+            <h2>Data PulseKeep may process</h2>
+            <p>PulseKeep may process Discord user IDs, guild IDs, channel IDs, role IDs, command names, command timestamps, guild configuration, logging channel settings, ticket metadata, and economy balances needed to operate bot features.</p>
 
-            <h2>How we use data</h2>
-            <ul>
-                <li>Provide moderation, ticketing, utility, analytics, and economy features.</li>
-                <li>Keep guild settings and command behavior consistent across restarts.</li>
-                <li>Display aggregate service statistics without exposing private server data.</li>
-            </ul>
+            <h2>Message content</h2>
+            <p>PulseKeep does not sell user data. Message content is not stored for general analytics. Some command-provided text, such as announcement text or moderation reasons, may be processed to complete the requested command.</p>
 
-            <h2>Data security</h2>
-            <p>Production data should be stored in Postgres with secrets managed through the hosting provider. Bot tokens, database URLs, and private credentials must never be committed to the repository.</p>
+            <h2>How data is used</h2>
+            <p>Data is used to run moderation tools, audit logs, ticket workflows, economy commands, live status metrics, troubleshooting, abuse prevention, and service reliability checks.</p>
 
-            <h2>Deletion requests</h2>
-            <p>Server owners and users can request deletion of stored data through the configured support channel. Records tied to required abuse prevention or operational logs may be retained when necessary.</p>
+            <h2>Retention</h2>
+            <p>Guild configuration and economy data may remain until a server removes the bot or requests deletion. Logs and command records may be pruned as the service evolves.</p>
 
             <h2>Contact</h2>
-            <p>For questions about privacy or data handling, use the PulseKeep support link configured on the website.</p>
+            <p>For privacy questions or deletion requests, use the support resources linked on this website.</p>
         </article>
     </main>
 
@@ -63,12 +61,12 @@
         <div class="container footer-container">
             <div class="footer-brand">
                 <span class="logo-text">PulseKeep</span>
-                <p>Fast, secure Discord operations hosted with Fly.io and Netlify.</p>
+                <p>Privacy information for PulseKeep users.</p>
             </div>
             <div class="footer-links">
-                <a href="index.html#features">Features</a>
-                <a href="index.html#statistics">Status</a>
-                <a href="privacy.html">Privacy</a>
+                <a href="commands.html">Commands</a>
+                <a href="status.html">Status</a>
+                <a href="support.html">Support</a>
                 <a href="terms.html">Terms</a>
             </div>
         </div>

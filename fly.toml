@@ -1,14 +1,15 @@
-# fly.toml app configuration file generated for pulsekeep-weathered-dust-2479 on 2026-05-23T00:37:50Z
+# fly.toml app configuration file for pulsekeep
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'pulsekeep-weathered-dust-2479'
+app = 'pulsekeep'
 primary_region = 'lax'
 
 [build]
 
 [env]
+  ALLOWED_ORIGIN = '*'
   PORT = '8080'
 
 [http_service]
