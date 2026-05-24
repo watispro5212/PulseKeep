@@ -40,7 +40,7 @@ For API-only local testing without a Discord token:
 BOT_DISABLED=true go run ./cmd/pulsekeep
 ```
 
-Then open the website from `web/index.html` or serve the folder with any static server. When the site runs on localhost, it reads stats from `http://localhost:8080`; in production it reads the Fly app URL from the `pulsekeep-api` meta tag in `web/index.html`.
+Then open the website from `web/index.html` or serve the folder with any static server. In production, the static site reads stats through Netlify Functions so the backend origin is not exposed in the page source.
 
 ## Fly.io Deployment
 
@@ -62,7 +62,7 @@ Use `web` as the publish directory. No build command is required.
 netlify deploy --dir=web --prod
 ```
 
-Before publishing, update the `pulsekeep-api` meta tag in `web/index.html` if the Fly app name changes.
+Before publishing, set the Netlify environment variable `PULSEKEEP_API_BASE` to the private backend origin used by the status proxy functions.
 
 ## Environment Variables
 

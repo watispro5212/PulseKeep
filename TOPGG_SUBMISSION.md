@@ -8,8 +8,6 @@ Bot name: PulseKeep
 
 Website: https://pulsekeep.netlify.app
 
-API status: https://pulsekeep.fly.dev/health
-
 Command page: https://pulsekeep.netlify.app/commands.html
 
 Status page: https://pulsekeep.netlify.app/status.html
@@ -44,7 +42,7 @@ Key features:
 - Private ticket panel for support workflows.
 - Economy commands including balance, profile, daily, work, pay, coinflip, and leaderboard.
 - Utility commands including ping, uptime, stats, help, menu, server info, user info, and avatar.
-- Live website status backed by the Fly.io API at `https://pulsekeep.fly.dev`.
+- Live website status through the PulseKeep status page.
 
 The fastest way to test PulseKeep after inviting it is to run `/help`, `/menu`, or `/ping`.
 
@@ -59,8 +57,8 @@ Suggested categories:
 
 ## Review Checklist
 
-- Keep the Fly.io bot service online during review.
-- Confirm `https://pulsekeep.fly.dev/health` returns JSON before submitting.
+- Keep the bot service online during review.
+- Confirm the public status page shows the service online before submitting.
 - Confirm the OAuth invite works in a test server.
 - Confirm `/help`, `/menu`, `/ping`, `/stats`, and `/uptime` are usable by reviewers.
 - Make sure the public website is deployed after the latest `web/` changes.

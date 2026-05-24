@@ -1,6 +1,4 @@
-const apiMeta = document.querySelector('meta[name="pulsekeep-api"]');
-const configuredApi = apiMeta?.getAttribute('content')?.trim() || 'https://pulsekeep.fly.dev';
-const API_BASE_URL = configuredApi;
+const API_BASE_URL = '/.netlify/functions';
 
 const statEls = {
     servers: document.getElementById('stat-servers'),
