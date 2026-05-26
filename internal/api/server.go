@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/watispro/pulsekeep/internal/cache"
-	"github.com/watispro/pulsekeep/internal/db"
+	"github.com/watispro5212/PulseKeep/internal/cache"
+	"github.com/watispro5212/PulseKeep/internal/db"
 )
 
 type Server struct {

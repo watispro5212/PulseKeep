@@ -10,7 +10,7 @@ By participating, you agree to uphold the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Reporting Bugs
 
-1. Check the [issues](https://github.com/watispro/pulsekeep/issues) to avoid duplicates
+1. Check the [issues](https://github.com/watispro5212/PulseKeep/issues) to avoid duplicates
 2. Use the **Bug Report** issue template
 3. Include clear steps to reproduce, expected behavior, and actual behavior
 4. Attach logs or screenshots if relevant
@@ -41,7 +41,7 @@ By participating, you agree to uphold the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Local Development
 
-1. Clone the repo: `git clone https://github.com/watispro/pulsekeep.git`
+1. Clone the repo: `git clone https://github.com/watispro5212/PulseKeep.git`
 2. Copy the example config: `cp .env.example .env`
 3. Fill in your `DISCORD_BOT_TOKEN` in `.env`
 4. Run: `go run ./cmd/pulsekeep`
@@ -91,4 +91,4 @@ web/                  — Static website (HTML/CSS/JS)
 
 ## Questions?
 
-Open a [Discussion](https://github.com/watispro/pulsekeep/discussions) or join the PulseKeep support server.
+Open a [Discussion](https://github.com/watispro5212/PulseKeep/discussions) or join the PulseKeep support server.

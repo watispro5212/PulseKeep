@@ -1,4 +1,4 @@
-module github.com/watispro/pulsekeep
+module github.com/watispro5212/PulseKeep
 
 go 1.26.3
 

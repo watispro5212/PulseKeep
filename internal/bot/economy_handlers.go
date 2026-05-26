@@ -9,8 +9,8 @@ import (
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
-	"github.com/watispro/pulsekeep/internal/bot/commands"
-	"github.com/watispro/pulsekeep/internal/bot/economy"
+	"github.com/watispro5212/PulseKeep/internal/bot/commands"
+	"github.com/watispro5212/PulseKeep/internal/bot/economy"
 )
 
 func handleEconomyCommand(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) (discord.MessageCreate, bool) {

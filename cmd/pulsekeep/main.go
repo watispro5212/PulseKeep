@@ -8,11 +8,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/watispro/pulsekeep/internal/api"
-	"github.com/watispro/pulsekeep/internal/bot"
-	"github.com/watispro/pulsekeep/internal/cache"
-	"github.com/watispro/pulsekeep/internal/config"
-	"github.com/watispro/pulsekeep/internal/db"
+	"github.com/watispro5212/PulseKeep/internal/api"
+	"github.com/watispro5212/PulseKeep/internal/bot"
+	"github.com/watispro5212/PulseKeep/internal/cache"
+	"github.com/watispro5212/PulseKeep/internal/config"
+	"github.com/watispro5212/PulseKeep/internal/db"
 )
 
 func main() {

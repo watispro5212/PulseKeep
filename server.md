@@ -398,4 +398,4 @@ A: Make sure the bot has `Use Slash Commands` permission. If commands were just 
 A: Members need to use at least one economy command (`/daily` or `/work`) to appear on the leaderboard.
 
 **Q: How do I reset a user's economy data?**
-A: Economy data is stored in PostgreSQL. Contact the bot owner (watispro1) for manual resets.
+A: Economy data is stored in PostgreSQL. Contact the bot owner (watispro1 on Discord) for manual resets.

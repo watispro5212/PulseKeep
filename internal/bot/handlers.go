@@ -14,9 +14,9 @@ import (
 	"github.com/disgoorg/disgo/gateway"
 	"github.com/disgoorg/omit"
 	"github.com/disgoorg/snowflake/v2"
-	"github.com/watispro/pulsekeep/internal/bot/commands"
-	"github.com/watispro/pulsekeep/internal/bot/economy"
-	"github.com/watispro/pulsekeep/internal/cache"
+	"github.com/watispro5212/PulseKeep/internal/bot/commands"
+	"github.com/watispro5212/PulseKeep/internal/bot/economy"
+	"github.com/watispro5212/PulseKeep/internal/cache"
 )
 
 type Bot struct {
@@ -315,7 +315,7 @@ func aboutMessage(e *events.ApplicationCommandInteractionCreate) discord.Message
 			AddField("Language", "Go (disgo)", true).
 			AddField("Database", "PostgreSQL (Neon)", true).
 			AddField("Commands", "40+ slash commands across 4 categories", true).
-			AddField("Creator", "watispro1", true).
+			AddField("Creator", "watispro1 (Discord)", true).
 			AddField("Open source", "Yes (MIT)", true).
 			AddField("Links", "[Commands](https://pulsekeep.xyz/commands) · [Status](https://pulsekeep.xyz/status) · [Changelog](https://pulsekeep.xyz/changelog)", false).
 			WithColor(commands.UtilityMenuAccent).
