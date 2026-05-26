@@ -109,6 +109,11 @@ func Register() []discord.ApplicationCommandCreate {
 					Description: "Announcement body text",
 					Required:    true,
 				},
+				discord.ApplicationCommandOptionBool{
+					Name:        "ping",
+					Description: "Whether to ping @everyone",
+					Required:    false,
+				},
 			},
 		},
 		discord.SlashCommandCreate{

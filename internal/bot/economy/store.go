@@ -134,7 +134,7 @@ var ShopItems = []ShopItem{
 	{ID: "fishing_rod", Name: "Fishing Rod", Description: "Unlocks the /fish command", Price: 1500},
 	{ID: "iron_pickaxe", Name: "Iron Pickaxe", Description: "Unlocks the /mine command", Price: 2000},
 	{ID: "lottery_ticket", Name: "Lottery Ticket", Description: "Entry for the server lottery draw", Price: 500},
-	{ID: "health_potion", Name: "Health Potion", Description: "Restores 25% of lost rob fines", Price: 2500},
+	{ID: "health_potion", Name: "Health Potion", Description: "Restores 625 Pulses when used (25% refund of purchase price)", Price: 2500},
 }
 
 type BuyResult struct {
@@ -1089,7 +1089,7 @@ func (s *Store) Gamble(userID snowflake.ID, name string, wager int, now time.Tim
 	}, nil
 }
 
-func (s *Store) Sell(userID snowflake.ID, name string, itemID string) (SellResult, error) {
+func (s *Store) Sell(userID snowflake.ID, name string, itemID string, now time.Time) (SellResult, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -1117,6 +1117,7 @@ func (s *Store) Sell(userID snowflake.ID, name string, itemID string) (SellResul
 		refund = 1
 	}
 
+	soldEntry := *entry
 	entry.Quantity--
 	if entry.Quantity <= 0 {
 		delete(record.Inventory, itemID)
@@ -1124,12 +1125,12 @@ func (s *Store) Sell(userID snowflake.ID, name string, itemID string) (SellResul
 
 	record.Balance += refund
 	record.Earned += refund
-	record.UpdatedAt = time.Now()
+	record.UpdatedAt = now
 	s.save(record)
 
 	return SellResult{
 		Record: record.copy(),
-		Item:   *entry,
+		Item:   soldEntry,
 		Reward: refund,
 	}, nil
 }
@@ -1165,11 +1166,7 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 			Description: "You activate the Shield Token. You are now protected from the next robbery attempt!",
 		}, nil
 	case "health_potion":
-		refund := 0
-		for _, entry := range record.Inventory {
-			refund += entry.Quantity
-		}
-		heal := 25 + refund*5
+		heal := 625
 		record.Balance += heal
 		record.Earned += heal
 		s.save(record)
@@ -1178,7 +1175,7 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 			ItemID:      itemID,
 			ItemName:    "Health Potion",
 			Used:        true,
-			Description: fmt.Sprintf("You drink the potion and recover **%d Pulses**.", heal),
+			Description: fmt.Sprintf("You drink the potion and recover **%d Pulses** (25%% refund).", heal),
 		}, nil
 	default:
 		// restore the item since it can't be used

@@ -397,6 +397,14 @@ func economyCommandError(err error) discord.MessageCreate {
 		return economyError("Not enough Pulses", "Your wallet does not have enough Pulses for that action.")
 	case errors.Is(err, economy.ErrSelfPayment):
 		return economyError("Payment blocked", "You cannot pay yourself.")
+	case errors.Is(err, economy.ErrItemNotFound):
+		return economyError("Item not found", "That item does not exist. Use `/shop` to see available items.")
+	case errors.Is(err, economy.ErrNotOwned):
+		return economyError("Item not owned", "You don't have that item. Use `/inventory` to see your items.")
+	case errors.Is(err, economy.ErrCannotUse):
+		return economyError("Cannot use", "That item cannot be used. Try `/sell` to get a refund instead.")
+	case errors.Is(err, economy.ErrCooldown):
+		return economyError("On cooldown", "Please wait before using that command again.")
 	default:
 		return economyError("Economy action failed", "Something went wrong while processing that command.")
 	}
@@ -578,7 +586,7 @@ func gambleMessage(store *economy.Store, e *events.ApplicationCommandInteraction
 func sellMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
 	itemID := strings.ToLower(data.String("item"))
 
-	result, err := store.Sell(e.User().ID, e.User().EffectiveName(), itemID)
+	result, err := store.Sell(e.User().ID, e.User().EffectiveName(), itemID, time.Now())
 	if err != nil {
 		if errors.Is(err, economy.ErrNotOwned) {
 			return economyError("Item not owned", "You don't have that item. Use `/inventory` to see your items.")

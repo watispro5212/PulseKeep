@@ -220,7 +220,7 @@ func statsMessage(startedAt time.Time) discord.MessageCreate {
 			AddField("Latency", "Real-time in /ping", true).
 			AddField("Categories", "Utility · Moderation · Economy · Tickets · Gambling", false).
 			AddField("Get started", "Use `/help` to browse all commands.", false).
-			WithFooterText("PulseKeep v5.7 · Go runtime").
+			WithFooterText("PulseKeep v5.8 · Go runtime").
 			WithTimestamp(time.Now()))
 }
 
@@ -307,7 +307,7 @@ func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 }
 
 func aboutMessage(e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
-	version := "v5.7"
+	version := "v5.8"
 	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 		discord.NewEmbed().
 			WithTitle("About PulseKeep").
@@ -345,6 +345,7 @@ func avatarMessage(e *events.ApplicationCommandInteractionCreate, data discord.S
 func announceMessage(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
 	title := data.String("title")
 	body := data.String("message")
+	ping := data.Bool("ping")
 	if title == "" {
 		title = "PulseKeep Announcement"
 	}
@@ -353,7 +354,7 @@ func announceMessage(e *events.ApplicationCommandInteractionCreate, data discord
 	}
 
 	user := e.User()
-	return discord.NewMessageCreate().
+	msg := discord.NewMessageCreate().
 		AddEmbeds(discord.NewEmbed().
 			WithAuthorName(user.EffectiveName()).
 			WithAuthorIcon(user.EffectiveAvatarURL()).
@@ -362,6 +363,10 @@ func announceMessage(e *events.ApplicationCommandInteractionCreate, data discord
 			WithColor(commands.CommandMenuAccent).
 			WithFooterText("PulseKeep Announcements").
 			WithTimestamp(time.Now()))
+	if ping {
+		msg = msg.WithContent("@everyone")
+	}
+	return msg
 }
 
 func handlePurge(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
@@ -947,7 +952,7 @@ func startStatusRotation(ctx context.Context, client *bot.Client) {
 		{"/slowmode | /lock | /timeout", "playing"},
 		{"member activity", "watching"},
 		{"/poll | /role | /announce", "playing"},
-		{"PulseKeep v5.7", "playing"},
+		{"PulseKeep v5.8", "playing"},
 	}
 
 	ticker := time.NewTicker(3 * time.Minute)

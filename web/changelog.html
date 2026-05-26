@@ -162,12 +162,36 @@
         <section class="container content-section">
             <div class="changelog-list">
 
+                <!-- v5.8 -->
+                <article class="version-card">
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="tag latest">v5.8</span>
+                            <span class="version-date">May 26, 2026</span>
+                        </div>
+                    </div>
+                    <ul class="version-changes">
+                        <li class="critical"><span class="change-tag critical">Critical</span>Health Potion now correctly heals 625 Pulses instead of summing all inventory items</li>
+                        <li class="critical"><span class="change-tag critical">Critical</span>Fixed /poll, /role, and /leaderboard commands missing from interactive help menu</li>
+                        <li class="critical"><span class="change-tag critical">Critical</span>Removed duplicate /rich entry from Economy category in help menu</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added @everyone ping option to /announce command</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>API uptime now displays seconds (e.g. "45s" instead of "0m")</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>economyCommandError now handles all error types (item not found, not owned, cannot use, cooldown)</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Store.Sell() now accepts a time parameter and captures pre-decrement quantity in result</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Removed dead code: entire db/economy.go with schema-mismatched, unused economy methods</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Status page now strips "PulseKeep" prefix from version display</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Updated health potion shop description to match actual behavior</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Updated index.html economy command list with /gamble, /fish, /mine, /sell, /use, /gift, /weekly, /rich</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Added Dashboard to footer on all pages for consistent navigation</li>
+                    </ul>
+                </article>
+
                 <!-- v5.7 -->
                 <article class="version-card">
                     <div class="version-header">
                         <div class="version-badge">
-                            <span class="tag latest">v5.7</span>
-                            <span class="version-date">May 2026</span>
+                            <span class="tag old">v5.7</span>
+                            <span class="version-date">May 25, 2026</span>
                         </div>
                     </div>
                     <ul class="version-changes">
@@ -175,7 +199,7 @@
                         <li class="feature"><span class="change-tag feature">Feature</span>Added /weekly reward command — 7-day cooldown, streak-based payouts (500 base + 100 per week, up to 1,500)</li>
                         <li class="feature"><span class="change-tag feature">Feature</span>Added /gift command — transfer inventory items to other users</li>
                         <li class="feature"><span class="change-tag feature">Feature</span>New Record fields: WeeklyStreak, LastWeekly (persisted in PostgreSQL)</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added real working Dashboard page with live bot + economy stats, top users table, and Chart.js doughnut chart</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added Dashboard page with live bot + economy stats, Chart.js doughnut chart, top users table</li>
                         <li class="feature"><span class="change-tag feature">Feature</span>New /api/dashboard endpoint returning servers, users, commands, economy stats, top 5 users</li>
                         <li class="feature"><span class="change-tag feature">Feature</span>Added Dashboard link to navigation on all pages</li>
                         <li class="fix"><span class="change-tag fix">Fix</span>app.js setStatus() class overwrite bug — status-badge no longer overrides hero-eyebrow styling</li>
@@ -187,11 +211,11 @@
                         <li class="fix"><span class="change-tag fix">Fix</span>Added /gift, /weekly, /rich to commands.html; renamed /leaderboard to /rich</li>
                         <li class="fix"><span class="change-tag fix">Fix</span>Added rows.Err() checks after database scan loops in economy store load()</li>
                         <li class="fix"><span class="change-tag fix">Fix</span>Removed dead stat-latency element reference from app.js</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Worker now proxies all /api/* paths to backend</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Worker now proxies all /api/* paths to backend, fixing dashboard data loading</li>
                         <li class="feature"><span class="change-tag feature">Polishing</span>Unified website footer across all pages with consistent navigation links</li>
                         <li class="feature"><span class="change-tag feature">Polishing</span>Added OG meta tags, favicon, and sitemap.xml for SEO</li>
                         <li class="feature"><span class="change-tag feature">Polishing</span>Created custom 404.html page with branded error design</li>
-                        <li class="feature"><span class="change-tag feature">Polishing</span>Bumped backend version to v5.7 across all Go files</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Redesigned changelog page UI with version cards, color-coded badges, and improved layout</li>
                     </ul>
                 </article>
 
@@ -200,7 +224,7 @@
                     <div class="version-header">
                         <div class="version-badge">
                             <span class="tag old">v5.6</span>
-                            <span class="version-date">May 2026</span>
+                            <span class="version-date">May 24, 2026</span>
                         </div>
                     </div>
                     <ul class="version-changes">
@@ -217,7 +241,7 @@
                     <div class="version-header">
                         <div class="version-badge">
                             <span class="tag old">v5.5</span>
-                            <span class="version-date">May 2026</span>
+                            <span class="version-date">May 23, 2026</span>
                         </div>
                     </div>
                     <ul class="version-changes">
@@ -245,7 +269,7 @@
                     <div class="version-header">
                         <div class="version-badge">
                             <span class="tag old">v5.4</span>
-                            <span class="version-date">May 2026</span>
+                            <span class="version-date">May 22, 2026</span>
                         </div>
                     </div>
                     <ul class="version-changes">
@@ -268,7 +292,7 @@
                     <div class="version-header">
                         <div class="version-badge">
                             <span class="tag old">v5.3</span>
-                            <span class="version-date">May 2026</span>
+                            <span class="version-date">May 21, 2026</span>
                         </div>
                     </div>
                     <ul class="version-changes">
@@ -288,7 +312,7 @@
                     <div class="version-header">
                         <div class="version-badge">
                             <span class="tag old">v5.2</span>
-                            <span class="version-date">May 2026</span>
+                            <span class="version-date">May 20, 2026</span>
                         </div>
                     </div>
                     <ul class="version-changes">
@@ -307,7 +331,7 @@
                     <div class="version-header">
                         <div class="version-badge">
                             <span class="tag old">v5.1</span>
-                            <span class="version-date">May 2026</span>
+                            <span class="version-date">May 19, 2026</span>
                         </div>
                     </div>
                     <ul class="version-changes">
@@ -324,7 +348,7 @@
                     <div class="version-header">
                         <div class="version-badge">
                             <span class="tag old">v5.0</span>
-                            <span class="version-date">May 2026</span>
+                            <span class="version-date">May 18, 2026</span>
                         </div>
                     </div>
                     <ul class="version-changes">

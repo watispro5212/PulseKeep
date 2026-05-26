@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"runtime"
@@ -86,7 +87,7 @@ func NewServer(port string, allowedOrigin string, database *db.Database, memCach
 		cmds := getCommandsRun(memCache)
 
 		c.JSON(http.StatusOK, gin.H{
-			"bot":          "PulseKeep v5.7",
+			"bot":          "PulseKeep v5.8",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
@@ -142,7 +143,7 @@ func NewServer(port string, allowedOrigin string, database *db.Database, memCach
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"bot":          "PulseKeep v5.7",
+			"bot":          "PulseKeep v5.8",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
@@ -210,24 +211,18 @@ func formatDuration(d time.Duration) string {
 	days := int(d.Hours()) / 24
 	hours := int(d.Hours()) % 24
 	minutes := int(d.Minutes()) % 60
+	secs := int(d.Seconds()) % 60
 
 	if days > 0 {
-		return strings.TrimSpace(strings.Join([]string{
-			formatUnit(days, "d"),
-			formatUnit(hours, "h"),
-			formatUnit(minutes, "m"),
-		}, " "))
+		return fmt.Sprintf("%dd %dh %dm", days, hours, minutes)
 	}
 	if hours > 0 {
-		return strings.TrimSpace(strings.Join([]string{
-			formatUnit(hours, "h"),
-			formatUnit(minutes, "m"),
-		}, " "))
+		return fmt.Sprintf("%dh %dm %ds", hours, minutes, secs)
 	}
-	if minutes <= 0 {
-		return "0m"
+	if minutes > 0 {
+		return fmt.Sprintf("%dm %ds", minutes, secs)
 	}
-	return formatUnit(minutes, "m")
+	return fmt.Sprintf("%ds", secs)
 }
 
 func formatUnit(value int, suffix string) string {
