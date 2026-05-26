@@ -4,7 +4,7 @@ export default {
 	async fetch(request, env, ctx) {
 		const url = new URL(request.url);
 
-		if (url.pathname === '/health' || url.pathname === '/stats') {
+		if (url.pathname.startsWith('/api/') || url.pathname === '/health' || url.pathname === '/stats') {
 			const apiUrl = API_ORIGIN + url.pathname + url.search;
 			const apiRequest = new Request(apiUrl, {
 				method: request.method,

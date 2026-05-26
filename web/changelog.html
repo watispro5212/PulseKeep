@@ -17,6 +17,106 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .changelog-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            margin-top: 8px;
+        }
+        .version-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            transition: border-color 0.2s;
+        }
+        .version-card:hover {
+            border-color: rgba(79, 140, 255, 0.25);
+        }
+        .version-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .version-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .version-badge .tag {
+            font-size: 1.1rem;
+            font-weight: 800;
+            padding: 6px 16px;
+            border-radius: 100px;
+            letter-spacing: -0.02em;
+        }
+        .version-badge .tag.latest {
+            background: rgba(79, 140, 255, 0.12);
+            color: var(--primary);
+            border: 1px solid rgba(79, 140, 255, 0.25);
+        }
+        .version-badge .tag.old {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+        .version-date {
+            font-size: 0.82rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        .version-changes {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .version-changes li {
+            position: relative;
+            padding-left: 20px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--foreground);
+        }
+        .version-changes li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--muted);
+            opacity: 0.4;
+        }
+        .version-changes li.critical::before { background: #fc8181; opacity: 1; }
+        .version-changes li.feature::before { background: var(--primary); opacity: 1; }
+        .version-changes li.fix::before { background: var(--amber); opacity: 1; }
+        .change-tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .change-tag.critical { background: rgba(252,129,129,0.12); color: #fc8181; }
+        .change-tag.feature { background: rgba(79,140,255,0.12); color: var(--primary); }
+        .change-tag.fix { background: rgba(245,189,79,0.12); color: var(--amber); }
+        @media (max-width: 600px) {
+            .version-card { padding: 20px; }
+            .version-badge .tag { font-size: 0.95rem; }
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -51,174 +151,193 @@
     </header>
 
     <main>
-        <section class="hero">
-            <div class="container hero-content">
-                <h1>Changelog</h1>
-                <p class="hero-subtitle">Release history and version notes for PulseKeep.</p>
+        <section class="hero-small section-band">
+            <div class="container">
+                <span class="hero-eyebrow"><i class="fa-solid fa-timeline"></i> Release history</span>
+                <h1 class="hero-title">Changelog</h1>
+                <p class="hero-subtitle">Every update, improvement, and fix for PulseKeep — from v5.0 to the latest release.</p>
             </div>
         </section>
 
-        <section class="section">
-            <div class="container">
-                <div class="card-grid" style="grid-template-columns: 1fr;">
-                    <div class="card">
-                        <h2 style="margin-bottom: 1.5rem;">Version History</h2>
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                                    <th style="text-align: left; padding: 0.75rem; color: var(--gray); font-weight: 600;">Version</th>
-                                    <th style="text-align: left; padding: 0.75rem; color: var(--gray); font-weight: 600;">Date</th>
-                                    <th style="text-align: left; padding: 0.75rem; color: var(--gray); font-weight: 600;">Changes</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 1rem 0.75rem; font-weight: 700; color: var(--primary);">v5.7</td>
-                                    <td style="padding: 1rem 0.75rem; color: var(--gray);">May 2026</td>
-                                    <td style="padding: 1rem 0.75rem;">
-                                        <ul style="margin: 0; padding-left: 1.25rem;">
-                                            <li>Added /rich command — top 10 wealthiest members with 🥇🥈🥉 rank medals</li>
-                                            <li>Added /weekly reward command — 7-day cooldown, streak-based payouts (500 base + 100 per week, up to 1,500)</li>
-                                            <li>Added /gift command — transfer inventory items to other users</li>
-                                            <li>New Record fields: WeeklyStreak, LastWeekly (persisted in PostgreSQL)</li>
-                                            <li>Unified website footer across all pages with consistent navigation links</li>
-                                            <li>Added OG meta tags, favicon, and sitemap.xml for SEO</li>
-                                            <li>Created custom 404.html page with branded error design</li>
-                                            <li>Updated Worker proxy to serve 404 page for unknown routes</li>
-                                            <li>Updated team page to reflect Cloudflare Workers deployment</li>
-                                            <li><strong>Bug fixes:</strong> app.js setStatus() class overwrite, changelog.html mobile menu, string-based error comparisons → errors.Is(), Record.copy() deep copy Inventory, removed dead code, version string consistency (v5.4→v5.7)</li>
-                                            <li>Added /gift, /weekly, /rich to commands.html; fixed /leaderboard → /rich</li>
-                                            <li>Added real working Dashboard page with live bot + economy stats, top users table, and Chart.js doughnut chart</li>
-                                            <li>New /api/dashboard endpoint returning servers, users, commands, economy stats, top 5 users</li>
-                                            <li>Added Dashboard link to navigation on all pages</li>
-                                            <li>Added rows.Err() checks in economy store load() function</li>
-                                            <li>Bumped backend version to v5.7 across all Go files</li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 1rem 0.75rem; font-weight: 700; color: var(--primary);">v5.6</td>
-                                    <td style="padding: 1rem 0.75rem; color: var(--gray);">May 2026</td>
-                                    <td style="padding: 1rem 0.75rem;">
-                                        <ul style="margin: 0; padding-left: 1.25rem;">
-                                            <li><strong>Fixed CRITICAL:</strong> Economy data loss on every restart — in-memory store now persists to PostgreSQL on every mutation</li>
-                                            <li>Created user_economy and user_inventory DB migration with all 30+ economy fields</li>
-                                            <li>Economy records now load from database on bot startup and save on every command</li>
-                                            <li>Added automatic table creation via migrate.go on database connection</li>
-                                            <li>Maintains full in-memory performance with synchronous PostgreSQL persistence</li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 1rem 0.75rem; font-weight: 700; color: var(--primary);">v5.5</td>
-                                    <td style="padding: 1rem 0.75rem; color: var(--gray);">May 2026</td>
-                                    <td style="padding: 1rem 0.75rem;">
-                                        <ul style="margin: 0; padding-left: 1.25rem;">
-                                            <li><strong>Fixed CRITICAL:</strong> /leaderboard command now routes to its handler instead of falling through to help menu</li>
-                                            <li><strong>Fixed HIGH:</strong> /lock no longer wipes all existing channel permission overwrites — preserves role and member overrides</li>
-                                            <li><strong>Fixed HIGH:</strong> /unlock no longer clears all permission overwrites — only removes @everyone SendMessages deny</li>
-                                            <li><strong>Fixed:</strong> Inconsistent switch-case indentation across all command handlers</li>
-                                            <li>Added /about command showing PulseKeep version, tech stack, and project links</li>
-                                            <li>Added /about to interactive help menu and commands reference</li>
-                                            <li>Rewrote server.md with 7-section layout, economy guide, lock/unlock workflow, FAQ, and launch checklists</li>
-                                            <li>Heavily redesigned team page with 6 team cards, 8-item tech stack grid, open source section, and contribution callout</li>
-                                            <li>Updated status page to include rotating top.gg-compliant presence</li>
-                                            <li>Updated commands.html with /about and improved economy descriptions</li>
-                                            <li>Migrated frontend hosting from Netlify to Cloudflare Workers with Assets</li>
-                                            <li>Created src/worker.js to serve static files and proxy API calls to Fly.io backend (no CORS needed)</li>
-                                            <li>Created wrangler.toml for Cloudflare Workers deployment</li>
-                                            <li>Replaced netlify.toml with Cloudflare _headers for security and cache headers</li>
-                                            <li>Changed API_BASE_URL to empty string (same-origin requests through Worker proxy)</li>
-                                            <li>Updated README.md with Cloudflare Workers deploy instructions</li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 1rem 0.75rem; font-weight: 700; color: var(--primary);">v5.4</td>
-                                    <td style="padding: 1rem 0.75rem; color: var(--gray);">May 2026</td>
-                                    <td style="padding: 1rem 0.75rem;">
-                                        <ul style="margin: 0; padding-left: 1.25rem;">
-                                            <li>Added /gamble command (1-100 dice roll, up to 10x payout)</li>
-                                            <li>Added /fish mini-game with 13 fish types across rarities (requires Fishing Rod)</li>
-                                            <li>Added /mine mini-game with 13 ore types across rarities (requires Iron Pickaxe)</li>
-                                            <li>Added /sell command for 60% item refunds</li>
-                                            <li>Added /use command for consumable items (Shield Token, Health Potion)</li>
-                                            <li>Shield Token now actively protects targets from robbery</li>
-                                            <li>Passive interest system: 0.1% balance growth every 6 hours</li>
-                                            <li>Added /unban command (DeleteBan API)</li>
-                                            <li>Added /slowmode command (RateLimitPerUser channel edit)</li>
-                                            <li>Added /nick command (member nickname via UpdateMember)</li>
-                                            <li>Added /timeout command (CommunicationDisabledUntil)</li>
-                                            <li>Added /lock and /unlock channel permission commands</li>
-                                            <li>Updated /profile to show gambling, fishing, mining stats</li>
-                                            <li>Shop now includes Fishing Rod, Iron Pickaxe, Lottery Ticket, Health Potion</li>
-                                            <li>10 new shop items across economy and gameplay categories</li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 1rem 0.75rem; font-weight: 700; color: var(--primary);">v5.3</td>
-                                    <td style="padding: 1rem 0.75rem; color: var(--gray);">May 2026</td>
-                                    <td style="padding: 1rem 0.75rem;">
-                                        <ul style="margin: 0; padding-left: 1.25rem;">
-                                            <li>Added /poll command with multi-option voting and reactions</li>
-                                            <li>Added /role command with automatic add/remove toggle</li>
-                                            <li>Implemented /purge, /kick, /ban moderation commands</li>
-                                            <li>Improved serverinfo, userinfo, avatar embeds with richer data</li>
-                                            <li>Overhauled /announce embed with author avatar and name</li>
-                                            <li>Cleaned up help menu by removing redundant Overview button</li>
-                                            <li>Added changelog page to website</li>
-                                            <li>Fixed tickets panel footer message</li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 1rem 0.75rem; font-weight: 700; color: var(--primary);">v5.2</td>
-                                    <td style="padding: 1rem 0.75rem; color: var(--gray);">May 2026</td>
-                                    <td style="padding: 1rem 0.75rem;">
-                                        <ul style="margin: 0; padding-left: 1.25rem;">
-                                            <li>Added 5 new economy commands: /rob, /shop, /buy, /inventory, /slots</li>
-                                            <li>Shop with 5 purchasable items</li>
-                                            <li>Slots machine with 7 symbols and up to 10x payout</li>
-                                            <li>Real-time bot stats tracking via atomic counters</li>
-                                            <li>/stats and /health endpoints return live data</li>
-                                            <li>7 new unit tests for economy features</li>
-                                            <li>Removed support.html from website</li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 1rem 0.75rem; font-weight: 700; color: var(--primary);">v5.1</td>
-                                    <td style="padding: 1rem 0.75rem; color: var(--gray);">May 2026</td>
-                                    <td style="padding: 1rem 0.75rem;">
-                                        <ul style="margin: 0; padding-left: 1.25rem;">
-                                            <li>Fixed ticket button to create private channels with permission overwrites</li>
-                                            <li>Added duplicate ticket detection</li>
-                                            <li>Added Close Ticket button with 5-second channel deletion</li>
-                                            <li>Removed /menu command</li>
-                                            <li>Improved /ping, /stats, /help response embeds</li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding: 1rem 0.75rem; font-weight: 700; color: var(--primary);">v5.0</td>
-                                    <td style="padding: 1rem 0.75rem; color: var(--gray);">May 2026</td>
-                                    <td style="padding: 1rem 0.75rem;">
-                                        <ul style="margin: 0; padding-left: 1.25rem;">
-                                            <li>Complete rewrite in Go using disgo library</li>
-                                            <li>PostgreSQL persistence via Neon</li>
-                                            <li>Economy system with balance, daily, work, pay, coinflip, leaderboard</li>
-                                            <li>Interactive help menu with category dropdown</li>
-                                            <li>Ticket panel with open/close flow</li>
-                                            <li>Static website with glassmorphism design</li>
-                                            <li>Real-time status page with auto-refresh</li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+        <section class="container content-section">
+            <div class="changelog-list">
+
+                <!-- v5.7 -->
+                <article class="version-card">
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="tag latest">v5.7</span>
+                            <span class="version-date">May 2026</span>
+                        </div>
                     </div>
-                </div>
+                    <ul class="version-changes">
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /rich command — top 10 wealthiest members with 🥇🥈🥉 rank medals</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /weekly reward command — 7-day cooldown, streak-based payouts (500 base + 100 per week, up to 1,500)</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /gift command — transfer inventory items to other users</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>New Record fields: WeeklyStreak, LastWeekly (persisted in PostgreSQL)</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added real working Dashboard page with live bot + economy stats, top users table, and Chart.js doughnut chart</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>New /api/dashboard endpoint returning servers, users, commands, economy stats, top 5 users</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added Dashboard link to navigation on all pages</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>app.js setStatus() class overwrite bug — status-badge no longer overrides hero-eyebrow styling</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>changelog.html mobile menu button now uses correct class and hamburger icon</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>String-based error comparisons replaced with errors.Is() across economy handlers</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Record.copy() now deep-copies the Inventory map to prevent shared pointer races</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Removed dead code: muGuildJoined semaphore in cache.go, unused startedAt discard</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Version string consistency — all backend references updated from v5.4 to v5.7</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Added /gift, /weekly, /rich to commands.html; renamed /leaderboard to /rich</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Added rows.Err() checks after database scan loops in economy store load()</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Removed dead stat-latency element reference from app.js</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Worker now proxies all /api/* paths to backend</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Unified website footer across all pages with consistent navigation links</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Added OG meta tags, favicon, and sitemap.xml for SEO</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Created custom 404.html page with branded error design</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Bumped backend version to v5.7 across all Go files</li>
+                    </ul>
+                </article>
+
+                <!-- v5.6 -->
+                <article class="version-card">
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="tag old">v5.6</span>
+                            <span class="version-date">May 2026</span>
+                        </div>
+                    </div>
+                    <ul class="version-changes">
+                        <li class="critical"><span class="change-tag critical">Critical</span>Economy data loss on every restart — in-memory store now persists to PostgreSQL on every mutation</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Created user_economy and user_inventory DB migration with all 30+ economy fields</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Economy records now load from database on bot startup and save on every command</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added automatic table creation via migrate.go on database connection</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Maintains full in-memory performance with synchronous PostgreSQL persistence</li>
+                    </ul>
+                </article>
+
+                <!-- v5.5 -->
+                <article class="version-card">
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="tag old">v5.5</span>
+                            <span class="version-date">May 2026</span>
+                        </div>
+                    </div>
+                    <ul class="version-changes">
+                        <li class="critical"><span class="change-tag critical">Critical</span>/leaderboard command now routes to its handler instead of falling through to help menu</li>
+                        <li class="critical"><span class="change-tag critical">Critical</span>/lock no longer wipes all existing channel permission overwrites — preserves role and member overrides</li>
+                        <li class="critical"><span class="change-tag critical">Critical</span>/unlock no longer clears all permission overwrites — only removes @everyone SendMessages deny</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Inconsistent switch-case indentation across all command handlers</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /about command showing PulseKeep version, tech stack, and project links</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /about to interactive help menu and commands reference</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Rewrote server.md with 7-section layout, economy guide, lock/unlock workflow, FAQ, and launch checklists</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Heavily redesigned team page with 6 team cards, 8-item tech stack grid, open source section, and contribution callout</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Updated status page to include rotating top.gg-compliant presence</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Updated commands.html with /about and improved economy descriptions</li>
+                        <li class="feature"><span class="change-tag feature">Infrastructure</span>Migrated frontend hosting from Netlify to Cloudflare Workers with Assets</li>
+                        <li class="feature"><span class="change-tag feature">Infrastructure</span>Created src/worker.js to serve static files and proxy API calls to Fly.io backend (no CORS needed)</li>
+                        <li class="feature"><span class="change-tag feature">Infrastructure</span>Created wrangler.toml for Cloudflare Workers deployment</li>
+                        <li class="feature"><span class="change-tag feature">Infrastructure</span>Replaced netlify.toml with Cloudflare _headers for security and cache headers</li>
+                        <li class="feature"><span class="change-tag feature">Infrastructure</span>Changed API_BASE_URL to empty string (same-origin requests through Worker proxy)</li>
+                        <li class="feature"><span class="change-tag feature">Infrastructure</span>Updated README.md with Cloudflare Workers deploy instructions</li>
+                    </ul>
+                </article>
+
+                <!-- v5.4 -->
+                <article class="version-card">
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="tag old">v5.4</span>
+                            <span class="version-date">May 2026</span>
+                        </div>
+                    </div>
+                    <ul class="version-changes">
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /gamble command (1-100 dice roll, up to 10x payout)</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /fish mini-game with 13 fish types across rarities (requires Fishing Rod)</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /mine mini-game with 13 ore types across rarities (requires Iron Pickaxe)</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /sell command for 60% item refunds</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /use command for consumable items (Shield Token, Health Potion)</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Shield Token now actively protects targets from robbery</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Passive interest system: 0.1% balance growth every 6 hours</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /unban, /slowmode, /nick, /timeout, /lock, /unlock commands</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Updated /profile to show gambling, fishing, mining stats</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Shop now includes Fishing Rod, Iron Pickaxe, Lottery Ticket, Health Potion</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>10 new shop items across economy and gameplay categories</li>
+                    </ul>
+                </article>
+
+                <!-- v5.3 -->
+                <article class="version-card">
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="tag old">v5.3</span>
+                            <span class="version-date">May 2026</span>
+                        </div>
+                    </div>
+                    <ul class="version-changes">
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /poll command with multi-option voting and reactions</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added /role command with automatic add/remove toggle</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Implemented /purge, /kick, /ban moderation commands</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Improved serverinfo, userinfo, avatar embeds with richer data</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Overhauled /announce embed with author avatar and name</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Cleaned up help menu by removing redundant Overview button</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added changelog page to website</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Fixed tickets panel footer message</li>
+                    </ul>
+                </article>
+
+                <!-- v5.2 -->
+                <article class="version-card">
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="tag old">v5.2</span>
+                            <span class="version-date">May 2026</span>
+                        </div>
+                    </div>
+                    <ul class="version-changes">
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added 5 new economy commands: /rob, /shop, /buy, /inventory, /slots</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Shop with 5 purchasable items</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Slots machine with 7 symbols and up to 10x payout</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Real-time bot stats tracking via atomic counters</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>/stats and /health endpoints return live data</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>7 new unit tests for economy features</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Removed support.html from website</li>
+                    </ul>
+                </article>
+
+                <!-- v5.1 -->
+                <article class="version-card">
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="tag old">v5.1</span>
+                            <span class="version-date">May 2026</span>
+                        </div>
+                    </div>
+                    <ul class="version-changes">
+                        <li class="fix"><span class="change-tag fix">Fix</span>Fixed ticket button to create private channels with permission overwrites</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added duplicate ticket detection</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Added Close Ticket button with 5-second channel deletion</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Removed /menu command</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Improved /ping, /stats, /help response embeds</li>
+                    </ul>
+                </article>
+
+                <!-- v5.0 -->
+                <article class="version-card">
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="tag old">v5.0</span>
+                            <span class="version-date">May 2026</span>
+                        </div>
+                    </div>
+                    <ul class="version-changes">
+                        <li class="feature"><span class="change-tag feature">Feature</span>Complete rewrite in Go using disgo library</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>PostgreSQL persistence via Neon</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Economy system with balance, daily, work, pay, coinflip, leaderboard</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Interactive help menu with category dropdown</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Ticket panel with open/close flow</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Static website with glassmorphism design</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Real-time status page with auto-refresh</li>
+                    </ul>
+                </article>
+
             </div>
         </section>
     </main>
@@ -231,6 +350,7 @@
             </div>
             <div class="footer-links">
                 <a href="commands.html">Commands</a>
+                <a href="dashboard.html">Dashboard</a>
                 <a href="status.html">Status</a>
                 <a href="team.html">Team</a>
                 <a href="changelog.html">Changelog</a>
