@@ -2,6 +2,7 @@ package bot
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"strings"
@@ -22,11 +23,12 @@ import (
 type Bot struct {
 	Client     *bot.Client
 	cache      *cache.Cache
+	db         *sql.DB
 }
 
-func New(token string, memCache *cache.Cache) *Bot {
+func New(token string, memCache *cache.Cache, database *sql.DB) *Bot {
 	startedAt := time.Now()
-	economyStore := economy.NewStore()
+	economyStore := economy.NewStore(database)
 	_ = startedAt
 
 	client, err := disgo.New(token,

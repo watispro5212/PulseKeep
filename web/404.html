@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy — PulseKeep</title>
-    <meta name="description" content="PulseKeep privacy policy for Discord bot data handling.">
+    <title>404 — Page not found · PulseKeep</title>
+    <meta name="description" content="The page you are looking for does not exist.">
     <meta name="theme-color" content="#070a14">
-    <meta property="og:title" content="Privacy Policy — PulseKeep">
-    <meta property="og:description" content="PulseKeep privacy policy for Discord bot data handling.">
+    <meta property="og:title" content="404 — PulseKeep">
+    <meta property="og:description" content="The page you are looking for does not exist.">
     <meta property="og:image" content="https://pulsekeep.workers.dev/assets/logo.png">
-    <meta property="og:url" content="https://pulsekeep.workers.dev/privacy.html">
+    <meta property="og:url" content="https://pulsekeep.workers.dev/404.html">
     <meta property="og:type" content="website">
     <link rel="icon" href="assets/logo.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +17,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        .error-code { font-size: clamp(5rem, 12vw, 10rem); font-weight: 800; line-height: 1; letter-spacing: -0.04em; background: linear-gradient(135deg, var(--primary), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .error-section { min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 60px 0; }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -48,46 +52,33 @@
         </nav>
     </header>
 
-    <main class="legal-main">
-        <article class="legal-card">
-            <span class="hero-eyebrow" style="display: inline-flex; margin-bottom: 16px;"><i class="fa-solid fa-shield" style="font-size: 0.7rem;"></i> Privacy</span>
-            <h1>Privacy Policy</h1>
-            <p style="margin-top: 8px; color: var(--muted); font-size: 0.9rem;">Last updated: May 23, 2026</p>
-
-            <h2>Data PulseKeep may process</h2>
-            <p>PulseKeep may process Discord user IDs, guild IDs, channel IDs, role IDs, command names, command timestamps, guild configuration, logging channel settings, ticket metadata, and economy balances needed to operate bot features.</p>
-
-            <h2>Message content</h2>
-            <p>PulseKeep does not sell user data. Message content is not stored for general analytics. Some command-provided text, such as announcement text or moderation reasons, may be processed to complete the requested command.</p>
-
-            <h2>How data is used</h2>
-            <p>Data is used to run moderation tools, audit logs, ticket workflows, economy commands, live status metrics, troubleshooting, abuse prevention, and service reliability checks.</p>
-
-            <h2>Retention</h2>
-            <p>Guild configuration and economy data may remain until a server removes the bot or requests deletion. Logs and command records may be pruned as the service evolves.</p>
-
-            <h2>Contact</h2>
-            <p>For privacy questions or deletion requests, join the <a href="https://discord.gg/pulsekeep" style="color: var(--primary); text-decoration: underline;">PulseKeep support server</a>.</p>
-        </article>
+    <main>
+        <section class="error-section">
+            <div class="container">
+                <span class="hero-eyebrow" style="border-color: rgba(245,189,79,0.25); background: rgba(245,189,79,0.08); color: var(--amber);"><i class="fa-solid fa-triangle-exclamation"></i> Error</span>
+                <div class="error-code">404</div>
+                <p class="hero-subtitle" style="margin: 16px auto 0; max-width: 480px;">The page you're looking for doesn't exist — it might have been moved or the link is incorrect.</p>
+                <div class="hero-actions" style="justify-content: center;">
+                    <a href="index.html" class="btn btn-primary"><i class="fa-solid fa-house"></i> Go home</a>
+                    <a href="commands.html" class="btn btn-secondary"><i class="fa-solid fa-terminal"></i> Commands</a>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="footer">
         <div class="container footer-container">
             <div class="footer-brand">
                 <span class="logo-text">PulseKeep</span>
-                <p>Privacy information for PulseKeep users.</p>
+                <p>Fast Discord operations for staff teams.</p>
             </div>
             <div class="footer-links">
                 <a href="commands.html">Commands</a>
                 <a href="status.html">Status</a>
-                <a href="team.html">Team</a>
-                <a href="changelog.html">Changelog</a>
                 <a href="privacy.html">Privacy</a>
                 <a href="terms.html">Terms</a>
             </div>
         </div>
     </footer>
-
-    <script src="app.js"></script>
 </body>
 </html>

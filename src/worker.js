@@ -15,6 +15,11 @@ export default {
 			return fetch(apiRequest);
 		}
 
-		return env.ASSETS.fetch(request);
+		const response = await env.ASSETS.fetch(request);
+		if (response.status === 404) {
+			const notFound = await env.ASSETS.fetch(new Request(url.origin + '/404.html'));
+			return new Response(notFound.body, { status: 404, headers: notFound.headers });
+		}
+		return response;
 	},
 };

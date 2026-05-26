@@ -90,6 +90,9 @@ var Categories = []CommandCategory{
 			{Name: "/gamble", Description: "Roll 1-100 and wager Pulses on the outcome.", Usage: "/gamble amount:100"},
 			{Name: "/sell", Description: "Sell an item for a 60% refund.", Usage: "/sell item:lucky_pickaxe"},
 			{Name: "/use", Description: "Use a usable item from your inventory.", Usage: "/use item:shield_token"},
+			{Name: "/weekly", Description: "Claim your weekly reward (7-day cooldown).", Usage: "/weekly"},
+			{Name: "/rich", Description: "Show the top 10 richest members with rank medals.", Usage: "/rich"},
+			{Name: "/gift", Description: "Give an item to another user.", Usage: "/gift user:@member item:fishing_rod"},
 		},
 	},
 	{

@@ -956,6 +956,22 @@ h1, .hero-title {
 
 .footer-links a:hover { color: var(--text); }
 
+.footer-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  vertical-align: middle;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
 /* ===== SCROLL ANIMATIONS ===== */
 .scroll-reveal {
   opacity: 0;

@@ -6,6 +6,12 @@
     <title>Changelog — PulseKeep</title>
     <meta name="description" content="PulseKeep release history and version changelog.">
     <meta name="theme-color" content="#070a14">
+    <meta property="og:title" content="Changelog — PulseKeep">
+    <meta property="og:description" content="PulseKeep release history and version changelog.">
+    <meta property="og:image" content="https://pulsekeep.workers.dev/assets/logo.png">
+    <meta property="og:url" content="https://pulsekeep.workers.dev/changelog.html">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="assets/logo.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -64,6 +70,37 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 1rem 0.75rem; font-weight: 700; color: var(--primary);">v5.7</td>
+                                    <td style="padding: 1rem 0.75rem; color: var(--gray);">May 2026</td>
+                                    <td style="padding: 1rem 0.75rem;">
+                                        <ul style="margin: 0; padding-left: 1.25rem;">
+                                            <li>Added /rich command — top 10 wealthiest members with 🥇🥈🥉 rank medals</li>
+                                            <li>Added /weekly reward command — 7-day cooldown, streak-based payouts (500 base + 100 per week, up to 1,500)</li>
+                                            <li>Added /gift command — transfer inventory items to other users</li>
+                                            <li>New Record fields: WeeklyStreak, LastWeekly (persisted in PostgreSQL)</li>
+                                            <li>Unified website footer across all pages with consistent navigation links</li>
+                                            <li>Added OG meta tags, favicon, and sitemap.xml for SEO</li>
+                                            <li>Created custom 404.html page with branded error design</li>
+                                            <li>Updated Worker proxy to serve 404 page for unknown routes</li>
+                                            <li>Updated team page to reflect Cloudflare Workers deployment</li>
+                                            <li>Bumped status page version to v5.6</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding: 1rem 0.75rem; font-weight: 700; color: var(--primary);">v5.6</td>
+                                    <td style="padding: 1rem 0.75rem; color: var(--gray);">May 2026</td>
+                                    <td style="padding: 1rem 0.75rem;">
+                                        <ul style="margin: 0; padding-left: 1.25rem;">
+                                            <li><strong>Fixed CRITICAL:</strong> Economy data loss on every restart — in-memory store now persists to PostgreSQL on every mutation</li>
+                                            <li>Created user_economy and user_inventory DB migration with all 30+ economy fields</li>
+                                            <li>Economy records now load from database on bot startup and save on every command</li>
+                                            <li>Added automatic table creation via migrate.go on database connection</li>
+                                            <li>Maintains full in-memory performance with synchronous PostgreSQL persistence</li>
+                                        </ul>
+                                    </td>
+                                </tr>
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
                                     <td style="padding: 1rem 0.75rem; font-weight: 700; color: var(--primary);">v5.5</td>
                                     <td style="padding: 1rem 0.75rem; color: var(--gray);">May 2026</td>
@@ -179,19 +216,19 @@
     </main>
 
     <footer class="footer">
-        <div class="container footer-content">
+        <div class="container footer-container">
             <div class="footer-brand">
-                <img src="assets/logo.png" alt="" class="footer-logo">
-                <span>PulseKeep</span>
+                <span class="logo-text">PulseKeep</span>
+                <p>Release history and version changelog.</p>
             </div>
             <div class="footer-links">
                 <a href="commands.html">Commands</a>
                 <a href="status.html">Status</a>
+                <a href="team.html">Team</a>
+                <a href="changelog.html">Changelog</a>
                 <a href="privacy.html">Privacy</a>
                 <a href="terms.html">Terms</a>
-                <a href="changelog.html">Changelog</a>
             </div>
-            <p class="footer-copy">&copy; 2026 PulseKeep. All rights reserved.</p>
         </div>
     </footer>
 

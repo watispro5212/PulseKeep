@@ -9,7 +9,7 @@ import (
 )
 
 func TestDailyRewardAndCooldown(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	now := time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC)
 	userID := snowflake.ID(1001)
 
@@ -31,7 +31,7 @@ func TestDailyRewardAndCooldown(t *testing.T) {
 }
 
 func TestPayTransfersBalance(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	now := time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC)
 
 	result, err := store.Pay(snowflake.ID(1), "Sender", snowflake.ID(2), "Receiver", 125, now)
@@ -47,7 +47,7 @@ func TestPayTransfersBalance(t *testing.T) {
 }
 
 func TestPayRejectsBadTransfers(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	now := time.Now()
 
 	_, err := store.Pay(snowflake.ID(1), "Sender", snowflake.ID(1), "Sender", 10, now)
@@ -62,7 +62,7 @@ func TestPayRejectsBadTransfers(t *testing.T) {
 }
 
 func TestRobRequiresDifferentUsers(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	now := time.Now()
 
 	_, err := store.Rob(snowflake.ID(1), "User", snowflake.ID(1), "User", now)
@@ -72,7 +72,7 @@ func TestRobRequiresDifferentUsers(t *testing.T) {
 }
 
 func TestSlotsAdjustsBalance(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	now := time.Now()
 
 	result, err := store.Slots(snowflake.ID(1), "Player", 50, now)
@@ -89,7 +89,7 @@ func TestSlotsAdjustsBalance(t *testing.T) {
 }
 
 func TestBuyDeductsBalance(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	now := time.Now()
 
 	// make the buyer rich with repeated daily claims
@@ -111,7 +111,7 @@ func TestBuyDeductsBalance(t *testing.T) {
 }
 
 func TestBuyRejectsUnknownItem(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	now := time.Now()
 
 	_, err := store.Buy(snowflake.ID(1), "Buyer", "nonexistent", now)
@@ -121,7 +121,7 @@ func TestBuyRejectsUnknownItem(t *testing.T) {
 }
 
 func TestBuyRejectsInsufficientFunds(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	now := time.Now()
 
 	_, err := store.Buy(snowflake.ID(1), "Buyer", "golden_watch", now)
@@ -131,7 +131,7 @@ func TestBuyRejectsInsufficientFunds(t *testing.T) {
 }
 
 func TestInventoryAfterBuy(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	now := time.Now()
 
 	buyerID := snowflake.ID(1)
@@ -157,7 +157,7 @@ func TestInventoryAfterBuy(t *testing.T) {
 }
 
 func TestLeaderboardSortsByBalance(t *testing.T) {
-	store := NewStore()
+	store := NewStore(nil)
 	now := time.Now()
 
 	if _, err := store.Pay(snowflake.ID(1), "First", snowflake.ID(2), "Second", 50, now); err != nil {

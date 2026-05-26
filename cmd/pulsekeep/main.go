@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"os"
 	"os/signal"
@@ -40,7 +41,11 @@ func main() {
 	if cfg.BotDisabled {
 		log.Println("Discord bot is disabled; API endpoints are still available.")
 	} else {
-		discordBot = bot.New(cfg.DiscordToken, memCache)
+		var dbConn *sql.DB
+		if database != nil {
+			dbConn = database.Conn
+		}
+		discordBot = bot.New(cfg.DiscordToken, memCache, dbConn)
 		ctx := context.Background()
 		if err := discordBot.Start(ctx); err != nil {
 			log.Fatalf("Failed to start Discord bot: %v", err)

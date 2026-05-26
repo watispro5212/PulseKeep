@@ -32,7 +32,9 @@ func Connect(databaseURL string) *Database {
 	}
 
 	log.Println("Successfully connected to the database!")
-	return &Database{Conn: conn}
+	database := &Database{Conn: conn}
+	database.Migrate()
+	return database
 }
 
 // Ensure the connection is closed when the application shuts down

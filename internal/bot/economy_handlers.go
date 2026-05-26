@@ -49,6 +49,12 @@ func handleEconomyCommand(store *economy.Store, e *events.ApplicationCommandInte
 		return useItemMessage(store, e, data), true
 	case "leaderboard":
 		return leaderboardMessage(store), true
+	case "rich":
+		return richMessage(store), true
+	case "weekly":
+		return weeklyMessage(store, e), true
+	case "gift":
+		return giftMessage(store, e, data), true
 	default:
 		return discord.MessageCreate{}, false
 	}
@@ -186,6 +192,72 @@ func leaderboardMessage(store *economy.Store) discord.MessageCreate {
 	return discord.NewMessageCreate().
 		AddEmbeds(economyEmbed("Pulse Leaderboard", strings.TrimSpace(rows.String())).
 			AddField("How to climb", "Claim `/daily`, run `/work`, win `/coinflip`, and trade with `/pay`.", false))
+}
+
+func richMessage(store *economy.Store) discord.MessageCreate {
+	records := store.RichLeaderboard(10)
+	if len(records) == 0 {
+		return discord.NewMessageCreate().
+			WithEphemeral(true).
+			AddEmbeds(economyEmbed("Pulse Wealth Leaderboard", "No economy accounts exist yet. Use `/daily` or `/work` to start earning."))
+	}
+
+	medals := []string{"🥇", "🥈", "🥉"}
+	var rows strings.Builder
+	for i, record := range records {
+		name := record.Name
+		if name == "" {
+			name = record.UserID.String()
+		}
+		prefix := fmt.Sprintf("%d.", i+1)
+		if i < 3 {
+			prefix = medals[i]
+		}
+		rows.WriteString(fmt.Sprintf("%s **%s** — %s Pulses\n", prefix, name, formatPulses(record.Balance)))
+	}
+
+	return discord.NewMessageCreate().
+		AddEmbeds(economyEmbed("Pulse Wealth Leaderboard", strings.TrimSpace(rows.String())).
+			AddField("How to climb", "Claim `/daily`, run `/work`, win bets, and keep earning!", false))
+}
+
+func weeklyMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
+	result := store.Weekly(e.User().ID, e.User().EffectiveName(), time.Now())
+	if result.OnCooldown {
+		return cooldownMessage("Weekly reward already claimed", result.NextAvailable)
+	}
+
+	return discord.NewMessageCreate().
+		AddEmbeds(economyEmbed("Weekly Reward Claimed", fmt.Sprintf("%s claimed **%s Pulses**!", e.User().String(), formatPulses(result.Reward))).
+			AddField("New balance", formatPulses(result.Record.Balance), true).
+			AddField("Weekly streak", fmt.Sprintf("%d week(s)", result.Streak), true).
+			AddField("Next claim", discordTimestamp(result.NextAvailable), true).
+			WithThumbnail(e.User().EffectiveAvatarURL()))
+}
+
+func giftMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	receiver, ok := data.OptUser("user")
+	if !ok {
+		return economyError("Missing recipient", "Choose a member to give the item to.")
+	}
+
+	itemID := strings.ToLower(data.String("item"))
+
+	result, err := store.GiftItem(e.User().ID, e.User().EffectiveName(), receiver.ID, receiver.EffectiveName(), itemID, time.Now())
+	if err != nil {
+		if err.Error() == "you do not own this item" {
+			return economyError("Item not owned", "You don't have that item. Use `/inventory` to see your items.")
+		}
+		if errors.Is(err, economy.ErrSelfPayment) {
+			return economyError("Invalid target", "You cannot give items to yourself.")
+		}
+		return economyCommandError(err)
+	}
+
+	return discord.NewMessageCreate().
+		AddEmbeds(economyEmbed("Item Gifted", fmt.Sprintf("%s gave **%s** to %s.", e.User().String(), result.Item.ItemName, receiver.String())).
+			AddField("Tip", "Use `/inventory` to see your remaining items.", false).
+			WithThumbnail(receiver.EffectiveAvatarURL()))
 }
 
 func robMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {

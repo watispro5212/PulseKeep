@@ -1,8 +1,11 @@
 package economy
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"math/rand"
 	"sort"
 	"sync"
@@ -19,8 +22,9 @@ const (
 	FishingCooldown = 45 * time.Second
 	MiningCooldown  = 45 * time.Second
 	GambleCooldown  = 10 * time.Second
-	InterestRate    = 0.001
+	InterestRate     = 0.001
 	InterestInterval = 6 * time.Hour
+	WeeklyCooldown   = 7 * 24 * time.Hour
 )
 
 var (
@@ -36,6 +40,7 @@ var (
 type Store struct {
 	mu      sync.RWMutex
 	records map[snowflake.ID]*Record
+	db      *sql.DB
 }
 
 type Record struct {
@@ -64,10 +69,12 @@ type Record struct {
 	MineTotal   int
 	GambleWins  int
 	GambleTotal int
-	LotteryWins int
-	Inventory   map[string]*InventoryEntry
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	LotteryWins  int
+	WeeklyStreak int
+	LastWeekly   time.Time
+	Inventory    map[string]*InventoryEntry
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 type DailyResult struct {
@@ -238,10 +245,247 @@ type UseItemResult struct {
 	Description string
 }
 
-func NewStore() *Store {
-	return &Store{
+type WeeklyResult struct {
+	Record        Record
+	Reward        int
+	Streak        int
+	NextAvailable time.Time
+	OnCooldown    bool
+}
+
+type GiftResult struct {
+	Sender   Record
+	Receiver Record
+	Item     InventoryEntry
+}
+
+func NewStore(database *sql.DB) *Store {
+	s := &Store{
 		records: make(map[snowflake.ID]*Record),
+		db:      database,
 	}
+	s.load()
+	return s
+}
+
+func (s *Store) load() {
+	if s.db == nil {
+		return
+	}
+
+	ctx := context.Background()
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT user_id, name, balance, total_earned, total_spent,
+		       daily_streak, last_daily, last_work, last_rob,
+		       last_fish, last_mine, last_gamble, last_interest,
+		       flip_wins, flip_losses, slot_wins, slot_losses,
+		       rob_wins, rob_losses, fish_caught, fish_total,
+		       mine_mined, mine_total, gamble_wins, gamble_total,
+		       lottery_wins, weekly_streak, last_weekly,
+		       created_at, updated_at
+		FROM user_economy`)
+	if err != nil {
+		log.Printf("Failed to load economy records: %v", err)
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			userIDStr, name                                             string
+			balance, earned, spent, dailyStreak, weeklyStreak           int
+			flipWins, flipLosses, slotWins, slotLosses                  int
+			robWins, robLosses, fishCaught, fishTotal                   int
+			mineMined, mineTotal, gambleWins, gambleTotal, lotteryWins  int
+			lastDaily, lastWork, lastRob                                *time.Time
+			lastFish, lastMine, lastGamble, lastInterest, lastWeekly    *time.Time
+			createdAt, updatedAt                                        time.Time
+		)
+		err := rows.Scan(&userIDStr, &name, &balance, &earned, &spent,
+			&dailyStreak,
+			&lastDaily, &lastWork, &lastRob,
+			&lastFish, &lastMine, &lastGamble, &lastInterest,
+			&flipWins, &flipLosses, &slotWins, &slotLosses,
+			&robWins, &robLosses, &fishCaught, &fishTotal,
+			&mineMined, &mineTotal, &gambleWins, &gambleTotal,
+			&lotteryWins, &weeklyStreak, &lastWeekly, &createdAt, &updatedAt)
+		if err != nil {
+			log.Printf("Failed to scan economy record: %v", err)
+			continue
+		}
+
+		userID, err := snowflake.Parse(userIDStr)
+		if err != nil {
+			log.Printf("Failed to parse user ID %s: %v", userIDStr, err)
+			continue
+		}
+
+		record := &Record{
+			UserID:       userID,
+			Name:         name,
+			Balance:      balance,
+			Earned:       earned,
+			Spent:        spent,
+			DailyStreak:  dailyStreak,
+			WeeklyStreak: weeklyStreak,
+			FlipWins:     flipWins,
+			FlipLosses:   flipLosses,
+			SlotWins:     slotWins,
+			SlotLosses:   slotLosses,
+			RobWins:      robWins,
+			RobLosses:    robLosses,
+			FishCaught:   fishCaught,
+			FishTotal:    fishTotal,
+			MineMined:    mineMined,
+			MineTotal:    mineTotal,
+			GambleWins:   gambleWins,
+			GambleTotal:  gambleTotal,
+			LotteryWins:  lotteryWins,
+			Inventory:    make(map[string]*InventoryEntry),
+			CreatedAt:    createdAt,
+			UpdatedAt:    updatedAt,
+		}
+		if lastDaily != nil {
+			record.LastDaily = *lastDaily
+		}
+		if lastWork != nil {
+			record.LastWork = *lastWork
+		}
+		if lastRob != nil {
+			record.LastRob = *lastRob
+		}
+		if lastFish != nil {
+			record.LastFish = *lastFish
+		}
+		if lastMine != nil {
+			record.LastMine = *lastMine
+		}
+		if lastGamble != nil {
+			record.LastGamble = *lastGamble
+		}
+		if lastInterest != nil {
+			record.LastInterest = *lastInterest
+		}
+		if lastWeekly != nil {
+			record.LastWeekly = *lastWeekly
+		}
+		s.records[userID] = record
+	}
+
+	invRows, err := s.db.QueryContext(ctx, `
+		SELECT user_id, item_id, item_name, quantity FROM user_inventory WHERE quantity > 0
+		ORDER BY user_id, item_id`)
+	if err != nil {
+		log.Printf("Failed to load inventory: %v", err)
+		return
+	}
+	defer invRows.Close()
+
+	for invRows.Next() {
+		var userIDStr, itemID, itemName string
+		var quantity int
+		if err := invRows.Scan(&userIDStr, &itemID, &itemName, &quantity); err != nil {
+			log.Printf("Failed to scan inventory item: %v", err)
+			continue
+		}
+		userID, err := snowflake.Parse(userIDStr)
+		if err != nil {
+			log.Printf("Failed to parse user ID %s in inventory: %v", userIDStr, err)
+			continue
+		}
+		if record, ok := s.records[userID]; ok {
+			record.Inventory[itemID] = &InventoryEntry{
+				ItemID:   itemID,
+				ItemName: itemName,
+				Quantity: quantity,
+			}
+		}
+	}
+	log.Printf("Loaded %d economy records from database", len(s.records))
+}
+
+func (s *Store) save(record *Record) {
+	if s.db == nil {
+		return
+	}
+
+	ctx := context.Background()
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO user_economy (
+			user_id, name, balance, total_earned, total_spent,
+			daily_streak, last_daily, last_work, last_rob,
+			last_fish, last_mine, last_gamble, last_interest,
+			flip_wins, flip_losses, slot_wins, slot_losses,
+			rob_wins, rob_losses, fish_caught, fish_total,
+			mine_mined, mine_total, gamble_wins, gamble_total,
+			lottery_wins, weekly_streak, last_weekly,
+			created_at, updated_at
+		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,
+		          $14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30)
+		ON CONFLICT (user_id) DO UPDATE SET
+			name = EXCLUDED.name,
+			balance = EXCLUDED.balance,
+			total_earned = EXCLUDED.total_earned,
+			total_spent = EXCLUDED.total_spent,
+			daily_streak = EXCLUDED.daily_streak,
+			last_daily = EXCLUDED.last_daily,
+			last_work = EXCLUDED.last_work,
+			last_rob = EXCLUDED.last_rob,
+			last_fish = EXCLUDED.last_fish,
+			last_mine = EXCLUDED.last_mine,
+			last_gamble = EXCLUDED.last_gamble,
+			last_interest = EXCLUDED.last_interest,
+			flip_wins = EXCLUDED.flip_wins,
+			flip_losses = EXCLUDED.flip_losses,
+			slot_wins = EXCLUDED.slot_wins,
+			slot_losses = EXCLUDED.slot_losses,
+			rob_wins = EXCLUDED.rob_wins,
+			rob_losses = EXCLUDED.rob_losses,
+			fish_caught = EXCLUDED.fish_caught,
+			fish_total = EXCLUDED.fish_total,
+			mine_mined = EXCLUDED.mine_mined,
+			mine_total = EXCLUDED.mine_total,
+			gamble_wins = EXCLUDED.gamble_wins,
+			gamble_total = EXCLUDED.gamble_total,
+			lottery_wins = EXCLUDED.lottery_wins,
+			weekly_streak = EXCLUDED.weekly_streak,
+			last_weekly = EXCLUDED.last_weekly,
+			updated_at = EXCLUDED.updated_at
+	`, record.UserID.String(), record.Name, record.Balance, record.Earned, record.Spent,
+		record.DailyStreak,
+		nullTime(record.LastDaily), nullTime(record.LastWork), nullTime(record.LastRob),
+		nullTime(record.LastFish), nullTime(record.LastMine), nullTime(record.LastGamble),
+		nullTime(record.LastInterest),
+		record.FlipWins, record.FlipLosses, record.SlotWins, record.SlotLosses,
+		record.RobWins, record.RobLosses, record.FishCaught, record.FishTotal,
+		record.MineMined, record.MineTotal, record.GambleWins, record.GambleTotal,
+		record.LotteryWins, record.WeeklyStreak, nullTime(record.LastWeekly),
+		record.CreatedAt, record.UpdatedAt)
+	if err != nil {
+		log.Printf("Failed to save economy record for user %s: %v", record.UserID, err)
+	}
+
+	_, err = s.db.ExecContext(ctx, `DELETE FROM user_inventory WHERE user_id = $1`, record.UserID.String())
+	if err != nil {
+		log.Printf("Failed to clear inventory for user %s: %v", record.UserID, err)
+		return
+	}
+	for _, entry := range record.Inventory {
+		_, err = s.db.ExecContext(ctx, `
+			INSERT INTO user_inventory (user_id, item_id, item_name, quantity)
+			VALUES ($1, $2, $3, $4)
+		`, record.UserID.String(), entry.ItemID, entry.ItemName, entry.Quantity)
+		if err != nil {
+			log.Printf("Failed to save inventory item %s for user %s: %v", entry.ItemID, record.UserID, err)
+		}
+	}
+}
+
+func nullTime(t time.Time) *time.Time {
+	if t.IsZero() {
+		return nil
+	}
+	return &t
 }
 
 func (s *Store) Balance(userID snowflake.ID, name string) Record {
@@ -274,6 +518,7 @@ func (s *Store) Daily(userID snowflake.ID, name string, now time.Time) DailyResu
 	record.Earned += reward
 	record.LastDaily = now
 	record.UpdatedAt = now
+	s.save(record)
 
 	return DailyResult{
 		Record:        record.copy(),
@@ -311,6 +556,7 @@ func (s *Store) Work(userID snowflake.ID, name string, now time.Time) WorkResult
 	record.Earned += reward
 	record.LastWork = now
 	record.UpdatedAt = now
+	s.save(record)
 
 	return WorkResult{
 		Record:        record.copy(),
@@ -344,6 +590,8 @@ func (s *Store) Pay(senderID snowflake.ID, senderName string, receiverID snowfla
 	receiver.Balance += amount
 	receiver.Earned += amount
 	receiver.UpdatedAt = now
+	s.save(sender)
+	s.save(receiver)
 
 	return TransferResult{
 		Sender:    sender.copy(),
@@ -386,6 +634,7 @@ func (s *Store) Coinflip(userID snowflake.ID, name string, side string, wager in
 		record.FlipLosses++
 	}
 	record.UpdatedAt = now
+	s.save(record)
 
 	return FlipResult{
 		Record: record.copy(),
@@ -471,6 +720,8 @@ func (s *Store) Rob(userID snowflake.ID, name string, targetID snowflake.ID, tar
 		record.RobLosses++
 		record.LastRob = now
 		record.UpdatedAt = now
+		s.save(record)
+		s.save(target)
 		return RobResult{
 			Record:        record.copy(),
 			Target:        target.copy(),
@@ -513,6 +764,8 @@ func (s *Store) Rob(userID snowflake.ID, name string, targetID snowflake.ID, tar
 
 	record.LastRob = now
 	record.UpdatedAt = now
+	s.save(record)
+	s.save(target)
 
 	return RobResult{
 		Record:        record.copy(),
@@ -563,6 +816,7 @@ func (s *Store) Buy(userID snowflake.ID, name string, itemID string, now time.Ti
 		}
 	}
 	record.UpdatedAt = now
+	s.save(record)
 
 	return BuyResult{
 		Record: record.copy(),
@@ -641,6 +895,7 @@ func (s *Store) Slots(userID snowflake.ID, name string, wager int, now time.Time
 		record.SlotLosses++
 	}
 	record.UpdatedAt = now
+	s.save(record)
 
 	return SlotsResult{
 		Record:     record.copy(),
@@ -676,6 +931,7 @@ func (s *Store) Fish(userID snowflake.ID, name string, now time.Time) FishResult
 		record.FishTotal++
 		record.LastFish = now
 		record.UpdatedAt = now
+		s.save(record)
 		return FishResult{
 			Record:        record.copy(),
 			Fish:          fish,
@@ -696,6 +952,7 @@ func (s *Store) Fish(userID snowflake.ID, name string, now time.Time) FishResult
 	record.FishTotal++
 	record.LastFish = now
 	record.UpdatedAt = now
+	s.save(record)
 
 	return FishResult{
 		Record:        record.copy(),
@@ -730,6 +987,7 @@ func (s *Store) Mine(userID snowflake.ID, name string, now time.Time) MineResult
 		record.MineTotal++
 		record.LastMine = now
 		record.UpdatedAt = now
+		s.save(record)
 		return MineResult{
 			Record:        record.copy(),
 			Ore:           ore,
@@ -750,6 +1008,7 @@ func (s *Store) Mine(userID snowflake.ID, name string, now time.Time) MineResult
 	record.MineTotal++
 	record.LastMine = now
 	record.UpdatedAt = now
+	s.save(record)
 
 	return MineResult{
 		Record:        record.copy(),
@@ -812,6 +1071,7 @@ func (s *Store) Gamble(userID snowflake.ID, name string, wager int, now time.Tim
 	record.GambleTotal++
 	record.LastGamble = now
 	record.UpdatedAt = now
+	s.save(record)
 
 	return GambleResult{
 		Record:        record.copy(),
@@ -859,6 +1119,7 @@ func (s *Store) Sell(userID snowflake.ID, name string, itemID string) (SellResul
 	record.Balance += refund
 	record.Earned += refund
 	record.UpdatedAt = time.Now()
+	s.save(record)
 
 	return SellResult{
 		Record: record.copy(),
@@ -889,6 +1150,7 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 
 	switch itemID {
 	case "shield_token":
+		s.save(record)
 		return UseItemResult{
 			Record:      record.copy(),
 			ItemID:      itemID,
@@ -904,6 +1166,7 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 		heal := 25 + refund*5
 		record.Balance += heal
 		record.Earned += heal
+		s.save(record)
 		return UseItemResult{
 			Record:      record.copy(),
 			ItemID:      itemID,
@@ -943,8 +1206,115 @@ func (s *Store) ApplyInterest(userID snowflake.ID, name string, now time.Time) i
 	}
 	record.LastInterest = now
 	record.UpdatedAt = now
+	s.save(record)
 	return interest
 }
+
+func (s *Store) Weekly(userID snowflake.ID, name string, now time.Time) WeeklyResult {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	record := s.ensureRecord(userID, name)
+	if !record.LastWeekly.IsZero() && now.Sub(record.LastWeekly) < WeeklyCooldown {
+		return WeeklyResult{
+			Record:        record.copy(),
+			NextAvailable: record.LastWeekly.Add(WeeklyCooldown),
+			OnCooldown:    true,
+		}
+	}
+
+	if record.LastWeekly.IsZero() || now.Sub(record.LastWeekly) > 14*24*time.Hour {
+		record.WeeklyStreak = 0
+	}
+
+	record.WeeklyStreak++
+	reward := 500 + min(record.WeeklyStreak*100, 1000)
+	record.Balance += reward
+	record.Earned += reward
+	record.LastWeekly = now
+	record.UpdatedAt = now
+	s.save(record)
+
+	return WeeklyResult{
+		Record:        record.copy(),
+		Reward:        reward,
+		Streak:        record.WeeklyStreak,
+		NextAvailable: now.Add(WeeklyCooldown),
+	}
+}
+
+func (s *Store) GiftItem(senderID snowflake.ID, senderName string, receiverID snowflake.ID, receiverName string, itemID string, now time.Time) (GiftResult, error) {
+	if senderID == receiverID {
+		return GiftResult{}, ErrSelfPayment
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	sender := s.ensureRecord(senderID, senderName)
+	if sender.Inventory == nil {
+		return GiftResult{}, ErrNotOwned
+	}
+
+	entry, ok := sender.Inventory[itemID]
+	if !ok {
+		return GiftResult{}, ErrNotOwned
+	}
+
+	receiver := s.ensureRecord(receiverID, receiverName)
+
+	entry.Quantity--
+	if entry.Quantity <= 0 {
+		delete(sender.Inventory, itemID)
+	}
+
+	if receiver.Inventory == nil {
+		receiver.Inventory = make(map[string]*InventoryEntry)
+	}
+	if existing, ok := receiver.Inventory[itemID]; ok {
+		existing.Quantity++
+	} else {
+		receiver.Inventory[itemID] = &InventoryEntry{
+			ItemID:   entry.ItemID,
+			ItemName: entry.ItemName,
+			Quantity: 1,
+		}
+	}
+
+	sender.UpdatedAt = now
+	receiver.UpdatedAt = now
+	s.save(sender)
+	s.save(receiver)
+
+	return GiftResult{
+		Sender:   sender.copy(),
+		Receiver: receiver.copy(),
+		Item:     *entry,
+	}, nil
+}
+
+func (s *Store) RichLeaderboard(limit int) []Record {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	records := make([]Record, 0, len(s.records))
+	for _, record := range s.records {
+		records = append(records, record.copy())
+	}
+
+	sort.Slice(records, func(i, j int) bool {
+		if records[i].Balance == records[j].Balance {
+			return records[i].Earned > records[j].Earned
+		}
+		return records[i].Balance > records[j].Balance
+	})
+
+	if len(records) > limit {
+		records = records[:limit]
+	}
+	return records
+}
+
 func (s *Store) ensureRecord(userID snowflake.ID, name string) *Record {
 	if record, ok := s.records[userID]; ok {
 		if name != "" {
@@ -964,6 +1334,7 @@ func (s *Store) ensureRecord(userID snowflake.ID, name string) *Record {
 		UpdatedAt:   now,
 	}
 	s.records[userID] = record
+	s.save(record)
 	return record
 }
 

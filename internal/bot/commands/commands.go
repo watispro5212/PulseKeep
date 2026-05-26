@@ -380,6 +380,30 @@ func Register() []discord.ApplicationCommandCreate {
 			},
 		},
 		discord.SlashCommandCreate{
+			Name:        "rich",
+			Description: "Show the top 10 richest PulseKeep members with rank badges",
+		},
+		discord.SlashCommandCreate{
+			Name:        "weekly",
+			Description: "Claim your weekly Pulses reward (7-day cooldown)",
+		},
+		discord.SlashCommandCreate{
+			Name:        "gift",
+			Description: "Give an item from your inventory to another user",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionUser{
+					Name:        "user",
+					Description: "The user to give the item to",
+					Required:    true,
+				},
+				discord.ApplicationCommandOptionString{
+					Name:        "item",
+					Description: "The item ID to give (use /inventory to see your items)",
+					Required:    true,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
 			Name:                     "role",
 			Description:              "Add or remove a role from a member",
 			DefaultMemberPermissions: ptrPermissions(discord.PermissionManageRoles),
