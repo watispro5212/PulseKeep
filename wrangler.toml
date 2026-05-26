@@ -1,0 +1,8 @@
+name = "pulsekeep"
+main = "src/worker.js"
+compatibility_date = "2026-05-26"
+
+assets = { directory = "web" }
+
+[placement]
+mode = "smart"

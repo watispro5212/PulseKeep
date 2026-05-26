@@ -54,23 +54,30 @@ fly deploy
 
 The Fly config keeps one machine running because Discord bots should not be auto-stopped while connected to the gateway. It also checks `/health` during deploys.
 
-## Cloudflare Pages Deployment
+## Cloudflare Workers Deployment
 
-### Automatic (recommended)
-1. Go to the [Cloudflare Dashboard](https://dash.cloudflare.com/) → Workers & Pages → Create → Pages → Connect to Git.
-2. Select your PulseKeep repository.
-3. Set **Build command**: leave empty (no build step).
-4. Set **Build output directory**: `web`.
-5. Deploy.
+The project includes a `wrangler.toml` and `src/worker.js` that serve both the static site and proxy API calls to the Fly.io backend from a single origin — no CORS needed.
 
-### Manual (CLI)
+### Prerequisites
+```bash
+npm install -g wrangler
+wrangler login
+```
+
+### Deploy
+```bash
+wrangler deploy
+```
+
+### How it works
+- `src/worker.js` serves static files from `web/` and proxies `/health` and `/stats` requests to `https://pulsekeep.fly.dev`.
+- `web/_headers` configures security headers and cache rules.
+- No CORS configuration needed — browser and API share the same origin.
+
+### Cloudflare Pages (alternative)
 ```bash
 npx wrangler pages deploy web --branch main
 ```
-
-The site will be available at `https://<project>.pages.dev`. For a custom domain, go to the Cloudflare Pages dashboard → your project → Custom domains.
-
-**Note:** The `web/_headers` file configures security headers and cache rules — no extra configuration needed.
 
 ## Environment Variables
 
@@ -79,7 +86,7 @@ The site will be available at `https://<project>.pages.dev`. For a custom domain
 | `DISCORD_TOKEN` | For full bot mode | Discord bot token from the Discord Developer Portal. |
 | `DATABASE_URL` | For database features | Postgres connection string. |
 | `PORT` | No | HTTP port, defaults to `8080`. |
-| `ALLOWED_ORIGIN` | No | Comma-separated browser origins allowed to call the API. Use the Cloudflare Pages URL in production. |
+| `ALLOWED_ORIGIN` | No | Comma-separated browser origins allowed to call the API directly (only needed if accessing Fly.io API directly). |
 | `BOT_DISABLED` | No | Set to `true` to run API-only mode without opening a Discord gateway connection. |
 
 ## Database

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://pulsekeep.fly.dev';
+const API_BASE_URL = '';
 
 const statEls = {
     servers: document.getElementById('stat-servers'),
