@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PulseKeep - Discord moderation, tickets, economy, and analytics</title>
+    <title>PulseKeep — Moderation, tickets, economy & analytics for Discord</title>
     <meta name="description" content="PulseKeep is a Go-powered Discord bot for moderation, audit logging, support tickets, economy commands, and live server health analytics.">
     <meta name="keywords" content="Discord bot, moderation bot, audit logs, Discord tickets, economy bot, PulseKeep">
-    <meta name="theme-color" content="#0b0f19">
+    <meta name="theme-color" content="#070a14">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -29,7 +29,7 @@
             </nav>
             <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
                 <i class="fa-brands fa-discord" aria-hidden="true"></i>
-                Invite Bot
+                Invite
             </a>
             <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">
                 <i class="fa-solid fa-bars" aria-hidden="true"></i>
@@ -48,13 +48,13 @@
         <section class="hero section-band">
             <div class="container hero-container">
                 <div class="hero-content">
-                    <div class="status-pill" id="bot-status-badge">
+                    <div class="hero-eyebrow" id="bot-status-badge">
                         <span class="pulse-dot" aria-hidden="true"></span>
-                        <span class="badge-text">Checking PulseKeep service</span>
+                        <span class="badge-text">Checking service</span>
                     </div>
-                    <h1>Moderation, tickets, economy, and analytics for Discord servers.</h1>
+                    <h1>Keep your Discord server running smoothly.</h1>
                     <p class="hero-subtitle">
-                        PulseKeep helps staff teams run practical Discord operations with slash commands, audit-friendly logs, private support workflows, and lightweight service health checks.
+                        PulseKeep is a Go-powered bot that handles moderation, support tickets, economy loops, and operational analytics — all through clean slash commands.
                     </p>
                     <div class="hero-actions">
                         <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary btn-large">
@@ -65,11 +65,16 @@
                             <i class="fa-solid fa-terminal" aria-hidden="true"></i>
                             View commands
                         </a>
+                        <a href="status.html" class="btn btn-secondary btn-large">
+                            <i class="fa-solid fa-heart-pulse" aria-hidden="true"></i>
+                            Live status
+                        </a>
                     </div>
-                    <div class="hero-proof" aria-label="PulseKeep highlights">
-                        <span><strong>Go</strong> runtime</span>
-                        <span><strong>Live</strong> status</span>
-                        <span><strong>Slash</strong> commands</span>
+                    <div class="hero-trust">
+                        <span><i class="fa-solid fa-circle-check"></i> Go runtime</span>
+                        <span><i class="fa-solid fa-circle-check"></i> Slash commands</span>
+                        <span><i class="fa-solid fa-circle-check"></i> PostgreSQL</span>
+                        <span><i class="fa-solid fa-circle-check"></i> Live API</span>
                     </div>
                 </div>
 
@@ -77,30 +82,30 @@
                     <div class="panel-header">
                         <img src="assets/logo.png" alt="PulseKeep logo" class="panel-logo">
                         <div>
-                            <span class="eyebrow">Live operations</span>
-                            <h2>PulseKeep control room</h2>
+                            <span class="eyebrow">Dashboard</span>
+                            <h2>Operations overview</h2>
                         </div>
                     </div>
                     <div class="signal-list">
                         <div class="signal-row">
-                            <span class="signal-icon audit"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+                            <span class="signal-icon moderation"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
                             <div>
-                                <strong>Audit stream</strong>
-                                <span>Moderation, message, channel, role, and command events.</span>
+                                <strong>Moderation</strong>
+                                <span>Purge, kick, ban, announce — permission-gated and logged.</span>
                             </div>
                         </div>
                         <div class="signal-row">
                             <span class="signal-icon tickets"><i class="fa-solid fa-ticket" aria-hidden="true"></i></span>
                             <div>
                                 <strong>Ticket desk</strong>
-                                <span>Private support channels with simple staff workflows.</span>
+                                <span>Private support channels created on demand with auto-close.</span>
                             </div>
                         </div>
                         <div class="signal-row">
                             <span class="signal-icon economy"><i class="fa-solid fa-coins" aria-hidden="true"></i></span>
                             <div>
                                 <strong>Economy loop</strong>
-                                <span>Daily rewards, work shifts, balances, profiles, coinflips, payments, and leaderboards.</span>
+                                <span>Daily rewards, work shifts, rob, shop, slots, coinflip, leaderboard.</span>
                             </div>
                         </div>
                     </div>
@@ -111,31 +116,31 @@
         <section id="statistics" class="statistics">
             <div class="container">
                 <div class="section-header">
-                    <span class="eyebrow">Runtime status</span>
-                    <h2>Live service health</h2>
-                    <p>The public site reads PulseKeep's API directly and falls back cleanly when the backend is unavailable.</p>
+                    <span class="eyebrow">Live metrics</span>
+                    <h2>Service health at a glance</h2>
+                    <p>Real-time statistics pulled directly from PulseKeep's API.</p>
                 </div>
 
                 <div class="stats-grid">
-                    <article class="stat-card">
+                    <article class="stat-card scroll-reveal">
                         <i class="fa-solid fa-server" aria-hidden="true"></i>
                         <strong id="stat-servers">--</strong>
-                        <span>Guilds guarded</span>
+                        <span>Guilds</span>
                     </article>
-                    <article class="stat-card">
+                    <article class="stat-card scroll-reveal">
                         <i class="fa-solid fa-users" aria-hidden="true"></i>
                         <strong id="stat-users">--</strong>
-                        <span>Active users</span>
+                        <span>Users</span>
                     </article>
-                    <article class="stat-card">
+                    <article class="stat-card scroll-reveal">
                         <i class="fa-solid fa-bolt" aria-hidden="true"></i>
                         <strong id="stat-commands">--</strong>
                         <span>Commands run</span>
                     </article>
-                    <article class="stat-card">
+                    <article class="stat-card scroll-reveal">
                         <i class="fa-solid fa-clock" aria-hidden="true"></i>
                         <strong id="stat-uptime">--</strong>
-                        <span>API uptime</span>
+                        <span>Uptime</span>
                     </article>
                 </div>
             </div>
@@ -144,41 +149,41 @@
         <section id="features" class="features section-band">
             <div class="container">
                 <div class="section-header left">
-                    <span class="eyebrow">What it handles</span>
-                    <h2>Built for daily staff work, not dashboard clutter.</h2>
-                    <p>PulseKeep focuses on repeatable server operations: quick command access, clear logs, member lookups, and community activity loops.</p>
+                    <span class="eyebrow">What it does</span>
+                    <h2>Built for daily ops, not dashboard clutter.</h2>
+                    <p>Focused tools for the tasks staff teams handle every shift.</p>
                 </div>
 
                 <div class="features-grid">
-                    <article class="feature-card">
-                        <i class="fa-solid fa-receipt" aria-hidden="true"></i>
+                    <article class="feature-card scroll-reveal">
+                        <i class="fa-solid fa-receipt"></i>
                         <h3>Audit-ready logging</h3>
-                        <p>Track moderation events, edited messages, member changes, channel updates, and command usage in staff-readable formats.</p>
+                        <p>Track moderation actions, message edits, member changes, and command usage in a clean staff-readable format.</p>
                     </article>
-                    <article class="feature-card">
-                        <i class="fa-solid fa-ticket" aria-hidden="true"></i>
+                    <article class="feature-card scroll-reveal">
+                        <i class="fa-solid fa-ticket"></i>
                         <h3>Private tickets</h3>
-                        <p>Give members a simple support entry point while keeping staff conversations organized and permission-aware.</p>
+                        <p>A simple button-based support panel creates private channels on demand, keeping staff workflows organized and permission-safe.</p>
                     </article>
-                    <article class="feature-card">
-                        <i class="fa-solid fa-gavel" aria-hidden="true"></i>
+                    <article class="feature-card scroll-reveal">
+                        <i class="fa-solid fa-gavel"></i>
                         <h3>Moderation tools</h3>
-                        <p>Use purge, kick, ban, announce, server info, user info, avatar, and command discovery tools.</p>
+                        <p>Purge, kick, ban, and announce commands with Discord-native permission enforcement and optional reason logging.</p>
                     </article>
-                    <article class="feature-card">
-                        <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-                        <h3>Operational analytics</h3>
-                        <p>Expose stats and health endpoints for uptime checks, status pages, and deployment smoke tests.</p>
+                    <article class="feature-card scroll-reveal">
+                        <i class="fa-solid fa-coins"></i>
+                        <h3>Economy system</h3>
+                        <p>Daily streaks, work shifts, coinflips, slot machine, robberies, a full item shop, and a live leaderboard.</p>
                     </article>
-                    <article class="feature-card">
-                        <i class="fa-solid fa-database" aria-hidden="true"></i>
+                    <article class="feature-card scroll-reveal">
+                        <i class="fa-solid fa-database"></i>
                         <h3>Postgres persistence</h3>
-                        <p>Store guild configuration, command usage, and economy state in a database-backed runtime.</p>
+                        <p>Guild config, command logs, economy balances, and user inventory are all database-backed and migration-managed.</p>
                     </article>
-                    <article class="feature-card">
-                        <i class="fa-solid fa-cloud" aria-hidden="true"></i>
-                        <h3>Deploy-friendly runtime</h3>
-                        <p>Designed for always-on hosting with graceful shutdown, health checks, and API-first status reporting.</p>
+                    <article class="feature-card scroll-reveal">
+                        <i class="fa-solid fa-cloud"></i>
+                        <h3>Production-ready</h3>
+                        <p>Deployed on Fly.io with health checks, graceful shutdown, API-first status reporting, and a public status page.</p>
                     </article>
                 </div>
             </div>
@@ -188,36 +193,57 @@
             <div class="container">
                 <div class="section-header">
                     <span class="eyebrow">Command surface</span>
-                    <h2>Simple slash commands for staff and members.</h2>
+                    <h2>Simple slash commands for every role.</h2>
+                    <p>Every command is a Discord slash command — no prefixes to remember.</p>
                 </div>
 
-                <div class="command-layout">
-                    <article class="command-category">
-                        <h2><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Moderation</h2>
-                        <div class="tag-row"><span>/purge</span><span>/kick</span><span>/ban</span><span>/announce</span></div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+                    <article class="command-group" style="border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); padding: 20px;">
+                        <h2><i class="fa-solid fa-bolt" style="color: var(--primary);"></i> Utility</h2>
+                        <div class="tag-row">
+                            <span>/ping</span><span>/help</span><span>/stats</span>
+                            <span>/uptime</span><span>/serverinfo</span>
+                            <span>/userinfo</span><span>/avatar</span>
+                        </div>
                     </article>
-                    <article class="command-category">
-                        <h2><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Utility</h2>
-                        <div class="tag-row"><span>/ping</span><span>/help</span><span>/stats</span><span>/uptime</span><span>/avatar</span></div>
+                    <article class="command-group" style="border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); padding: 20px;">
+                        <h2><i class="fa-solid fa-shield-halved" style="color: var(--rose);"></i> Moderation</h2>
+                        <div class="tag-row">
+                            <span>/purge</span><span>/kick</span><span>/ban</span><span>/announce</span>
+                        </div>
                     </article>
-                    <article class="command-category">
-                        <h2><i class="fa-solid fa-coins" aria-hidden="true"></i> Economy</h2>
-                        <div class="tag-row"><span>/balance</span><span>/daily</span><span>/work</span><span>/pay</span><span>/rob</span><span>/slots</span><span>/shop</span></div>
+                    <article class="command-group" style="border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); padding: 20px;">
+                        <h2><i class="fa-solid fa-coins" style="color: var(--amber);"></i> Economy</h2>
+                        <div class="tag-row">
+                            <span>/daily</span><span>/work</span><span>/balance</span>
+                            <span>/profile</span><span>/pay</span><span>/rob</span>
+                            <span>/slots</span><span>/coinflip</span>
+                            <span>/shop</span><span>/buy</span><span>/inventory</span>
+                            <span>/leaderboard</span>
+                        </div>
+                    </article>
+                    <article class="command-group" style="border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); padding: 20px;">
+                        <h2><i class="fa-solid fa-ticket" style="color: var(--cyan);"></i> Tickets</h2>
+                        <div class="tag-row">
+                            <span>/ticketpanel</span>
+                        </div>
                     </article>
                 </div>
             </div>
         </section>
 
-        <section class="support">
-            <div class="container support-container">
-                <div>
-                    <span class="eyebrow">Top.gg ready</span>
-                    <h2>Reviewer-friendly links are in place.</h2>
-                    <p>Use the command page, live status page, privacy policy, terms, and support page in your Top.gg application.</p>
-                </div>
-                <div class="support-actions">
-                    <a href="status.html" class="btn btn-secondary"><i class="fa-solid fa-heart-pulse" aria-hidden="true"></i>Status</a>
-                    <a href="support.html" class="btn btn-primary"><i class="fa-solid fa-life-ring" aria-hidden="true"></i>Support</a>
+        <section class="support-section">
+            <div class="container">
+                <div class="support-container">
+                    <div>
+                        <span class="eyebrow" style="color: var(--cyan);">Reviewer ready</span>
+                        <h2>Top.gg submission materials</h2>
+                        <p>Privacy policy, terms of service, command reference, and live status page are all published and ready for review.</p>
+                    </div>
+                    <div class="support-actions">
+                        <a href="status.html" class="btn btn-secondary"><i class="fa-solid fa-heart-pulse"></i> Status</a>
+                        <a href="support.html" class="btn btn-primary"><i class="fa-solid fa-life-ring"></i> Support</a>
+                    </div>
                 </div>
             </div>
         </section>

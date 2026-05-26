@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Commands - PulseKeep</title>
-    <meta name="description" content="Browse PulseKeep slash commands for moderation, tickets, economy, utility tools, and live status checks.">
-    <meta name="theme-color" content="#0b0f19">
+    <title>Commands — PulseKeep</title>
+    <meta name="description" content="Complete PulseKeep slash command reference for moderation, tickets, economy, utility, and more.">
+    <meta name="theme-color" content="#070a14">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,8 +27,7 @@
                 <a href="support.html">Support</a>
             </nav>
             <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
-                <i class="fa-brands fa-discord" aria-hidden="true"></i>
-                Invite Bot
+                <i class="fa-brands fa-discord" aria-hidden="true"></i> Invite
             </a>
             <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">
                 <i class="fa-solid fa-bars" aria-hidden="true"></i>
@@ -46,17 +45,15 @@
     <main>
         <section class="hero-small section-band">
             <div class="container">
-                <span class="eyebrow">Slash command reference</span>
-                <h1 class="hero-title">PulseKeep commands</h1>
-                <p class="hero-subtitle">A practical command reference for Top.gg reviewers, server admins, and staff teams testing PulseKeep.</p>
+                <span class="hero-eyebrow"><i class="fa-solid fa-terminal" style="font-size: 0.7rem;"></i> Slash command reference</span>
+                <h1 class="hero-title">All PulseKeep commands</h1>
+                <p class="hero-subtitle">A complete reference for server admins, staff teams, and Top.gg reviewers. Click any command to copy it.</p>
                 <div class="hero-actions">
                     <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary btn-large">
-                        <i class="fa-brands fa-discord" aria-hidden="true"></i>
-                        Add to Discord
+                        <i class="fa-brands fa-discord" aria-hidden="true"></i> Add to Discord
                     </a>
                     <a href="status.html" class="btn btn-secondary btn-large">
-                        <i class="fa-solid fa-heart-pulse" aria-hidden="true"></i>
-                        View status
+                        <i class="fa-solid fa-heart-pulse" aria-hidden="true"></i> Live status
                     </a>
                 </div>
             </div>
@@ -64,44 +61,84 @@
 
         <section class="container content-section">
             <div class="commands-list">
-                <article class="command-category">
-                    <h2><i class="fa-solid fa-bolt" aria-hidden="true"></i> General and utility</h2>
-                    <div class="command-item"><code>/ping</code><span>Check whether PulseKeep is responding.</span></div>
-                    <div class="command-item"><code>/uptime</code><span>Show how long the current bot process has been online.</span></div>
-                    <div class="command-item"><code>/stats</code><span>View a live operational snapshot for the bot.</span></div>
-                    <div class="command-item"><code>/help</code><span>Open the interactive command browser inside Discord.</span></div>
-                    <div class="command-item"><code>/serverinfo</code><span>Show server metadata for the current guild.</span></div>
-                    <div class="command-item"><code>/userinfo [user]</code><span>Look up account details for yourself or another member.</span></div>
-                    <div class="command-item"><code>/avatar [user]</code><span>Display a user's avatar in full resolution.</span></div>
+                <article class="command-group scroll-reveal">
+                    <h2><i class="fa-solid fa-bolt"></i> Utility</h2>
+                    <div class="command-items">
+                        <div class="command-item"><code>/ping</code><span>Check whether PulseKeep is responding.</span></div>
+                        <div class="command-item"><code>/uptime</code><span>Show how long the bot process has been online.</span></div>
+                        <div class="command-item"><code>/stats</code><span>View a live operational snapshot of the bot.</span></div>
+                        <div class="command-item"><code>/help</code><span>Open the interactive command browser inside Discord.</span></div>
+                        <div class="command-item"><code>/serverinfo</code><span>Show server metadata for the current guild.</span></div>
+                        <div class="command-item"><code>/userinfo [user]</code><span>Look up account details for yourself or another member.</span></div>
+                        <div class="command-item"><code>/avatar [user]</code><span>Display a user's avatar at full resolution.</span></div>
+                    </div>
                 </article>
 
-                <article class="command-category">
-                    <h2><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Moderation and logs</h2>
-                    <div class="command-item"><code>/purge &lt;amount&gt;</code><span>Bulk delete messages in the current channel.</span></div>
-                    <div class="command-item"><code>/kick &lt;user&gt; [reason]</code><span>Kick a member with an optional moderation reason.</span></div>
-                    <div class="command-item"><code>/ban &lt;user&gt; [reason]</code><span>Ban a member with an optional moderation reason.</span></div>
-                    <div class="command-item"><code>/announce &lt;title&gt; &lt;message&gt;</code><span>Send a structured announcement embed.</span></div>
+                <article class="command-group scroll-reveal">
+                    <h2><i class="fa-solid fa-shield-halved"></i> Moderation</h2>
+                    <div style="margin-bottom: 12px; padding: 10px 14px; border: 1px solid rgba(251,113,133,0.15); border-radius: var(--radius-sm); background: rgba(251,113,133,0.04);">
+                        <span style="color: var(--muted); font-size: 0.85rem;"><i class="fa-solid fa-lock" style="color: var(--rose); margin-right: 6px;"></i>These commands require staff-level Discord permissions.</span>
+                    </div>
+                    <div class="command-items">
+                        <div class="command-item"><code>/purge &lt;amount&gt;</code><span>Bulk delete messages in the current channel (1–100).</span></div>
+                        <div class="command-item"><code>/kick &lt;user&gt; [reason]</code><span>Remove a member from the server with an optional reason.</span></div>
+                        <div class="command-item"><code>/ban &lt;user&gt; [reason]</code><span>Ban a member from the server with an optional reason.</span></div>
+                        <div class="command-item"><code>/announce &lt;title&gt; &lt;message&gt;</code><span>Send a clean embedded announcement to the channel.</span></div>
+                    </div>
                 </article>
 
-                <article class="command-category">
-                    <h2><i class="fa-solid fa-ticket" aria-hidden="true"></i> Tickets</h2>
-                    <div class="command-item"><code>/ticketpanel</code><span>Post the interactive ticket panel for member support requests.</span></div>
+                <article class="command-group scroll-reveal">
+                    <h2><i class="fa-solid fa-ticket"></i> Tickets</h2>
+                    <div class="command-items">
+                        <div class="command-item"><code>/ticketpanel</code><span>Post the interactive ticket panel for members to open support requests.</span></div>
+                    </div>
+                    <div style="margin-top: 12px; padding: 14px; border: 1px solid rgba(56,213,200,0.15); border-radius: var(--radius-sm); background: rgba(56,213,200,0.04);">
+                        <p style="color: var(--cyan); font-size: 0.85rem; font-weight: 600;"><i class="fa-solid fa-circle-info"></i> How tickets work</p>
+                        <p style="color: var(--muted); font-size: 0.82rem; margin-top: 4px;">When a member clicks "Open Ticket" on the panel, PulseKeep creates a private channel that only the member and staff can see. Members can close their ticket with a button, and the channel is deleted automatically.</p>
+                    </div>
                 </article>
 
-                <article class="command-category">
-                    <h2><i class="fa-solid fa-coins" aria-hidden="true"></i> Economy</h2>
-                    <div class="command-item"><code>/balance [user]</code><span>Check a member's current PulseKeep balance.</span></div>
-                    <div class="command-item"><code>/profile [user]</code><span>View economy profile details for a member.</span></div>
-                    <div class="command-item"><code>/daily</code><span>Claim a daily Pulses reward.</span></div>
-                    <div class="command-item"><code>/work</code><span>Run a work shift to earn Pulses.</span></div>
-                    <div class="command-item"><code>/pay &lt;recipient&gt; &lt;amount&gt;</code><span>Send Pulses to another member.</span></div>
-                    <div class="command-item"><code>/coinflip &lt;amount&gt; &lt;side&gt;</code><span>Wager Pulses on a heads-or-tails coinflip.</span></div>
-                    <div class="command-item"><code>/leaderboard</code><span>Show the richest PulseKeep economy members.</span></div>
-                    <div class="command-item"><code>/rob &lt;user&gt;</code><span>Attempt to steal Pulses from another member.</span></div>
-                    <div class="command-item"><code>/shop</code><span>Browse the PulseKeep item shop.</span></div>
-                    <div class="command-item"><code>/buy &lt;item&gt;</code><span>Buy an item from the PulseKeep shop.</span></div>
-                    <div class="command-item"><code>/inventory</code><span>View items you own.</span></div>
-                    <div class="command-item"><code>/slots &lt;amount&gt;</code><span>Spin the slot machine to win Pulses.</span></div>
+                <article class="command-group scroll-reveal">
+                    <h2><i class="fa-solid fa-coins"></i> Economy</h2>
+                    <div class="command-items">
+                        <div class="command-item"><code>/balance [user]</code><span>Check your Pulse balance or another user's balance.</span></div>
+                        <div class="command-item"><code>/profile [user]</code><span>View wallet, earned/spent totals, and daily streak.</span></div>
+                        <div class="command-item"><code>/daily</code><span>Claim your daily Pulses reward (streak bonus included).</span></div>
+                        <div class="command-item"><code>/work</code><span>Work a shift to earn Pulses (45m cooldown).</span></div>
+                        <div class="command-item"><code>/pay &lt;user&gt; &lt;amount&gt;</code><span>Send Pulses to another member.</span></div>
+                        <div class="command-item"><code>/rob &lt;user&gt;</code><span>Attempt to steal Pulses from another member (40% success rate, 4h cooldown).</span></div>
+                        <div class="command-item"><code>/coinflip &lt;amount&gt; &lt;side&gt;</code><span>Wager Pulses on a heads-or-tails coinflip.</span></div>
+                        <div class="command-item"><code>/slots &lt;amount&gt;</code><span>Spin the slot machine — match 3 for up to 10x your wager.</span></div>
+                        <div class="command-item"><code>/shop</code><span>Browse the PulseKeep item shop for purchasable items.</span></div>
+                        <div class="command-item"><code>/buy &lt;item&gt;</code><span>Purchase an item from the shop using item ID.</span></div>
+                        <div class="command-item"><code>/inventory</code><span>View items you own.</span></div>
+                        <div class="command-item"><code>/leaderboard</code><span>Show the richest PulseKeep economy members.</span></div>
+                    </div>
+                    <div style="margin-top: 12px; padding: 14px; border: 1px solid rgba(245,189,79,0.15); border-radius: var(--radius-sm); background: rgba(245,189,79,0.04);">
+                        <p style="color: var(--amber); font-size: 0.85rem; font-weight: 600;"><i class="fa-solid fa-coins"></i> Shop items</p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
+                                <strong style="font-size: 0.82rem;">Lucky Pickaxe</strong>
+                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">5,000 Pulses — +15% coinflip win chance</span>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
+                                <strong style="font-size: 0.82rem;">XP Boost</strong>
+                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">3,000 Pulses — 2x work earnings for 1 hour</span>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
+                                <strong style="font-size: 0.82rem;">Golden Watch</strong>
+                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">8,000 Pulses — Reduces daily cooldown by 4h</span>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
+                                <strong style="font-size: 0.82rem;">Shield Token</strong>
+                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">6,000 Pulses — Protects from one robbery</span>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
+                                <strong style="font-size: 0.82rem;">Lucky Clover</strong>
+                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">4,000 Pulses — +1 slot reel position</span>
+                            </div>
+                        </div>
+                    </div>
                 </article>
             </div>
         </section>
@@ -111,7 +148,7 @@
         <div class="container footer-container">
             <div class="footer-brand">
                 <span class="logo-text">PulseKeep</span>
-                <p>Slash command reference for admins and reviewers.</p>
+                <p>Complete slash command reference for staff and reviewers.</p>
             </div>
             <div class="footer-links">
                 <a href="status.html">Status</a>

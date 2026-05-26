@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Status - PulseKeep</title>
-    <meta name="description" content="Live PulseKeep API, bot, database, and command usage status.">
-    <meta name="theme-color" content="#0b0f19">
+    <title>Status — PulseKeep</title>
+    <meta name="description" content="Live PulseKeep API, bot, database, and command usage status with real-time metrics.">
+    <meta name="theme-color" content="#070a14">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,8 +27,7 @@
                 <a href="support.html">Support</a>
             </nav>
             <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
-                <i class="fa-brands fa-discord" aria-hidden="true"></i>
-                Invite Bot
+                <i class="fa-brands fa-discord" aria-hidden="true"></i> Invite
             </a>
             <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">
                 <i class="fa-solid fa-bars" aria-hidden="true"></i>
@@ -46,71 +45,59 @@
     <main>
         <section class="hero-small section-band">
             <div class="container">
-                <span class="eyebrow">Live service status</span>
+                <span class="hero-eyebrow"><i class="fa-solid fa-heart-pulse" style="font-size: 0.7rem;"></i> Live service status</span>
                 <h1 class="hero-title">PulseKeep status</h1>
-                <p class="hero-subtitle">This page pulls live health and statistics through PulseKeep's website status gateway.</p>
+                <p class="hero-subtitle">Live metrics pulled directly from PulseKeep's API. Updates every 60 seconds.</p>
             </div>
         </section>
 
         <section class="container content-section">
             <div class="status-board">
-                <div class="status-pill" id="bot-status-badge">
+                <div class="status-badge online" id="bot-status-badge">
                     <span class="pulse-dot" aria-hidden="true"></span>
-                    <span class="badge-text">Checking PulseKeep service</span>
+                    <span class="badge-text" data-status-text>Checking service...</span>
                 </div>
 
                 <div class="status-metrics">
-                    <article class="metric-card">
-                        <div class="metric-icon"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i></div>
-                        <span class="stat-label">API response time</span>
-                        <strong class="stat-value" id="api-speed">-- ms</strong>
-                    </article>
-                    <article class="metric-card">
-                        <div class="metric-icon"><i class="fa-solid fa-database" aria-hidden="true"></i></div>
-                        <span class="stat-label">Database health</span>
-                        <strong class="stat-value" id="stat-database">--</strong>
-                    </article>
-                    <article class="metric-card">
-                        <div class="metric-icon"><i class="fa-solid fa-clock" aria-hidden="true"></i></div>
-                        <span class="stat-label">API uptime</span>
-                        <strong class="stat-value" id="stat-uptime">--</strong>
-                    </article>
-                    <article class="metric-card">
-                        <div class="metric-icon"><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i></div>
-                        <span class="stat-label">Gateway latency</span>
-                        <strong class="stat-value" id="stat-latency">-- ms</strong>
-                    </article>
-                    <article class="metric-card">
-                        <div class="metric-icon"><i class="fa-solid fa-server" aria-hidden="true"></i></div>
-                        <span class="stat-label">Guilds guarded</span>
+                    <article class="metric-card scroll-reveal">
+                        <div class="metric-icon"><i class="fa-solid fa-server"></i></div>
+                        <span class="stat-label">Guilds</span>
                         <strong class="stat-value" id="stat-servers">--</strong>
                     </article>
-                    <article class="metric-card">
-                        <div class="metric-icon"><i class="fa-solid fa-users" aria-hidden="true"></i></div>
-                        <span class="stat-label">Active users</span>
+                    <article class="metric-card scroll-reveal">
+                        <div class="metric-icon"><i class="fa-solid fa-users"></i></div>
+                        <span class="stat-label">Users</span>
                         <strong class="stat-value" id="stat-users">--</strong>
                     </article>
-                    <article class="metric-card">
-                        <div class="metric-icon"><i class="fa-solid fa-bolt" aria-hidden="true"></i></div>
+                    <article class="metric-card scroll-reveal">
+                        <div class="metric-icon"><i class="fa-solid fa-bolt"></i></div>
                         <span class="stat-label">Commands run</span>
                         <strong class="stat-value" id="stat-commands">--</strong>
                     </article>
-                    <article class="metric-card">
-                        <div class="metric-icon"><i class="fa-solid fa-cloud" aria-hidden="true"></i></div>
-                        <span class="stat-label">Runtime</span>
-                        <strong class="stat-value">Online</strong>
+                    <article class="metric-card scroll-reveal">
+                        <div class="metric-icon"><i class="fa-solid fa-clock"></i></div>
+                        <span class="stat-label">API uptime</span>
+                        <strong class="stat-value" id="stat-uptime">--</strong>
                     </article>
-                    <article class="metric-card">
-                        <div class="metric-icon"><i class="fa-solid fa-code-branch" aria-hidden="true"></i></div>
+                    <article class="metric-card scroll-reveal">
+                        <div class="metric-icon"><i class="fa-solid fa-gauge-high"></i></div>
+                        <span class="stat-label">API response</span>
+                        <strong class="stat-value" id="api-speed">-- ms</strong>
+                    </article>
+                    <article class="metric-card scroll-reveal">
+                        <div class="metric-icon"><i class="fa-solid fa-database"></i></div>
+                        <span class="stat-label">Database</span>
+                        <strong class="stat-value" id="stat-database">--</strong>
+                    </article>
+                    <article class="metric-card scroll-reveal">
+                        <div class="metric-icon"><i class="fa-solid fa-code-branch"></i></div>
                         <span class="stat-label">Version</span>
                         <strong class="stat-value" id="stat-version">v5.0</strong>
                     </article>
-                    <article class="metric-card">
-                        <div class="metric-icon"><i class="fa-solid fa-cube" aria-hidden="true"></i></div>
-                        <span class="stat-label">Features</span>
-                        <strong class="stat-value" style="font-size: 0.9rem; margin-top: 12px;">
-                            <span id="stat-features">moderation, tickets, economy, shop</span>
-                        </strong>
+                    <article class="metric-card scroll-reveal">
+                        <div class="metric-icon"><i class="fa-solid fa-cloud"></i></div>
+                        <span class="stat-label">Runtime</span>
+                        <strong class="stat-value" style="color: var(--green);">Online</strong>
                     </article>
                 </div>
             </div>
@@ -121,7 +108,7 @@
         <div class="container footer-container">
             <div class="footer-brand">
                 <span class="logo-text">PulseKeep</span>
-                <p>Live status powered by PulseKeep service checks.</p>
+                <p>Live status powered by PulseKeep API.</p>
             </div>
             <div class="footer-links">
                 <a href="commands.html">Commands</a>

@@ -9,52 +9,53 @@ const statEls = {
     apiSpeed: document.getElementById('api-speed'),
     database: document.getElementById('stat-database'),
     version: document.getElementById('stat-version'),
-    features: document.getElementById('stat-features'),
 };
 
 function setStatus(state, message) {
-    document.querySelectorAll('#bot-status-badge .badge-text, [data-status-text]').forEach((element) => {
-        element.textContent = message;
-    });
-
-    document.querySelectorAll('#bot-status-badge .pulse-dot, [data-status-dot]').forEach((dot) => {
-        dot.classList.remove('online', 'offline');
+    const badge = document.getElementById('bot-status-badge');
+    if (!badge) return;
+    const dot = badge.querySelector('.pulse-dot');
+    const text = badge.querySelector('.badge-text') || badge.querySelector('[data-status-text]');
+    if (text) text.textContent = message;
+    if (dot) {
+        dot.className = 'pulse-dot';
         if (state) dot.classList.add(state);
-    });
+    }
+    badge.className = 'status-badge';
+    if (state) badge.classList.add(state);
+    badge.className = 'hero-eyebrow';
+    if (state === 'online') {
+        const icon = badge.querySelector('i');
+        if (icon) icon.className = 'fa-solid fa-circle-check';
+    }
 }
 
 function animateCounter(element, target) {
     if (!element) return;
     const value = Number(target);
-
     if (!Number.isFinite(value)) {
         element.textContent = '--';
         return;
     }
-
-    const duration = 800;
+    const duration = 1000;
     const start = performance.now();
-
     function tick(now) {
         const progress = Math.min((now - start) / duration, 1);
         const eased = 1 - Math.pow(1 - progress, 3);
         element.textContent = Math.round(value * eased).toLocaleString('en-US');
-
-        if (progress < 1) {
-            requestAnimationFrame(tick);
-        }
+        if (progress < 1) requestAnimationFrame(tick);
     }
-
     requestAnimationFrame(tick);
 }
 
 function setFallback() {
-    ['servers', 'users', 'commands', 'uptime', 'latency', 'apiSpeed'].forEach((key) => {
-        if (statEls[key]) statEls[key].textContent = key === 'latency' || key === 'apiSpeed' ? '-- ms' : '--';
-    });
+    if (statEls.servers) statEls.servers.textContent = '--';
+    if (statEls.users) statEls.users.textContent = '--';
+    if (statEls.commands) statEls.commands.textContent = '--';
+    if (statEls.uptime) statEls.uptime.textContent = '--';
+    if (statEls.apiSpeed) statEls.apiSpeed.textContent = '-- ms';
     if (statEls.database) statEls.database.textContent = 'Unknown';
     if (statEls.version) statEls.version.textContent = '--';
-    if (statEls.features) statEls.features.textContent = '--';
 }
 
 async function timedFetch(path, options = {}) {
@@ -91,7 +92,7 @@ async function fetchHealth() {
 async function fetchStats() {
     if (!API_BASE_URL) {
         setFallback();
-        setStatus('offline', 'PulseKeep API not configured');
+        setStatus('offline', 'API not configured');
         return;
     }
 
@@ -104,16 +105,15 @@ async function fetchStats() {
         animateCounter(statEls.users, data.users);
         animateCounter(statEls.commands, data.commands_run);
         if (statEls.uptime) statEls.uptime.textContent = data.uptime || '--';
-        if (statEls.latency) statEls.latency.textContent = data.latency_ms ? `${data.latency_ms} ms` : '-- ms';
         if (statEls.version) statEls.version.textContent = data.bot || 'v5.0';
-        if (statEls.features && data.features) statEls.features.textContent = data.features.join(', ');
 
-        await fetchHealth().catch(() => null);
-        setStatus('online', 'PulseKeep service online');
+        const healthOk = await fetchHealth().catch(() => null);
+
+        setStatus('online', 'All systems online');
     } catch (error) {
         console.warn('Could not reach PulseKeep API:', error.message);
         setFallback();
-        setStatus('offline', 'PulseKeep service offline');
+        setStatus('offline', 'Service offline');
     }
 }
 
@@ -121,7 +121,6 @@ function initMobileMenu() {
     const toggle = document.getElementById('mobile-menu-toggle');
     const mobileNav = document.getElementById('mobile-nav');
     if (!toggle || !mobileNav) return;
-
     toggle.addEventListener('click', () => {
         const isOpen = mobileNav.classList.toggle('active');
         toggle.setAttribute('aria-expanded', String(isOpen));
@@ -142,38 +141,10 @@ function initSmoothScroll() {
     });
 }
 
-function initScrollAnimations() {
-    if (!('IntersectionObserver' in window)) return;
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
-        });
-    }, { threshold: 0.12 });
-
-    document.querySelectorAll('.stat-card, .feature-card, .command-category, .command-item, .setup-steps li, .metric-card, .team-card, .listing-card, .support-panel').forEach((element) => {
-        element.classList.add('scroll-reveal');
-        observer.observe(element);
-    });
-}
-
-function initPulseAnimation() {
-    const dots = document.querySelectorAll('.pulse-dot');
-    dots.forEach(dot => {
-        if (dot.classList.contains('online') || dot.classList.contains('offline')) return;
-        const interval = setInterval(() => {
-            dot.style.opacity = dot.style.opacity === '0.4' ? '1' : '0.4';
-        }, 1200);
-        dot._pulseInterval = interval;
-    });
-}
-
 function initCopyCommands() {
     document.querySelectorAll('.command-item code').forEach(el => {
         el.addEventListener('click', () => {
-            const text = el.textContent.replace(/[<>]/g, '').split(' ')[0];
+            const text = el.textContent.replace(/[<>\[\]]/g, '').split(' ')[0];
             navigator.clipboard.writeText(text).catch(() => {});
             const original = el.textContent;
             el.textContent = 'Copied!';
@@ -183,16 +154,17 @@ function initCopyCommands() {
     });
 }
 
-function initFeatureCards() {
-    document.querySelectorAll('.feature-card').forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            const icon = card.querySelector('i');
-            if (icon) icon.style.transform = 'scale(1.15)';
+function initScrollAnimations() {
+    if (!('IntersectionObserver' in window)) return;
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
         });
-        card.addEventListener('mouseleave', () => {
-            const icon = card.querySelector('i');
-            if (icon) icon.style.transform = 'scale(1)';
-        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.scroll-reveal').forEach((element) => {
+        observer.observe(element);
     });
 }
 
@@ -200,9 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initSmoothScroll();
     initScrollAnimations();
-    initPulseAnimation();
     initCopyCommands();
-    initFeatureCards();
     fetchStats();
     window.setInterval(fetchStats, 60_000);
 });

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - PulseKeep</title>
+    <title>Privacy Policy — PulseKeep</title>
     <meta name="description" content="PulseKeep privacy policy for Discord bot data handling.">
-    <meta name="theme-color" content="#0b0f19">
+    <meta name="theme-color" content="#070a14">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,17 +27,26 @@
                 <a href="support.html">Support</a>
             </nav>
             <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
-                <i class="fa-brands fa-discord" aria-hidden="true"></i>
-                Invite Bot
+                <i class="fa-brands fa-discord" aria-hidden="true"></i> Invite
             </a>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
         </div>
+        <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+            <a href="index.html">Home</a>
+            <a href="commands.html">Commands</a>
+            <a href="status.html">Status</a>
+            <a href="team.html">Team</a>
+            <a href="support.html">Support</a>
+        </nav>
     </header>
 
     <main class="legal-main">
         <article class="legal-card">
-            <span class="eyebrow">Legal</span>
+            <span class="hero-eyebrow" style="display: inline-flex; margin-bottom: 16px;"><i class="fa-solid fa-shield" style="font-size: 0.7rem;"></i> Privacy</span>
             <h1>Privacy Policy</h1>
-            <p>Last updated: May 23, 2026</p>
+            <p style="margin-top: 8px; color: var(--muted); font-size: 0.9rem;">Last updated: May 23, 2026</p>
 
             <h2>Data PulseKeep may process</h2>
             <p>PulseKeep may process Discord user IDs, guild IDs, channel IDs, role IDs, command names, command timestamps, guild configuration, logging channel settings, ticket metadata, and economy balances needed to operate bot features.</p>
@@ -52,7 +61,7 @@
             <p>Guild configuration and economy data may remain until a server removes the bot or requests deletion. Logs and command records may be pruned as the service evolves.</p>
 
             <h2>Contact</h2>
-            <p>For privacy questions or deletion requests, use the support resources linked on this website.</p>
+            <p>For privacy questions or deletion requests, use the <a href="support.html" style="color: var(--primary); text-decoration: underline;">support resources</a> linked on this website.</p>
         </article>
     </main>
 
@@ -70,5 +79,7 @@
             </div>
         </div>
     </footer>
+
+    <script src="app.js"></script>
 </body>
 </html>

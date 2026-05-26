@@ -339,7 +339,8 @@ func economyEmbed(title string, description string) discord.Embed {
 		WithTitle(title).
 		WithDescription(description).
 		WithColor(commands.EconomyMenuAccent).
-		WithFooterText("PulseKeep Economy")
+		WithFooterText("PulseKeep Economy · Use /help for all commands").
+		WithTimestamp(time.Now())
 }
 
 func formatPulses(amount int) string {

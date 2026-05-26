@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/disgoorg/disgo"
@@ -13,15 +14,18 @@ import (
 	"github.com/disgoorg/disgo/gateway"
 	"github.com/watispro/pulsekeep/internal/bot/commands"
 	"github.com/watispro/pulsekeep/internal/bot/economy"
+	"github.com/watispro/pulsekeep/internal/cache"
 )
 
 type Bot struct {
-	Client *bot.Client
+	Client     *bot.Client
+	cache      *cache.Cache
 }
 
-func New(token string) *Bot {
+func New(token string, memCache *cache.Cache) *Bot {
 	startedAt := time.Now()
 	economyStore := economy.NewStore()
+	_ = startedAt
 
 	client, err := disgo.New(token,
 		bot.WithGatewayConfigOpts(
@@ -42,7 +46,17 @@ func New(token string) *Bot {
 				_, _ = e.Client().Rest.CreateMessage(e.ChannelID, commands.MenuMessage("", false).WithMessageReferenceByID(e.Message.ID))
 			}
 		}),
+		bot.WithEventListenerFunc(func(e *events.GuildJoin) {
+			memCache.AddGuild(e.Guild.ID.String(), e.Guild.Name)
+			memCache.UserCount.Add(int64(e.Guild.MemberCount))
+			log.Printf("Joined guild: %s (%d members)", e.Guild.Name, e.Guild.MemberCount)
+		}),
+		bot.WithEventListenerFunc(func(e *events.GuildLeave) {
+			memCache.UserCount.Add(-int64(e.Guild.MemberCount))
+			memCache.RemoveGuild(e.Guild.ID.String())
+		}),
 		bot.WithEventListenerFunc(func(e *events.ApplicationCommandInteractionCreate) {
+			memCache.IncrCommands()
 			data := e.SlashCommandInteractionData()
 			if response, ok := handleEconomyCommand(economyStore, e, data); ok {
 				if err := e.CreateMessage(response); err != nil {
@@ -60,10 +74,19 @@ func New(token string) *Bot {
 				if err := e.CreateMessage(commands.TicketPanelMessage(false)); err != nil {
 					log.Printf("failed to send ticket panel: %v", err)
 				}
-			case "ping":
-				if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContent("Pong from Go PulseKeep!")); err != nil {
-					log.Printf("failed to send ping response: %v", err)
-				}
+		case "ping":
+			if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+				discord.NewEmbed().
+					WithTitle("🏓 Pong!").
+					WithDescription("PulseKeep is online and responding to commands.").
+					AddField("WebSocket", "Connected", true).
+					AddField("API", "Reachable", true).
+					WithColor(commands.UtilityMenuAccent).
+					WithFooterText("PulseKeep Utility").
+					WithTimestamp(time.Now()),
+			)); err != nil {
+				log.Printf("failed to send ping response: %v", err)
+			}
 			case "stats":
 				if err := e.CreateMessage(statsMessage(startedAt)); err != nil {
 					log.Printf("failed to send stats response: %v", err)
@@ -121,6 +144,7 @@ func New(token string) *Bot {
 		}),
 		bot.WithEventListenerFunc(func(e *events.Ready) {
 			log.Printf("Bot is ready as %s#%s", e.User.Username, e.User.Discriminator)
+			memCache.GuildCount.Store(int64(len(e.Guilds)))
 			if _, err := e.Client().Rest.SetGlobalCommands(e.Client().ApplicationID, commands.Register()); err != nil {
 				log.Printf("failed to register global slash commands: %v", err)
 			}
@@ -131,7 +155,7 @@ func New(token string) *Bot {
 		log.Fatalf("error while building disgo instance: %s", err)
 	}
 
-	return &Bot{Client: client}
+	return &Bot{Client: client, cache: memCache}
 }
 
 func (b *Bot) Start(ctx context.Context) error {
@@ -147,12 +171,15 @@ func statsMessage(startedAt time.Time) discord.MessageCreate {
 		WithEphemeral(true).
 		AddEmbeds(discord.NewEmbed().
 			WithTitle("PulseKeep Stats").
-			WithDescription("Current runtime snapshot for this bot process. Database-backed counters can replace these values once persistence is wired into command execution.").
+			WithDescription("Current runtime snapshot for this bot process.").
 			WithColor(commands.CommandMenuAccent).
-			AddField("Status", "Online", true).
+			AddField("Status", "🟢 Online", true).
 			AddField("Uptime", formatBotDuration(time.Since(startedAt)), true).
-			AddField("Command Menu", "`/help`", true).
-			AddField("Registered Groups", "Utility, Moderation, Economy, Tickets", false))
+			AddField("Latency", "Real-time in /ping", true).
+			AddField("Categories", "Utility · Moderation · Economy · Tickets", false).
+			AddField("Get started", "Use `/help` to browse all commands.", false).
+			WithFooterText("PulseKeep v5.0 · Go runtime").
+			WithTimestamp(time.Now()))
 }
 
 func serverInfoMessage(e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
@@ -229,25 +256,49 @@ func comingSoonMessage(commandName string) discord.MessageCreate {
 	return discord.NewMessageCreate().
 		WithEphemeral(true).
 		AddEmbeds(discord.NewEmbed().
-			WithTitle(fmt.Sprintf("/%s is registered", commandName)).
-			WithDescription("This command is visible in Discord and documented in the interactive menu. Its full action handler is the next implementation step.").
+			WithTitle(fmt.Sprintf("⏳ /%s", commandName)).
+			WithDescription("This command is registered and visible in Discord. The full action handler is the next implementation step.").
 			WithColor(commands.CommandMenuAccent).
-			AddField("Try now", "Use `/help` to browse finished command groups.", false))
+			AddField("Try now", "Use `/help` to browse all finished command groups.", false).
+			WithFooterText("PulseKeep · Coming soon").
+			WithTimestamp(time.Now()))
 }
 
 func handleTicketOpen(e *events.ComponentInteractionCreate) {
-	guildID := e.GuildID()
-	if guildID == nil {
-		if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContent("Tickets can only be opened inside a server.")); err != nil {
-			log.Printf("failed to send ticket error: %v", err)
-		}
+	if err := e.DeferCreateMessage(true); err != nil {
+		log.Printf("failed to defer ticket interaction: %v", err)
 		return
 	}
 
-	channelName := fmt.Sprintf("ticket-%s", e.User().Username)
-	if len(channelName) > 32 {
-		channelName = channelName[:32]
+	guildID := e.GuildID()
+	if guildID == nil {
+		_, _ = e.Client().Rest.CreateFollowupMessage(e.ApplicationID(), e.Token(), discord.NewMessageCreate().WithContent("Tickets can only be opened inside a server.").WithEphemeral(true))
+		return
 	}
+
+	// check if user already has an open ticket
+	existingChannels, err := e.Client().Rest.GetGuildChannels(*guildID)
+	if err == nil {
+		prefix := fmt.Sprintf("ticket-%s", strings.ToLower(e.User().Username))
+		for _, ch := range existingChannels {
+			if strings.HasPrefix(ch.Name(), prefix) {
+				_, _ = e.Client().Rest.CreateFollowupMessage(e.ApplicationID(), e.Token(), discord.NewMessageCreate().WithContentf("You already have an open ticket: %s. Please use that channel.", ch.Mention()).WithEphemeral(true))
+				return
+			}
+		}
+	}
+
+	safeName := strings.ToLower(e.User().Username)
+	safeName = strings.Map(func(r rune) rune {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
+			return r
+		}
+		return '-'
+	}, safeName)
+	if len(safeName) > 24 {
+		safeName = safeName[:24]
+	}
+	channelName := fmt.Sprintf("ticket-%s", safeName)
 
 	gChannel, err := e.Client().Rest.CreateGuildChannel(*guildID, discord.GuildTextChannelCreate{
 		Name:  channelName,
@@ -265,21 +316,16 @@ func handleTicketOpen(e *events.ComponentInteractionCreate) {
 	})
 	if err != nil {
 		log.Printf("failed to create ticket channel: %v", err)
-		if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContent("Failed to create ticket. Please contact staff directly.")); err != nil {
-			log.Printf("failed to send ticket error message: %v", err)
-		}
+		_, _ = e.Client().Rest.CreateFollowupMessage(e.ApplicationID(), e.Token(), discord.NewMessageCreate().WithContent("Failed to create ticket. Please contact staff directly.").WithEphemeral(true))
 		return
 	}
 
-	mention := gChannel.Mention()
-	if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContentf("Your ticket has been created: %s", mention)); err != nil {
-		log.Printf("failed to send ticket created message: %v", err)
-	}
+	_, _ = e.Client().Rest.CreateFollowupMessage(e.ApplicationID(), e.Token(), discord.NewMessageCreate().WithContentf("Your ticket has been created: %s", gChannel.Mention()).WithEphemeral(true))
 
 	if _, err := e.Client().Rest.CreateMessage(gChannel.ID(), discord.NewMessageCreate().
 		WithContentf("Welcome %s! A staff member will be with you shortly. Please describe your issue.", e.User().Mention()).
 		AddActionRow(
-			discord.NewDangerButton("Close Ticket", "pulsekeep:tickets:close"),
+			discord.NewDangerButton("Close Ticket", commands.TicketCloseButtonID),
 		),
 	); err != nil {
 		log.Printf("failed to send welcome message in ticket: %v", err)

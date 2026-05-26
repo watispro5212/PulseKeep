@@ -5,11 +5,13 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/watispro/pulsekeep/internal/cache"
 	"github.com/watispro/pulsekeep/internal/db"
 )
 
@@ -18,9 +20,10 @@ type Server struct {
 	port       string
 	startedAt  time.Time
 	database   *db.Database
+	cache      *cache.Cache
 }
 
-func NewServer(port string, allowedOrigin string, database *db.Database) *Server {
+func NewServer(port string, allowedOrigin string, database *db.Database, memCache *cache.Cache) *Server {
 	// Set Gin to release mode in production
 	gin.SetMode(gin.ReleaseMode)
 
@@ -60,27 +63,42 @@ func NewServer(port string, allowedOrigin string, database *db.Database) *Server
 			}
 		}
 
+		var goVersion string
+		if memCache != nil {
+			goVersion = runtime.Version()
+		}
+
 		c.JSON(http.StatusOK, gin.H{
-			"status":   status,
-			"database": dbStatus,
-			"uptime":   formatDuration(time.Since(startedAt)),
+			"status":      status,
+			"database":    dbStatus,
+			"uptime":      formatDuration(time.Since(startedAt)),
+			"bot_uptime":  formatUptime(memCache),
+			"go_version":  goVersion,
+			"servers":     getGuildCount(memCache),
+			"users":       getUserCount(memCache),
+			"commands":    getCommandsRun(memCache),
 		})
 	})
 
 	r.GET("/stats", func(c *gin.Context) {
+		servers := getGuildCount(memCache)
+		users := getUserCount(memCache)
+		cmds := getCommandsRun(memCache)
+
 		c.JSON(http.StatusOK, gin.H{
 			"bot":          "PulseKeep v5.0",
 			"status":       "online",
-			"servers":      24,
-			"users":        14250,
-			"commands_run": 8412,
+			"servers":      servers,
+			"users":        users,
+			"commands_run": cmds,
 			"uptime":       formatDuration(time.Since(startedAt)),
-			"latency_ms":   9,
+			"go_version":   runtime.Version(),
 			"features": []string{
 				"moderation",
 				"tickets",
 				"audit_logs",
 				"economy",
+				"shop",
 			},
 		})
 	})
@@ -94,6 +112,7 @@ func NewServer(port string, allowedOrigin string, database *db.Database) *Server
 		port:      port,
 		startedAt: startedAt,
 		database:  database,
+		cache:     memCache,
 	}
 }
 
@@ -153,4 +172,32 @@ func formatUnit(value int, suffix string) string {
 		return ""
 	}
 	return strings.TrimSpace(strings.Join([]string{strconv.Itoa(value), suffix}, ""))
+}
+
+func getGuildCount(memCache *cache.Cache) int64 {
+	if memCache == nil {
+		return 0
+	}
+	return memCache.GuildCount.Load()
+}
+
+func getUserCount(memCache *cache.Cache) int64 {
+	if memCache == nil {
+		return 0
+	}
+	return memCache.UserCount.Load()
+}
+
+func getCommandsRun(memCache *cache.Cache) int64 {
+	if memCache == nil {
+		return 0
+	}
+	return memCache.CommandsRun.Load()
+}
+
+func formatUptime(memCache *cache.Cache) string {
+	if memCache == nil || memCache.StartedAt.IsZero() {
+		return "unknown"
+	}
+	return formatDuration(time.Since(memCache.StartedAt))
 }

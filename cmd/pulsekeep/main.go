@@ -25,10 +25,9 @@ func main() {
 
 	// 3. Init Cache
 	memCache := cache.New()
-	_ = memCache // We will pass this to handlers later
 
 	// 4. Init Web Server
-	server := api.NewServer(cfg.Port, cfg.AllowedOrigin, database)
+	server := api.NewServer(cfg.Port, cfg.AllowedOrigin, database, memCache)
 	go func() {
 		if err := server.Start(); err != nil {
 			log.Fatalf("Web server failed: %v", err)
@@ -41,7 +40,7 @@ func main() {
 	if cfg.BotDisabled {
 		log.Println("Discord bot is disabled; API endpoints are still available.")
 	} else {
-		discordBot = bot.New(cfg.DiscordToken)
+		discordBot = bot.New(cfg.DiscordToken, memCache)
 		ctx := context.Background()
 		if err := discordBot.Start(ctx); err != nil {
 			log.Fatalf("Failed to start Discord bot: %v", err)
