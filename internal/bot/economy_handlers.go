@@ -37,6 +37,16 @@ func handleEconomyCommand(store *economy.Store, e *events.ApplicationCommandInte
 		return inventoryMessage(store, e), true
 	case "slots":
 		return slotsMessage(store, e, data), true
+	case "fish":
+		return fishMessage(store, e), true
+	case "mine":
+		return mineMessage(store, e), true
+	case "gamble":
+		return gambleMessage(store, e, data), true
+	case "sell":
+		return sellMessage(store, e, data), true
+	case "use":
+		return useItemMessage(store, e, data), true
 	default:
 		return discord.MessageCreate{}, false
 	}
@@ -72,7 +82,10 @@ func profileMessage(store *economy.Store, e *events.ApplicationCommandInteractio
 			AddField("Earned", formatPulses(record.Earned), true).
 			AddField("Spent", formatPulses(record.Spent), true).
 			AddField("Daily streak", fmt.Sprintf("%d day(s)", record.DailyStreak), true).
-			AddField("Coinflip record", fmt.Sprintf("%dW / %dL", record.FlipWins, record.FlipLosses), true).
+			AddField("Coinflip", fmt.Sprintf("%dW / %dL", record.FlipWins, record.FlipLosses), true).
+			AddField("Gambling", fmt.Sprintf("%dW / %dL", record.GambleWins, record.GambleTotal-record.GambleWins), true).
+			AddField("Fishing", fmt.Sprintf("%d caught / %d total", record.FishCaught, record.FishTotal), true).
+			AddField("Mining", fmt.Sprintf("%d mined / %d total", record.MineMined, record.MineTotal), true).
 			AddField("Account started", discordTimestamp(record.CreatedAt), true).
 			WithThumbnail(user.EffectiveAvatarURL()))
 }
@@ -355,6 +368,174 @@ func formatPulses(amount int) string {
 		raw = raw[:i] + "," + raw[i:]
 	}
 	return sign + raw
+}
+
+func fishMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
+	interest := store.ApplyInterest(e.User().ID, e.User().EffectiveName(), time.Now())
+	_ = interest
+
+	result := store.Fish(e.User().ID, e.User().EffectiveName(), time.Now())
+	if result.OnCooldown {
+		return cooldownMessage("Fishing is on cooldown", result.NextAvailable)
+	}
+
+	if result.Reward == 0 {
+		return discord.NewMessageCreate().
+			WithEphemeral(true).
+			AddEmbeds(economyEmbed("Fishing — No Rod!", "You need a **Fishing Rod** to catch fish!\nBuy one from `/shop` (`fishing_rod` — 1,500 Pulses).").
+				WithThumbnail(e.User().EffectiveAvatarURL()))
+	}
+
+	rarityColor := commands.EconomyMenuAccent
+	switch result.Fish.Rarity {
+	case "Common":
+		rarityColor = 0x999999
+	case "Uncommon":
+		rarityColor = 0x4ade80
+	case "Rare":
+		rarityColor = 0x60a5fa
+	case "Epic":
+		rarityColor = 0xa78bfa
+	case "Legendary":
+		rarityColor = 0xfbbf24
+	case "Mythic":
+		rarityColor = 0xfb7185
+	case "Junk":
+		rarityColor = 0x78716c
+	}
+
+	return discord.NewMessageCreate().
+		AddEmbeds(discord.NewEmbed().
+			WithTitle(fmt.Sprintf("🎣 Fishing — %s", result.Fish.Rarity)).
+			WithDescription(fmt.Sprintf("%s cast a line and caught... **%s %s** (%s, %s)!\nThey sold it for **%s Pulses**.",
+				e.User().String(), result.Fish.Emoji, result.Fish.Name, result.Fish.Weight, result.Fish.Rarity, formatPulses(result.Reward))).
+			WithColor(rarityColor).
+			AddField("New balance", formatPulses(result.Record.Balance), true).
+			AddField("Fish caught", fmt.Sprintf("%d", result.Record.FishCaught), true).
+			AddField("Cast again", discordTimestamp(result.NextAvailable), true).
+			WithThumbnail(e.User().EffectiveAvatarURL()).
+			WithFooterText("PulseKeep Fishing"))
+}
+
+func mineMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
+	interest := store.ApplyInterest(e.User().ID, e.User().EffectiveName(), time.Now())
+	_ = interest
+
+	result := store.Mine(e.User().ID, e.User().EffectiveName(), time.Now())
+	if result.OnCooldown {
+		return cooldownMessage("Mining is on cooldown", result.NextAvailable)
+	}
+
+	if result.Reward == 0 {
+		return discord.NewMessageCreate().
+			WithEphemeral(true).
+			AddEmbeds(economyEmbed("Mining — No Pickaxe!", "You need an **Iron Pickaxe** to mine ore!\nBuy one from `/shop` (`iron_pickaxe` — 2,000 Pulses).").
+				WithThumbnail(e.User().EffectiveAvatarURL()))
+	}
+
+	rarityColor := commands.EconomyMenuAccent
+	switch result.Ore.Rarity {
+	case "Common":
+		rarityColor = 0x999999
+	case "Uncommon":
+		rarityColor = 0x4ade80
+	case "Rare":
+		rarityColor = 0x60a5fa
+	case "Epic":
+		rarityColor = 0xa78bfa
+	case "Legendary":
+		rarityColor = 0xfbbf24
+	case "Mythic":
+		rarityColor = 0xfb7185
+	case "Junk":
+		rarityColor = 0x78716c
+	}
+
+	return discord.NewMessageCreate().
+		AddEmbeds(discord.NewEmbed().
+			WithTitle(fmt.Sprintf("⛏️ Mining — %s", result.Ore.Rarity)).
+			WithDescription(fmt.Sprintf("%s swung their pickaxe and found... **%s %s** (%s)!\nThey sold it for **%s Pulses**.",
+				e.User().String(), result.Ore.Emoji, result.Ore.Name, result.Ore.Rarity, formatPulses(result.Reward))).
+			WithColor(rarityColor).
+			AddField("New balance", formatPulses(result.Record.Balance), true).
+			AddField("Ores mined", fmt.Sprintf("%d", result.Record.MineMined), true).
+			AddField("Mine again", discordTimestamp(result.NextAvailable), true).
+			WithThumbnail(e.User().EffectiveAvatarURL()).
+			WithFooterText("PulseKeep Mining"))
+}
+
+func gambleMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	wager := data.Int("amount")
+
+	result, err := store.Gamble(e.User().ID, e.User().EffectiveName(), wager, time.Now())
+	if err != nil {
+		return economyCommandError(err)
+	}
+
+	if result.OnCooldown {
+		return cooldownMessage("Gamble is on cooldown", result.NextAvailable)
+	}
+
+	title := "Pulse Gamble — Lost"
+	color := commands.ModerationMenuAccent
+	outcome := "lost"
+	payoutStr := fmt.Sprintf("lost **%s Pulses**", formatPulses(result.Wager))
+
+	if result.Won {
+		payout := result.Wager * result.Multiplier
+		title = "Pulse Gamble — Won!"
+		color = commands.EconomyMenuAccent
+		outcome = "won"
+		payoutStr = fmt.Sprintf("won **%s Pulses** (x%d)", formatPulses(payout), result.Multiplier)
+	}
+
+	return discord.NewMessageCreate().
+		AddEmbeds(discord.NewEmbed().
+			WithTitle(title).
+			WithDescription(fmt.Sprintf("%s rolled **%d** (1-100) and %s!", e.User().String(), result.Roll, payoutStr)).
+			WithColor(color).
+			AddField("New balance", formatPulses(result.Record.Balance), true).
+			AddField("Record", fmt.Sprintf("%dW / %dL", result.Record.GambleWins, result.Record.GambleTotal-result.Record.GambleWins), true).
+			AddField("Tip", "Roll 60+ to win! 85+ = 2x, 95+ = 4x, 100 = 10x!", false).
+			WithThumbnail(e.User().EffectiveAvatarURL()).
+			WithFooterText(fmt.Sprintf("PulseKeep Gambling · %s", outcome)))
+}
+
+func sellMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	itemID := strings.ToLower(data.String("item"))
+
+	result, err := store.Sell(e.User().ID, e.User().EffectiveName(), itemID)
+	if err != nil {
+		if err.Error() == "you do not own this item" {
+			return economyError("Item not owned", "You don't have that item. Use `/inventory` to see your items.")
+		}
+		return economyCommandError(err)
+	}
+
+	return discord.NewMessageCreate().
+		AddEmbeds(economyEmbed("Item Sold", fmt.Sprintf("%s sold **%s** for **%s Pulses** (60%% refund).", e.User().String(), result.Item.ItemName, formatPulses(result.Reward))).
+			AddField("New balance", formatPulses(result.Record.Balance), true).
+			WithThumbnail(e.User().EffectiveAvatarURL()))
+}
+
+func useItemMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	itemID := strings.ToLower(data.String("item"))
+
+	result, err := store.UseItem(e.User().ID, e.User().EffectiveName(), itemID, time.Now())
+	if err != nil {
+		if err.Error() == "you do not own this item" {
+			return economyError("Item not owned", "You don't have that item. Use `/inventory` to see your items.")
+		}
+		if err.Error() == "this item cannot be used" {
+			return economyError("Cannot use", "That item cannot be used. Try `/sell` to get a refund instead.")
+		}
+		return economyCommandError(err)
+	}
+
+	return discord.NewMessageCreate().
+		AddEmbeds(economyEmbed(fmt.Sprintf("Used: %s", result.ItemName), result.Description).
+			AddField("New balance", formatPulses(result.Record.Balance), true).
+			WithThumbnail(e.User().EffectiveAvatarURL()))
 }
 
 func discordTimestamp(t time.Time) string {

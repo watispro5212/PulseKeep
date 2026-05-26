@@ -226,6 +226,120 @@ func Register() []discord.ApplicationCommandCreate {
 			},
 		},
 		discord.SlashCommandCreate{
+			Name:        "fish",
+			Description: "Cast a line and catch fish to sell for Pulses",
+		},
+		discord.SlashCommandCreate{
+			Name:        "mine",
+			Description: "Mine for valuable ores and minerals",
+		},
+		discord.SlashCommandCreate{
+			Name:        "gamble",
+			Description: "Roll a dice (1-100) and wager your Pulses",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionInt{
+					Name:        "amount",
+					Description: "How many Pulses to wager",
+					Required:    true,
+					MinValue:    ptrInt(1),
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:        "sell",
+			Description: "Sell an item from your inventory for a 60% refund",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
+					Name:        "item",
+					Description: "The item to sell",
+					Required:    true,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:        "use",
+			Description: "Use a usable item from your inventory",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
+					Name:        "item",
+					Description: "The item to use",
+					Required:    true,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "unban",
+			Description:              "Unban a user from the server",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionBanMembers),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
+					Name:        "user_id",
+					Description: "The ID of the user to unban",
+					Required:    true,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "slowmode",
+			Description:              "Set the slowmode delay in the current channel",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionManageChannels),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionInt{
+					Name:        "seconds",
+					Description: "Slowmode delay in seconds (0 to disable, max 21600)",
+					Required:    true,
+					MinValue:    ptrInt(0),
+					MaxValue:    ptrInt(21600),
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "nick",
+			Description:              "Change a member's nickname",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionManageNicknames),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionUser{
+					Name:        "user",
+					Description: "The member to rename",
+					Required:    true,
+				},
+				discord.ApplicationCommandOptionString{
+					Name:        "nickname",
+					Description: "The new nickname (leave empty to reset)",
+					Required:    false,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "timeout",
+			Description:              "Timeout a member for a specified duration",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionModerateMembers),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionUser{
+					Name:        "user",
+					Description: "The member to timeout",
+					Required:    true,
+				},
+				discord.ApplicationCommandOptionInt{
+					Name:        "duration",
+					Description: "Timeout duration in minutes (max 40320)",
+					Required:    true,
+					MinValue:    ptrInt(1),
+					MaxValue:    ptrInt(40320),
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "lock",
+			Description:              "Lock the current channel to prevent @everyone from sending messages",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionManageChannels),
+		},
+		discord.SlashCommandCreate{
+			Name:                     "unlock",
+			Description:              "Unlock the current channel to allow @everyone to send messages",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionManageChannels),
+		},
+		discord.SlashCommandCreate{
 			Name:                     "ticketpanel",
 			Description:              "Post the interactive PulseKeep ticket panel",
 			DefaultMemberPermissions: ptrPermissions(discord.PermissionManageMessages),

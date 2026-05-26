@@ -83,6 +83,12 @@
                         <div class="command-item"><code>/purge &lt;amount&gt;</code><span>Bulk delete messages in the current channel (1–100).</span></div>
                         <div class="command-item"><code>/kick &lt;user&gt; [reason]</code><span>Remove a member from the server with an optional reason.</span></div>
                         <div class="command-item"><code>/ban &lt;user&gt; [reason]</code><span>Ban a member from the server with an optional reason.</span></div>
+                        <div class="command-item"><code>/unban &lt;user_id&gt;</code><span>Unban a user by their ID.</span></div>
+                        <div class="command-item"><code>/timeout &lt;user&gt; &lt;duration&gt;</code><span>Timeout a member for a duration in minutes (max 28 days).</span></div>
+                        <div class="command-item"><code>/nick &lt;user&gt; [nickname]</code><span>Change a member's nickname (leave empty to reset).</span></div>
+                        <div class="command-item"><code>/slowmode &lt;seconds&gt;</code><span>Set the slowmode delay in a channel (0 to disable).</span></div>
+                        <div class="command-item"><code>/lock</code><span>Lock the current channel so @everyone cannot send messages.</span></div>
+                        <div class="command-item"><code>/unlock</code><span>Unlock the current channel for @everyone.</span></div>
                         <div class="command-item"><code>/announce &lt;title&gt; &lt;message&gt;</code><span>Send a clean embedded announcement to the channel.</span></div>
                     </div>
                 </article>
@@ -113,6 +119,11 @@
                         <div class="command-item"><code>/buy &lt;item&gt;</code><span>Purchase an item from the shop using item ID.</span></div>
                         <div class="command-item"><code>/inventory</code><span>View items you own.</span></div>
                         <div class="command-item"><code>/leaderboard</code><span>Show the richest PulseKeep economy members.</span></div>
+                        <div class="command-item"><code>/gamble &lt;amount&gt;</code><span>Roll 1-100 and wager Pulses — 60+ wins, up to 10x payout.</span></div>
+                        <div class="command-item"><code>/fish</code><span>Cast a line to catch rare fish (requires Fishing Rod).</span></div>
+                        <div class="command-item"><code>/mine</code><span>Mine for valuable ores and minerals (requires Iron Pickaxe).</span></div>
+                        <div class="command-item"><code>/sell &lt;item&gt;</code><span>Sell an item from your inventory for a 60% refund.</span></div>
+                        <div class="command-item"><code>/use &lt;item&gt;</code><span>Use a usable item (e.g. Shield Token, Health Potion).</span></div>
                     </div>
                     <div style="margin-top: 12px; padding: 14px; border: 1px solid rgba(245,189,79,0.15); border-radius: var(--radius-sm); background: rgba(245,189,79,0.04);">
                         <p style="color: var(--amber); font-size: 0.85rem; font-weight: 600;"><i class="fa-solid fa-coins"></i> Shop items</p>
@@ -136,6 +147,22 @@
                             <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
                                 <strong style="font-size: 0.82rem;">Lucky Clover</strong>
                                 <span style="display: block; color: var(--muted); font-size: 0.78rem;">4,000 Pulses — +1 slot reel position</span>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
+                                <strong style="font-size: 0.82rem;">Fishing Rod</strong>
+                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">1,500 Pulses — Required for /fish</span>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
+                                <strong style="font-size: 0.82rem;">Iron Pickaxe</strong>
+                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">2,000 Pulses — Required for /mine</span>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
+                                <strong style="font-size: 0.82rem;">Lottery Ticket</strong>
+                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">500 Pulses — Entry for the server lottery draw</span>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
+                                <strong style="font-size: 0.82rem;">Health Potion</strong>
+                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">2,500 Pulses — Restores 25% of lost rob fines</span>
                             </div>
                         </div>
                     </div>

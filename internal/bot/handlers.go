@@ -12,6 +12,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
+	"github.com/disgoorg/omit"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/watispro/pulsekeep/internal/bot/commands"
 	"github.com/watispro/pulsekeep/internal/bot/economy"
@@ -130,6 +131,30 @@ func New(token string, memCache *cache.Cache) *Bot {
 			if err := e.CreateMessage(handleRole(e, data)); err != nil {
 				log.Printf("failed to send role response: %v", err)
 			}
+		case "unban":
+			if err := e.CreateMessage(handleUnban(e, data)); err != nil {
+				log.Printf("failed to send unban response: %v", err)
+			}
+		case "slowmode":
+			if err := e.CreateMessage(handleSlowmode(e, data)); err != nil {
+				log.Printf("failed to send slowmode response: %v", err)
+			}
+		case "nick":
+			if err := e.CreateMessage(handleNick(e, data)); err != nil {
+				log.Printf("failed to send nick response: %v", err)
+			}
+		case "timeout":
+			if err := e.CreateMessage(handleTimeout(e, data)); err != nil {
+				log.Printf("failed to send timeout response: %v", err)
+			}
+		case "lock":
+			if err := e.CreateMessage(handleLock(e)); err != nil {
+				log.Printf("failed to send lock response: %v", err)
+			}
+		case "unlock":
+			if err := e.CreateMessage(handleUnlock(e)); err != nil {
+				log.Printf("failed to send unlock response: %v", err)
+			}
 		default:
 				if err := e.CreateMessage(commands.MenuMessage("", true)); err != nil {
 					log.Printf("failed to send fallback command menu: %v", err)
@@ -187,9 +212,9 @@ func statsMessage(startedAt time.Time) discord.MessageCreate {
 			AddField("Status", "🟢 Online", true).
 			AddField("Uptime", formatBotDuration(time.Since(startedAt)), true).
 			AddField("Latency", "Real-time in /ping", true).
-			AddField("Categories", "Utility · Moderation · Economy · Tickets", false).
+			AddField("Categories", "Utility · Moderation · Economy · Tickets · Gambling", false).
 			AddField("Get started", "Use `/help` to browse all commands.", false).
-			WithFooterText("PulseKeep v5.0 · Go runtime").
+			WithFooterText("PulseKeep v5.4 · Go runtime").
 			WithTimestamp(time.Now()))
 }
 
@@ -515,6 +540,223 @@ func handleRole(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 			WithDescription(fmt.Sprintf("Added <@&%s> to **%s**.", role.ID, user.Tag())).
 			WithColor(commands.UtilityMenuAccent).
 			WithFooterText("PulseKeep Utility").
+			WithTimestamp(time.Now()))
+}
+
+func handleUnban(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	guildID := e.GuildID()
+	if guildID == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
+	}
+
+	userIDStr := data.String("user_id")
+	userID, err := snowflake.Parse(userIDStr)
+	if err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Invalid ID").
+				WithDescription("Please provide a valid user ID.").
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	if err := e.Client().Rest.DeleteBan(*guildID, userID); err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Unban failed").
+				WithDescription(fmt.Sprintf("Could not unban that user: %s", err.Error())).
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("User unbanned").
+			WithDescription(fmt.Sprintf("Successfully unbanned `<@%s>`.", userID)).
+			WithColor(commands.ModerationMenuAccent).
+			WithFooterText("PulseKeep Moderation").
+			WithTimestamp(time.Now()))
+}
+
+func handleSlowmode(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	seconds := data.Int("seconds")
+	if seconds < 0 || seconds > 21600 {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Invalid slowmode").
+				WithDescription("Slowmode must be between 0 and 21600 seconds.").
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	guildID := e.GuildID()
+	if guildID == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
+	}
+
+	channelID := e.Channel().ID()
+	_, err := e.Client().Rest.UpdateChannel(channelID, discord.GuildTextChannelUpdate{
+		RateLimitPerUser: &seconds,
+	})
+	if err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Slowmode failed").
+				WithDescription(fmt.Sprintf("Could not set slowmode: %s", err.Error())).
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	msg := fmt.Sprintf("Slowmode set to **%d seconds**.", seconds)
+	if seconds == 0 {
+		msg = "Slowmode has been **disabled**."
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Slowmode updated").
+			WithDescription(msg).
+			WithColor(commands.UtilityMenuAccent).
+			WithFooterText("PulseKeep Moderation").
+			WithTimestamp(time.Now()))
+}
+
+func handleNick(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	guildID := e.GuildID()
+	if guildID == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
+	}
+
+	user, ok := data.OptUser("user")
+	if !ok {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a member.")
+	}
+
+	nickname, _ := data.OptString("nickname")
+
+	if _, err := e.Client().Rest.UpdateMember(*guildID, user.ID, discord.MemberUpdate{
+		Nick: &nickname,
+	}); err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Nickname failed").
+				WithDescription(fmt.Sprintf("Could not change nickname: %s", err.Error())).
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	if nickname == "" {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Nickname reset").
+				WithDescription(fmt.Sprintf("Reset nickname for **%s**.", user.Tag())).
+				WithColor(commands.UtilityMenuAccent).
+				WithFooterText("PulseKeep Moderation").
+				WithTimestamp(time.Now()))
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Nickname changed").
+			WithDescription(fmt.Sprintf("Changed **%s**'s nickname to **%s**.", user.Tag(), nickname)).
+			WithColor(commands.UtilityMenuAccent).
+			WithFooterText("PulseKeep Moderation").
+			WithTimestamp(time.Now()))
+}
+
+func handleTimeout(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	guildID := e.GuildID()
+	if guildID == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
+	}
+
+	user, ok := data.OptUser("user")
+	if !ok {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a member.")
+	}
+
+	duration := data.Int("duration")
+	if duration < 1 || duration > 40320 {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Invalid duration").
+				WithDescription("Duration must be between 1 and 40320 minutes.").
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	until := time.Now().Add(time.Duration(duration) * time.Minute)
+	if _, err := e.Client().Rest.UpdateMember(*guildID, user.ID, discord.MemberUpdate{
+		CommunicationDisabledUntil: omit.NewPtr(until),
+	}); err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Timeout failed").
+				WithDescription(fmt.Sprintf("Could not timeout %s: %s", user.Tag(), err.Error())).
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Member timed out").
+			WithDescription(fmt.Sprintf("**%s** has been timed out for **%d minutes**.", user.Tag(), duration)).
+			WithColor(commands.UtilityMenuAccent).
+			WithFooterText("PulseKeep Moderation").
+			WithTimestamp(time.Now()))
+}
+
+func handleLock(e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
+	guildID := e.GuildID()
+	if guildID == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
+	}
+
+	channelID := e.Channel().ID()
+	overwrites := []discord.PermissionOverwrite{
+		discord.RolePermissionOverwrite{
+			RoleID: *guildID,
+			Deny:   discord.PermissionSendMessages,
+		},
+	}
+
+	if _, err := e.Client().Rest.UpdateChannel(channelID, discord.GuildTextChannelUpdate{
+		PermissionOverwrites: &overwrites,
+	}); err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Lock failed").
+				WithDescription(fmt.Sprintf("Could not lock channel: %s", err.Error())).
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("🔒 Channel locked").
+			WithDescription(fmt.Sprintf("<#%s> has been locked.", channelID)).
+			WithColor(commands.UtilityMenuAccent).
+			WithFooterText("PulseKeep Moderation").
+			WithTimestamp(time.Now()))
+}
+
+func handleUnlock(e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
+	guildID := e.GuildID()
+	if guildID == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
+	}
+
+	channelID := e.Channel().ID()
+
+	emptyOverwrites := []discord.PermissionOverwrite{}
+	if _, err := e.Client().Rest.UpdateChannel(channelID, discord.GuildTextChannelUpdate{
+		PermissionOverwrites: &emptyOverwrites,
+	}); err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Unlock failed").
+				WithDescription(fmt.Sprintf("Could not unlock channel: %s", err.Error())).
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("🔓 Channel unlocked").
+			WithDescription(fmt.Sprintf("<#%s> has been unlocked.", channelID)).
+			WithColor(commands.UtilityMenuAccent).
+			WithFooterText("PulseKeep Moderation").
 			WithTimestamp(time.Now()))
 }
 
