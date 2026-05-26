@@ -105,7 +105,7 @@ async function fetchStats() {
         animateCounter(statEls.users, data.users);
         animateCounter(statEls.commands, data.commands_run);
         if (statEls.uptime) statEls.uptime.textContent = data.uptime || '--';
-        if (statEls.version) statEls.version.textContent = data.bot || 'v5.0';
+        if (statEls.version) statEls.version.textContent = data.bot || 'v5.3';
 
         const healthOk = await fetchHealth().catch(() => null);
 

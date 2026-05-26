@@ -86,7 +86,7 @@ func NewServer(port string, allowedOrigin string, database *db.Database, memCach
 		cmds := getCommandsRun(memCache)
 
 		c.JSON(http.StatusOK, gin.H{
-			"bot":          "PulseKeep v5.0",
+			"bot":          "PulseKeep v5.3",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
@@ -99,6 +99,7 @@ func NewServer(port string, allowedOrigin string, database *db.Database, memCach
 				"audit_logs",
 				"economy",
 				"shop",
+				"polls",
 			},
 		})
 	})

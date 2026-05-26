@@ -230,6 +230,54 @@ func Register() []discord.ApplicationCommandCreate {
 			Description:              "Post the interactive PulseKeep ticket panel",
 			DefaultMemberPermissions: ptrPermissions(discord.PermissionManageMessages),
 		},
+		discord.SlashCommandCreate{
+			Name:        "poll",
+			Description:  "Create a poll for members to vote on",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
+					Name:        "question",
+					Description: "The poll question",
+					Required:    true,
+				},
+				discord.ApplicationCommandOptionString{
+					Name:        "option1",
+					Description: "First option",
+					Required:    true,
+				},
+				discord.ApplicationCommandOptionString{
+					Name:        "option2",
+					Description: "Second option",
+					Required:    true,
+				},
+				discord.ApplicationCommandOptionString{
+					Name:        "option3",
+					Description: "Third option (optional)",
+					Required:    false,
+				},
+				discord.ApplicationCommandOptionString{
+					Name:        "option4",
+					Description: "Fourth option (optional)",
+					Required:    false,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "role",
+			Description:              "Add or remove a role from a member",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionManageRoles),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionUser{
+					Name:        "user",
+					Description: "The member to update",
+					Required:    true,
+				},
+				discord.ApplicationCommandOptionRole{
+					Name:        "role",
+					Description: "The role to add or remove",
+					Required:    true,
+				},
+			},
+		},
 	}
 }
 

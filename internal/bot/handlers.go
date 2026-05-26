@@ -12,6 +12,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
+	"github.com/disgoorg/snowflake/v2"
 	"github.com/watispro/pulsekeep/internal/bot/commands"
 	"github.com/watispro/pulsekeep/internal/bot/economy"
 	"github.com/watispro/pulsekeep/internal/cache"
@@ -108,14 +109,28 @@ func New(token string, memCache *cache.Cache) *Bot {
 					log.Printf("failed to send avatar response: %v", err)
 				}
 			case "announce":
-				if err := e.CreateMessage(announceMessage(data)); err != nil {
+				if err := e.CreateMessage(announceMessage(e, data)); err != nil {
 					log.Printf("failed to send announcement response: %v", err)
 				}
-			case "purge", "kick", "ban":
-				if err := e.CreateMessage(comingSoonMessage(data.CommandName())); err != nil {
-					log.Printf("failed to send command placeholder: %v", err)
-				}
-			default:
+		case "purge":
+			if err := e.CreateMessage(handlePurge(e, data)); err != nil {
+				log.Printf("failed to send purge response: %v", err)
+			}
+		case "kick":
+			if err := e.CreateMessage(handleKick(e, data)); err != nil {
+				log.Printf("failed to send kick response: %v", err)
+			}
+		case "ban":
+			if err := e.CreateMessage(handleBan(e, data)); err != nil {
+				log.Printf("failed to send ban response: %v", err)
+			}
+		case "poll":
+			handlePoll(e, data)
+		case "role":
+			if err := e.CreateMessage(handleRole(e, data)); err != nil {
+				log.Printf("failed to send role response: %v", err)
+			}
+		default:
 				if err := e.CreateMessage(commands.MenuMessage("", true)); err != nil {
 					log.Printf("failed to send fallback command menu: %v", err)
 				}
@@ -131,10 +146,6 @@ func New(token string, memCache *cache.Cache) *Bot {
 				}
 				if err := e.UpdateMessage(commands.MenuUpdate(selected)); err != nil {
 					log.Printf("failed to update command menu: %v", err)
-				}
-			case commands.MenuOverviewButtonID:
-				if err := e.UpdateMessage(commands.MenuUpdate("overview")); err != nil {
-					log.Printf("failed to return command menu to overview: %v", err)
 				}
 			case commands.TicketPanelButtonID:
 				handleTicketOpen(e)
@@ -183,21 +194,45 @@ func statsMessage(startedAt time.Time) discord.MessageCreate {
 }
 
 func serverInfoMessage(e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
-	embed := discord.NewEmbed().
-		WithTitle("Server Info").
-		WithColor(commands.UtilityMenuAccent)
-
-	if guild, ok := e.Guild(); ok {
-		embed = embed.
-			WithDescription(fmt.Sprintf("Overview for **%s**.", guild.Name)).
-			AddField("Server ID", guild.ID.String(), true).
-			AddField("Members", fmt.Sprintf("%d", guild.MemberCount), true).
-			AddField("Boost Tier", fmt.Sprintf("%d", guild.PremiumTier), true)
-	} else {
-		embed = embed.WithDescription("Server details are only available when this command is used inside a guild.")
+	guildID := e.GuildID()
+	if guildID == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Server Info").
+				WithDescription("Server details are only available inside a guild.").
+				WithColor(commands.UtilityMenuAccent))
 	}
 
-	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(embed)
+	guild, err := e.Client().Rest.GetGuild(*guildID, true)
+	if err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Server Info").
+				WithDescription(fmt.Sprintf("Could not fetch server info: %s", err.Error())).
+				WithColor(commands.UtilityMenuAccent))
+	}
+
+	createdAt := guild.ID.Time().Format("Jan 02, 2006")
+	iconURL := ""
+	if url := guild.IconURL(); url != nil {
+		iconURL = *url
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle(fmt.Sprintf("🏠 %s", guild.Name)).
+			WithDescription(fmt.Sprintf("Server overview for **%s**.", guild.Name)).
+			WithColor(commands.UtilityMenuAccent).
+			AddField("Owner", fmt.Sprintf("<@%s>", guild.OwnerID), true).
+			AddField("Members", fmt.Sprintf("%d", guild.ApproximateMemberCount), true).
+			AddField("Boosts", fmt.Sprintf("Tier %d (%d boosts)", guild.PremiumTier, guild.PremiumSubscriptionCount), true).
+			AddField("Online", fmt.Sprintf("%d", guild.ApproximatePresenceCount), true).
+			AddField("Roles", fmt.Sprintf("%d", len(guild.Roles)), true).
+			AddField("Server ID", guild.ID.String(), false).
+			AddField("Created", createdAt, false).
+			WithThumbnail(iconURL).
+			WithFooterText("PulseKeep Utility").
+			WithTimestamp(time.Now()))
 }
 
 func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
@@ -206,16 +241,38 @@ func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 		user = e.User()
 	}
 
-	return discord.NewMessageCreate().
-		WithEphemeral(true).
-		AddEmbeds(discord.NewEmbed().
-			WithTitle("User Info").
-			WithDescription(user.String()).
-			WithColor(commands.UtilityMenuAccent).
-			AddField("Display Name", user.EffectiveName(), true).
-			AddField("Username", user.Tag(), true).
-			AddField("User ID", user.ID.String(), false).
-			WithThumbnail(user.EffectiveAvatarURL()))
+	botBadge := "User"
+	if user.Bot {
+		botBadge = "🤖 Bot"
+	}
+
+	createdAt := user.ID.Time().Format("Jan 02, 2006")
+
+	embed := discord.NewEmbed().
+		WithTitle(user.EffectiveName()).
+		WithDescription(fmt.Sprintf("%s · %s", user.Tag(), botBadge)).
+		WithColor(commands.UtilityMenuAccent).
+		AddField("User ID", user.ID.String(), false).
+		AddField("Joined Discord", createdAt, true).
+		WithThumbnail(user.EffectiveAvatarURL()).
+		WithFooterText("PulseKeep Utility").
+		WithTimestamp(time.Now())
+
+	if guildID := e.GuildID(); guildID != nil {
+		member, err := e.Client().Rest.GetMember(*guildID, user.ID)
+		if err == nil {
+			joinedAt := member.JoinedAt.Format("Jan 02, 2006")
+			rolesCount := len(member.RoleIDs)
+			embed = embed.AddField("Joined Server", joinedAt, true)
+			if rolesCount > 0 {
+				embed = embed.AddField("Roles", fmt.Sprintf("%d roles", rolesCount), true)
+			} else {
+				embed = embed.AddField("Roles", "None", true)
+			}
+		}
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(embed)
 }
 
 func avatarMessage(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
@@ -228,13 +285,15 @@ func avatarMessage(e *events.ApplicationCommandInteractionCreate, data discord.S
 	return discord.NewMessageCreate().
 		WithEphemeral(true).
 		AddEmbeds(discord.NewEmbed().
-			WithTitle(fmt.Sprintf("%s's avatar", user.EffectiveName())).
+			WithTitle(fmt.Sprintf("%s's avatar", user.Tag())).
+			WithDescription(avatarURL).
 			WithColor(commands.UtilityMenuAccent).
 			WithImage(avatarURL).
-			AddField("Direct link", avatarURL, false))
+			WithFooterText("PulseKeep Utility").
+			WithTimestamp(time.Now()))
 }
 
-func announceMessage(data discord.SlashCommandInteractionData) discord.MessageCreate {
+func announceMessage(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
 	title := data.String("title")
 	body := data.String("message")
 	if title == "" {
@@ -244,24 +303,224 @@ func announceMessage(data discord.SlashCommandInteractionData) discord.MessageCr
 		body = "No announcement message was provided."
 	}
 
+	user := e.User()
 	return discord.NewMessageCreate().
 		AddEmbeds(discord.NewEmbed().
+			WithAuthorName(user.EffectiveName()).
+			WithAuthorIcon(user.EffectiveAvatarURL()).
 			WithTitle(title).
 			WithDescription(body).
 			WithColor(commands.CommandMenuAccent).
-			WithFooterText("Sent with PulseKeep"))
+			WithFooterText("PulseKeep Announcements").
+			WithTimestamp(time.Now()))
 }
 
-func comingSoonMessage(commandName string) discord.MessageCreate {
-	return discord.NewMessageCreate().
-		WithEphemeral(true).
-		AddEmbeds(discord.NewEmbed().
-			WithTitle(fmt.Sprintf("⏳ /%s", commandName)).
-			WithDescription("This command is registered and visible in Discord. The full action handler is the next implementation step.").
-			WithColor(commands.CommandMenuAccent).
-			AddField("Try now", "Use `/help` to browse all finished command groups.", false).
-			WithFooterText("PulseKeep · Coming soon").
+func handlePurge(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	amount := data.Int("amount")
+	if amount < 1 || amount > 100 {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Invalid amount").
+				WithDescription("Please specify an amount between 1 and 100.").
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	channelID := e.Channel().ID()
+	msgs, err := e.Client().Rest.GetMessages(channelID, *snowflakeID(0), *snowflakeID(0), *snowflakeID(0), amount)
+	if err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Purge failed").
+				WithDescription(fmt.Sprintf("Could not fetch messages: %s", err.Error())).
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	ids := make([]snowflake.ID, len(msgs))
+	for i, m := range msgs {
+		ids[i] = m.ID
+	}
+
+	if err := e.Client().Rest.BulkDeleteMessages(channelID, ids); err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Purge failed").
+				WithDescription(fmt.Sprintf("Could not delete messages: %s", err.Error())).
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Messages purged").
+			WithDescription(fmt.Sprintf("Successfully deleted **%d** messages.", len(ids))).
+			WithColor(commands.ModerationMenuAccent).
+			WithFooterText("PulseKeep Moderation").
 			WithTimestamp(time.Now()))
+}
+
+func handleKick(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	guildID := e.GuildID()
+	if guildID == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
+	}
+
+	user, ok := data.OptUser("user")
+	if !ok {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a member to kick.")
+	}
+
+	reason := data.String("reason")
+	if reason == "" {
+		reason = "No reason provided"
+	}
+
+	if err := e.Client().Rest.RemoveMember(*guildID, user.ID); err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Kick failed").
+				WithDescription(fmt.Sprintf("Could not kick %s: %s", user.Tag(), err.Error())).
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Member kicked").
+			WithDescription(fmt.Sprintf("**%s** has been kicked.", user.Tag())).
+			AddField("Reason", reason, false).
+			WithColor(commands.ModerationMenuAccent).
+			WithFooterText("PulseKeep Moderation").
+			WithTimestamp(time.Now()))
+}
+
+func handleBan(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	guildID := e.GuildID()
+	if guildID == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
+	}
+
+	user, ok := data.OptUser("user")
+	if !ok {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a member to ban.")
+	}
+
+	reason := data.String("reason")
+	if reason == "" {
+		reason = "No reason provided"
+	}
+
+	if err := e.Client().Rest.AddBan(*guildID, user.ID, 0); err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Ban failed").
+				WithDescription(fmt.Sprintf("Could not ban %s: %s", user.Tag(), err.Error())).
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Member banned").
+			WithDescription(fmt.Sprintf("**%s** has been banned.", user.Tag())).
+			AddField("Reason", reason, false).
+			WithColor(commands.ModerationMenuAccent).
+			WithFooterText("PulseKeep Moderation").
+			WithTimestamp(time.Now()))
+}
+
+func handlePoll(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) {
+	question := data.String("question")
+	options := make([]string, 0, 4)
+	emojis := []string{"1️⃣", "2️⃣", "3️⃣", "4️⃣"}
+
+	if o, ok := data.OptString("option1"); ok { options = append(options, o) }
+	if o, ok := data.OptString("option2"); ok { options = append(options, o) }
+	if o, ok := data.OptString("option3"); ok { options = append(options, o) }
+	if o, ok := data.OptString("option4"); ok { options = append(options, o) }
+
+	if len(options) < 2 {
+		if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContent("You need at least 2 options for a poll.")); err != nil {
+			log.Printf("failed to send poll error: %v", err)
+		}
+		return
+	}
+
+	if err := e.DeferCreateMessage(false); err != nil {
+		log.Printf("failed to defer poll: %v", err)
+		return
+	}
+
+	var desc strings.Builder
+	desc.WriteString(fmt.Sprintf("## %s\n\n", question))
+	for i, opt := range options {
+		desc.WriteString(fmt.Sprintf("%s %s\n", emojis[i], opt))
+	}
+
+	msg, err := e.Client().Rest.CreateFollowupMessage(e.ApplicationID(), e.Token(), discord.NewMessageCreate().AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("📊 Poll").
+			WithDescription(desc.String()).
+			WithColor(commands.CommandMenuAccent).
+			WithFooterText(fmt.Sprintf("Poll by %s", e.User().EffectiveName())).
+			WithTimestamp(time.Now())))
+	if err != nil {
+		log.Printf("failed to send poll: %v", err)
+		return
+	}
+
+	for i := 0; i < len(options); i++ {
+		if err := e.Client().Rest.AddReaction(msg.ChannelID, msg.ID, emojis[i]); err != nil {
+			log.Printf("failed to add reaction to poll: %v", err)
+		}
+	}
+}
+
+func handleRole(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	guildID := e.GuildID()
+	if guildID == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
+	}
+
+	user, ok := data.OptUser("user")
+	if !ok {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a member.")
+	}
+
+	role, ok := data.OptRole("role")
+	if !ok {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a role.")
+	}
+
+	// try to remove first, if member already has the role
+	err := e.Client().Rest.RemoveMemberRole(*guildID, user.ID, role.ID)
+	if err == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Role removed").
+				WithDescription(fmt.Sprintf("Removed <@&%s> from **%s**.", role.ID, user.Tag())).
+				WithColor(commands.UtilityMenuAccent).
+				WithFooterText("PulseKeep Utility").
+				WithTimestamp(time.Now()))
+	}
+
+	// member doesn't have the role, add it
+	if err := e.Client().Rest.AddMemberRole(*guildID, user.ID, role.ID); err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Role update failed").
+				WithDescription(fmt.Sprintf("Could not update role for %s: %s", user.Tag(), err.Error())).
+				WithColor(commands.UtilityMenuAccent))
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Role added").
+			WithDescription(fmt.Sprintf("Added <@&%s> to **%s**.", role.ID, user.Tag())).
+			WithColor(commands.UtilityMenuAccent).
+			WithFooterText("PulseKeep Utility").
+			WithTimestamp(time.Now()))
+}
+
+func snowflakeID(i int) *snowflake.ID {
+	id := snowflake.ID(i)
+	return &id
 }
 
 func handleTicketOpen(e *events.ComponentInteractionCreate) {

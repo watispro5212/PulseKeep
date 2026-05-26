@@ -8,10 +8,9 @@ import (
 )
 
 const (
-	MenuSelectID         = "pulsekeep:menu:category"
-	MenuOverviewButtonID = "pulsekeep:menu:overview"
-	TicketPanelButtonID  = "pulsekeep:tickets:open"
-	TicketCloseButtonID  = "pulsekeep:tickets:close"
+	MenuSelectID        = "pulsekeep:menu:category"
+	TicketPanelButtonID = "pulsekeep:tickets:open"
+	TicketCloseButtonID = "pulsekeep:tickets:close"
 	CommandMenuAccent    = 0x4f8cff
 	ModerationMenuAccent = 0xfb7185
 	UtilityMenuAccent    = 0x38d5c8
@@ -107,20 +106,14 @@ func MenuMessage(selectedCategoryID string, ephemeral bool) discord.MessageCreat
 		WithEphemeral(ephemeral).
 		AddEmbeds(menuEmbed(selectedCategoryID)).
 		AddActionRow(categorySelect(selectedCategoryID)).
-		AddActionRow(
-			discord.NewSecondaryButton("Overview", MenuOverviewButtonID),
-			discord.NewSuccessButton("Open Ticket", TicketPanelButtonID),
-		)
+		AddActionRow(discord.NewSuccessButton("Open Ticket", TicketPanelButtonID))
 }
 
 func MenuUpdate(selectedCategoryID string) discord.MessageUpdate {
 	return discord.NewMessageUpdate().
 		WithEmbeds(menuEmbed(selectedCategoryID)).
 		AddActionRow(categorySelect(selectedCategoryID)).
-		AddActionRow(
-			discord.NewSecondaryButton("Overview", MenuOverviewButtonID),
-			discord.NewSuccessButton("Open Ticket", TicketPanelButtonID),
-		)
+		AddActionRow(discord.NewSuccessButton("Open Ticket", TicketPanelButtonID))
 }
 
 func TicketPanelMessage(ephemeral bool) discord.MessageCreate {
@@ -132,14 +125,8 @@ func TicketPanelMessage(ephemeral bool) discord.MessageCreate {
 			WithColor(TicketMenuAccent).
 			AddField("Best for", "Setup help, deploy problems, moderation appeals, billing questions, and bug reports.", false).
 			AddField("Before opening", "Share the affected server, the command or feature involved, and any error text you saw.", false).
-			WithFooterText("Ticket channel creation is ready for the next persistence/permissions step.")).
+			WithFooterText("PulseKeep Support Tickets")).
 		AddActionRow(discord.NewSuccessButton("Open Ticket", TicketPanelButtonID))
-}
-
-func TicketPlaceholderMessage() discord.MessageCreate {
-	return discord.NewMessageCreate().
-		WithEphemeral(true).
-		WithContent("Ticket creation is queued for the next build step. For now, post your issue in the support channel with the server name, command, and error text.")
 }
 
 func menuEmbed(selectedCategoryID string) discord.Embed {
