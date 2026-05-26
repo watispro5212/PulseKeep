@@ -1,4 +1,4 @@
-const API_BASE_URL = '/.netlify/functions';
+const API_BASE_URL = 'https://pulsekeep.fly.dev';
 
 const statEls = {
     servers: document.getElementById('stat-servers'),
