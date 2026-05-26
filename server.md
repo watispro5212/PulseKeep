@@ -8,7 +8,7 @@ This blueprint is the recommended layout for a PulseKeep support and testing ser
 - Give support staff one obvious ticket workflow.
 - Keep bot testing contained to sandbox channels.
 - Use category permissions first, with channel overrides only when they are truly needed.
-- Make `/help`, `/menu`, and the ticket panel the main way users interact with PulseKeep.
+- Make `/help` and the ticket panel the main way users interact with PulseKeep.
 
 ## Role Hierarchy
 
@@ -52,7 +52,7 @@ Welcome to PulseKeep.
 
 Start here:
 1. Read the rules.
-2. Use /help or /menu to browse commands.
+2. Use /help to browse commands.
 3. Use the ticket panel in #open-a-ticket when you need private setup help.
 
 Do not post bot tokens, database URLs, or private server logs in public channels.
@@ -67,7 +67,7 @@ Channels:
 - `general-chat`: Main community chat.
 - `bot-discussion`: Usage questions and feature ideas.
 - `showcase`: Server setups, panels, and PulseKeep configurations.
-- `economy-chat`: Member economy commands such as `/daily`, `/work`, `/balance`, `/profile`, `/coinflip`, `/leaderboard`, and `/pay`.
+- `economy-chat`: Member economy commands such as `/daily`, `/work`, `/balance`, `/profile`, `/coinflip`, `/leaderboard`, `/pay`, `/rob`, `/shop`, `/buy`, `/inventory`, and `/slots`.
 
 Permissions:
 
@@ -101,7 +101,7 @@ Permissions:
 
 Setup:
 
-1. In `command-menu`, run `/menu`.
+1. In `command-menu`, run `/help`.
 2. Pin the bot's interactive command browser message.
 3. Tell users to use the dropdown to switch between Utility, Moderation, Economy, and Tickets.
 4. Keep normal chatting out of this channel so the menu is always visible.
@@ -109,8 +109,6 @@ Setup:
 Command aliases:
 
 - `/help`: Opens the interactive command browser privately.
-- `/menu`: Opens the same interactive command browser privately.
-- `!menu`: Posts the menu publicly in a text channel.
 - `!help`: Posts the menu publicly in a text channel.
 
 ### 4. Client Support
@@ -191,21 +189,19 @@ PulseKeep now includes a command-first interactive menu for Discord. It is desig
 Menu entry points:
 
 - `/help`: Private interactive command menu.
-- `/menu`: Private interactive command menu.
 - `!help`: Public menu reply for legacy text-command users.
-- `!menu`: Public menu reply for legacy text-command users.
 
 Menu categories:
 
 - Overview: Summary of every command group.
-- Utility: `/ping`, `/help`, `/menu`, `/stats`, `/uptime`, `/serverinfo`, `/userinfo`, `/avatar`.
+- Utility: `/ping`, `/help`, `/stats`, `/uptime`, `/serverinfo`, `/userinfo`, `/avatar`.
 - Moderation: `/purge`, `/kick`, `/ban`, `/announce`.
-- Economy: `/balance`, `/profile`, `/daily`, `/work`, `/coinflip`, `/pay`, `/leaderboard`.
+- Economy: `/balance`, `/profile`, `/daily`, `/work`, `/coinflip`, `/pay`, `/leaderboard`, `/rob`, `/shop`, `/buy`, `/inventory`, `/slots`.
 - Tickets: `/ticketpanel` and the Open Ticket button.
 
 Recommended server setup:
 
-1. Put `/menu` in `command-menu`.
+1. Put `/help` in `command-menu`.
 2. Put `/ticketpanel` in `open-a-ticket`.
 3. Pin both bot messages.
 4. Mention `/help` in the welcome/rules channel.
@@ -228,10 +224,10 @@ Before launching the server, confirm:
 2. Apply category permissions.
 3. Create channels.
 4. Invite PulseKeep with the required scopes: `bot` and `applications.commands`.
-5. Run `/menu` in `command-menu`.
+5. Run `/help` in `command-menu`.
 6. Run `/ticketpanel` in `open-a-ticket`.
 7. Pin the generated bot messages.
-8. Test `/help`, `/menu`, `!menu`, and the ticket button.
+8. Test `/help`, `!help`, and the ticket button.
 9. Test member visibility with a non-staff account.
 10. Publish the website and link it in `rules-and-info`.
 

@@ -52,7 +52,7 @@ func New(token string) *Bot {
 			}
 
 			switch data.CommandName() {
-			case "help", "menu":
+			case "help":
 				if err := e.CreateMessage(commands.MenuMessage("", true)); err != nil {
 					log.Printf("failed to send command menu: %v", err)
 				}
@@ -114,9 +114,9 @@ func New(token string) *Bot {
 					log.Printf("failed to return command menu to overview: %v", err)
 				}
 			case commands.TicketPanelButtonID:
-				if err := e.CreateMessage(commands.TicketPlaceholderMessage()); err != nil {
-					log.Printf("failed to send ticket placeholder: %v", err)
-				}
+				handleTicketOpen(e)
+			case commands.TicketCloseButtonID:
+				handleTicketClose(e)
 			}
 		}),
 		bot.WithEventListenerFunc(func(e *events.Ready) {
@@ -151,7 +151,7 @@ func statsMessage(startedAt time.Time) discord.MessageCreate {
 			WithColor(commands.CommandMenuAccent).
 			AddField("Status", "Online", true).
 			AddField("Uptime", formatBotDuration(time.Since(startedAt)), true).
-			AddField("Command Menu", "`/help` or `/menu`", true).
+			AddField("Command Menu", "`/help`", true).
 			AddField("Registered Groups", "Utility, Moderation, Economy, Tickets", false))
 }
 
@@ -232,7 +232,72 @@ func comingSoonMessage(commandName string) discord.MessageCreate {
 			WithTitle(fmt.Sprintf("/%s is registered", commandName)).
 			WithDescription("This command is visible in Discord and documented in the interactive menu. Its full action handler is the next implementation step.").
 			WithColor(commands.CommandMenuAccent).
-			AddField("Try now", "Use `/help` or `/menu` to browse finished command groups.", false))
+			AddField("Try now", "Use `/help` to browse finished command groups.", false))
+}
+
+func handleTicketOpen(e *events.ComponentInteractionCreate) {
+	guildID := e.GuildID()
+	if guildID == nil {
+		if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContent("Tickets can only be opened inside a server.")); err != nil {
+			log.Printf("failed to send ticket error: %v", err)
+		}
+		return
+	}
+
+	channelName := fmt.Sprintf("ticket-%s", e.User().Username)
+	if len(channelName) > 32 {
+		channelName = channelName[:32]
+	}
+
+	gChannel, err := e.Client().Rest.CreateGuildChannel(*guildID, discord.GuildTextChannelCreate{
+		Name:  channelName,
+		Topic: fmt.Sprintf("Support ticket for %s | User ID: %s", e.User().Tag(), e.User().ID),
+		PermissionOverwrites: []discord.PermissionOverwrite{
+			discord.RolePermissionOverwrite{
+				RoleID: *guildID,
+				Deny:   discord.PermissionViewChannel,
+			},
+			discord.MemberPermissionOverwrite{
+				UserID: e.User().ID,
+				Allow:  discord.PermissionViewChannel | discord.PermissionSendMessages | discord.PermissionReadMessageHistory,
+			},
+		},
+	})
+	if err != nil {
+		log.Printf("failed to create ticket channel: %v", err)
+		if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContent("Failed to create ticket. Please contact staff directly.")); err != nil {
+			log.Printf("failed to send ticket error message: %v", err)
+		}
+		return
+	}
+
+	mention := gChannel.Mention()
+	if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContentf("Your ticket has been created: %s", mention)); err != nil {
+		log.Printf("failed to send ticket created message: %v", err)
+	}
+
+	if _, err := e.Client().Rest.CreateMessage(gChannel.ID(), discord.NewMessageCreate().
+		WithContentf("Welcome %s! A staff member will be with you shortly. Please describe your issue.", e.User().Mention()).
+		AddActionRow(
+			discord.NewDangerButton("Close Ticket", "pulsekeep:tickets:close"),
+		),
+	); err != nil {
+		log.Printf("failed to send welcome message in ticket: %v", err)
+	}
+}
+
+func handleTicketClose(e *events.ComponentInteractionCreate) {
+	if err := e.UpdateMessage(discord.NewMessageUpdate().WithContent("Ticket closed by user. Channel will be deleted shortly.")); err != nil {
+		log.Printf("failed to update ticket close message: %v", err)
+	}
+
+	channelID := e.Channel().ID()
+	go func() {
+		time.Sleep(5 * time.Second)
+		if err := e.Client().Rest.DeleteChannel(channelID); err != nil {
+			log.Printf("failed to delete ticket channel: %v", err)
+		}
+	}()
 }
 
 func formatBotDuration(d time.Duration) string {

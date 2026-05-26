@@ -359,6 +359,7 @@ a {
     border-radius: var(--radius);
     background: rgba(79, 140, 255, 0.13);
     color: var(--primary);
+    transition: transform 0.3s ease, background 0.3s ease;
 }
 
 .signal-icon.tickets {
@@ -442,6 +443,12 @@ a {
 
 .stat-card {
     min-height: 158px;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
 }
 
 .stat-card strong,
@@ -459,6 +466,16 @@ a {
     margin-top: 8px;
     color: var(--muted);
     font-weight: 700;
+}
+
+.feature-card {
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(79, 140, 255, 0.4);
+    box-shadow: 0 8px 30px rgba(79, 140, 255, 0.08);
 }
 
 .feature-card h3,

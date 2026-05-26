@@ -61,6 +61,101 @@ func TestPayRejectsBadTransfers(t *testing.T) {
 	}
 }
 
+func TestRobRequiresDifferentUsers(t *testing.T) {
+	store := NewStore()
+	now := time.Now()
+
+	_, err := store.Rob(snowflake.ID(1), "User", snowflake.ID(1), "User", now)
+	if !errors.Is(err, ErrSelfPayment) {
+		t.Fatalf("expected self-rob error, got %v", err)
+	}
+}
+
+func TestSlotsAdjustsBalance(t *testing.T) {
+	store := NewStore()
+	now := time.Now()
+
+	result, err := store.Slots(snowflake.ID(1), "Player", 50, now)
+	if err != nil {
+		t.Fatalf("slots returned error: %v", err)
+	}
+	if result.Wager != 50 {
+		t.Fatalf("expected wager 50, got %d", result.Wager)
+	}
+	// Balance should have changed (either won or lost)
+	if result.Record.Balance == StartingBalance {
+		t.Fatal("expected balance to change after slots")
+	}
+}
+
+func TestBuyDeductsBalance(t *testing.T) {
+	store := NewStore()
+	now := time.Now()
+
+	// make the buyer rich with repeated daily claims
+	buyerID := snowflake.ID(1)
+	for i := 0; i < 20; i++ {
+		store.Daily(buyerID, "Buyer", now.Add(time.Duration(i)*25*time.Hour))
+	}
+
+	result, err := store.Buy(buyerID, "Buyer", "lucky_pickaxe", now.Add(500*time.Hour))
+	if err != nil {
+		t.Fatalf("buy returned error: %v", err)
+	}
+	if result.Item.ID != "lucky_pickaxe" {
+		t.Fatalf("expected lucky_pickaxe, got %s", result.Item.ID)
+	}
+	if result.Record.Balance <= 0 {
+		t.Fatalf("expected positive balance after buy, got %d", result.Record.Balance)
+	}
+}
+
+func TestBuyRejectsUnknownItem(t *testing.T) {
+	store := NewStore()
+	now := time.Now()
+
+	_, err := store.Buy(snowflake.ID(1), "Buyer", "nonexistent", now)
+	if err == nil || err.Error() != "item not found" {
+		t.Fatalf("expected item not found error, got %v", err)
+	}
+}
+
+func TestBuyRejectsInsufficientFunds(t *testing.T) {
+	store := NewStore()
+	now := time.Now()
+
+	_, err := store.Buy(snowflake.ID(1), "Buyer", "golden_watch", now)
+	if !errors.Is(err, ErrInsufficientFund) {
+		t.Fatalf("expected insufficient fund error, got %v", err)
+	}
+}
+
+func TestInventoryAfterBuy(t *testing.T) {
+	store := NewStore()
+	now := time.Now()
+
+	buyerID := snowflake.ID(1)
+	for i := 0; i < 20; i++ {
+		store.Daily(buyerID, "Buyer", now.Add(time.Duration(i)*25*time.Hour))
+	}
+
+	_, err := store.Buy(buyerID, "Buyer", "lucky_pickaxe", now.Add(500*time.Hour))
+	if err != nil {
+		t.Fatalf("buy returned error: %v", err)
+	}
+
+	items := store.Inventory(buyerID, "Buyer")
+	if len(items) != 1 {
+		t.Fatalf("expected 1 item, got %d", len(items))
+	}
+	if items[0].ItemID != "lucky_pickaxe" {
+		t.Fatalf("expected lucky_pickaxe, got %s", items[0].ItemID)
+	}
+	if items[0].Quantity != 1 {
+		t.Fatalf("expected quantity 1, got %d", items[0].Quantity)
+	}
+}
+
 func TestLeaderboardSortsByBalance(t *testing.T) {
 	store := NewStore()
 	now := time.Now()

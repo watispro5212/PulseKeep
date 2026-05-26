@@ -11,6 +11,7 @@ const (
 	MenuSelectID         = "pulsekeep:menu:category"
 	MenuOverviewButtonID = "pulsekeep:menu:overview"
 	TicketPanelButtonID  = "pulsekeep:tickets:open"
+	TicketCloseButtonID  = "pulsekeep:tickets:close"
 	CommandMenuAccent    = 0x4f8cff
 	ModerationMenuAccent = 0xfb7185
 	UtilityMenuAccent    = 0x38d5c8
@@ -53,7 +54,6 @@ var Categories = []CommandCategory{
 		Commands: []CommandInfo{
 			{Name: "/ping", Description: "Check whether PulseKeep is responding.", Usage: "/ping"},
 			{Name: "/help", Description: "Open this interactive command browser.", Usage: "/help"},
-			{Name: "/menu", Description: "Open the PulseKeep control menu.", Usage: "/menu"},
 			{Name: "/stats", Description: "Show operational bot statistics.", Usage: "/stats"},
 			{Name: "/uptime", Description: "Show how long PulseKeep has been running.", Usage: "/uptime"},
 			{Name: "/serverinfo", Description: "Show details about the current server.", Usage: "/serverinfo"},
@@ -74,6 +74,11 @@ var Categories = []CommandCategory{
 			{Name: "/coinflip", Description: "Wager Pulses on heads or tails.", Usage: "/coinflip amount:100 side:heads"},
 			{Name: "/pay", Description: "Send Pulses to another member.", Usage: "/pay recipient:@member amount:100"},
 			{Name: "/leaderboard", Description: "Show the richest members in the economy.", Usage: "/leaderboard"},
+			{Name: "/rob", Description: "Attempt to steal Pulses from another member.", Usage: "/rob user:@member"},
+			{Name: "/shop", Description: "Browse the PulseKeep item shop.", Usage: "/shop"},
+			{Name: "/buy", Description: "Buy an item from the PulseKeep shop.", Usage: "/buy item:lucky_pickaxe"},
+			{Name: "/inventory", Description: "View items you own.", Usage: "/inventory"},
+			{Name: "/slots", Description: "Spin the slot machine to win big.", Usage: "/slots amount:100"},
 		},
 	},
 	{

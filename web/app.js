@@ -8,6 +8,8 @@ const statEls = {
     latency: document.getElementById('stat-latency'),
     apiSpeed: document.getElementById('api-speed'),
     database: document.getElementById('stat-database'),
+    version: document.getElementById('stat-version'),
+    features: document.getElementById('stat-features'),
 };
 
 function setStatus(state, message) {
@@ -51,6 +53,8 @@ function setFallback() {
         if (statEls[key]) statEls[key].textContent = key === 'latency' || key === 'apiSpeed' ? '-- ms' : '--';
     });
     if (statEls.database) statEls.database.textContent = 'Unknown';
+    if (statEls.version) statEls.version.textContent = '--';
+    if (statEls.features) statEls.features.textContent = '--';
 }
 
 async function timedFetch(path, options = {}) {
@@ -101,6 +105,8 @@ async function fetchStats() {
         animateCounter(statEls.commands, data.commands_run);
         if (statEls.uptime) statEls.uptime.textContent = data.uptime || '--';
         if (statEls.latency) statEls.latency.textContent = data.latency_ms ? `${data.latency_ms} ms` : '-- ms';
+        if (statEls.version) statEls.version.textContent = data.bot || 'v5.0';
+        if (statEls.features && data.features) statEls.features.textContent = data.features.join(', ');
 
         await fetchHealth().catch(() => null);
         setStatus('online', 'PulseKeep service online');
@@ -153,10 +159,50 @@ function initScrollAnimations() {
     });
 }
 
+function initPulseAnimation() {
+    const dots = document.querySelectorAll('.pulse-dot');
+    dots.forEach(dot => {
+        if (dot.classList.contains('online') || dot.classList.contains('offline')) return;
+        const interval = setInterval(() => {
+            dot.style.opacity = dot.style.opacity === '0.4' ? '1' : '0.4';
+        }, 1200);
+        dot._pulseInterval = interval;
+    });
+}
+
+function initCopyCommands() {
+    document.querySelectorAll('.command-item code').forEach(el => {
+        el.addEventListener('click', () => {
+            const text = el.textContent.replace(/[<>]/g, '').split(' ')[0];
+            navigator.clipboard.writeText(text).catch(() => {});
+            const original = el.textContent;
+            el.textContent = 'Copied!';
+            setTimeout(() => { el.textContent = original; }, 1200);
+        });
+        el.style.cursor = 'pointer';
+    });
+}
+
+function initFeatureCards() {
+    document.querySelectorAll('.feature-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            const icon = card.querySelector('i');
+            if (icon) icon.style.transform = 'scale(1.15)';
+        });
+        card.addEventListener('mouseleave', () => {
+            const icon = card.querySelector('i');
+            if (icon) icon.style.transform = 'scale(1)';
+        });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initSmoothScroll();
     initScrollAnimations();
+    initPulseAnimation();
+    initCopyCommands();
+    initFeatureCards();
     fetchStats();
     window.setInterval(fetchStats, 60_000);
 });

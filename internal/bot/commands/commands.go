@@ -17,10 +17,6 @@ func Register() []discord.ApplicationCommandCreate {
 			Description: "Open the interactive PulseKeep command browser",
 		},
 		discord.SlashCommandCreate{
-			Name:        "menu",
-			Description: "Open the PulseKeep interactive command menu",
-		},
-		discord.SlashCommandCreate{
 			Name:        "stats",
 			Description: "Display PulseKeep operational statistics",
 		},
@@ -186,6 +182,48 @@ func Register() []discord.ApplicationCommandCreate {
 		discord.SlashCommandCreate{
 			Name:        "leaderboard",
 			Description: "Show the richest PulseKeep economy members",
+		},
+		discord.SlashCommandCreate{
+			Name:        "rob",
+			Description: "Attempt to rob another user for their Pulses",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionUser{
+					Name:        "user",
+					Description: "The user to rob",
+					Required:    true,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:        "shop",
+			Description: "Browse the PulseKeep item shop",
+		},
+		discord.SlashCommandCreate{
+			Name:        "buy",
+			Description: "Purchase an item from the PulseKeep shop",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
+					Name:        "item",
+					Description: "The item to purchase",
+					Required:    true,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:        "inventory",
+			Description: "View your purchased items",
+		},
+		discord.SlashCommandCreate{
+			Name:        "slots",
+			Description: "Spin the slot machine and wager your Pulses",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionInt{
+					Name:        "amount",
+					Description: "How many Pulses to wager",
+					Required:    true,
+					MinValue:    ptrInt(1),
+				},
+			},
 		},
 		discord.SlashCommandCreate{
 			Name:                     "ticketpanel",

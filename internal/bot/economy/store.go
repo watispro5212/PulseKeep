@@ -14,6 +14,7 @@ const (
 	StartingBalance = 250
 	DailyCooldown   = 24 * time.Hour
 	WorkCooldown    = 45 * time.Minute
+	RobCooldown     = 4 * time.Hour
 )
 
 var (
@@ -37,8 +38,14 @@ type Record struct {
 	DailyStreak int
 	LastDaily   time.Time
 	LastWork    time.Time
+	LastRob     time.Time
 	FlipWins    int
 	FlipLosses  int
+	SlotWins    int
+	SlotLosses  int
+	RobWins     int
+	RobLosses   int
+	Inventory   map[string]*InventoryEntry
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -72,6 +79,50 @@ type FlipResult struct {
 	Result string
 	Wager  int
 	Won    bool
+}
+
+type RobResult struct {
+	Record        Record
+	Target        Record
+	Stolen        int
+	Fine          int
+	Success       bool
+	NextAvailable time.Time
+	OnCooldown    bool
+}
+
+type ShopItem struct {
+	ID          string
+	Name        string
+	Description string
+	Price       int
+}
+
+var ShopItems = []ShopItem{
+	{ID: "lucky_pickaxe", Name: "Lucky Pickaxe", Description: "+15% coinflip win chance", Price: 5000},
+	{ID: "xp_boost", Name: "XP Boost", Description: "2x work earnings for 1 hour", Price: 3000},
+	{ID: "golden_watch", Name: "Golden Watch", Description: "Reduces daily cooldown by 4 hours", Price: 8000},
+	{ID: "shield_token", Name: "Shield Token", Description: "Protects you from one robbery", Price: 6000},
+	{ID: "lucky_clover", Name: "Lucky Clover", Description: "+1 slot reel position", Price: 4000},
+}
+
+type BuyResult struct {
+	Record Record
+	Item   ShopItem
+}
+
+type SlotsResult struct {
+	Record     Record
+	Wager      int
+	Won        bool
+	Multiplier int
+	Symbols    [3]string
+}
+
+type InventoryEntry struct {
+	ItemID   string
+	ItemName string
+	Quantity int
 }
 
 func NewStore() *Store {
@@ -254,6 +305,204 @@ func (s *Store) Leaderboard(limit int) []Record {
 	return records
 }
 
+func (s *Store) Rob(userID snowflake.ID, name string, targetID snowflake.ID, targetName string, now time.Time) (RobResult, error) {
+	if userID == targetID {
+		return RobResult{}, ErrSelfPayment
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	record := s.ensureRecord(userID, name)
+	if !record.LastRob.IsZero() && now.Sub(record.LastRob) < RobCooldown {
+		return RobResult{
+			Record:        record.copy(),
+			NextAvailable: record.LastRob.Add(RobCooldown),
+			OnCooldown:    true,
+		}, nil
+	}
+
+	target := s.ensureRecord(targetID, targetName)
+	if target.Balance < 50 {
+		return RobResult{}, ErrInsufficientFund
+	}
+
+	if record.Balance < 50 {
+		return RobResult{}, ErrInsufficientFund
+	}
+
+	success := rand.Intn(100) < 40
+	var stolen int
+	var fine int
+
+	if success {
+		stolen = target.Balance * rand.Intn(31) / 100
+		if stolen < 10 {
+			stolen = 10
+		}
+		if stolen > target.Balance {
+			stolen = target.Balance
+		}
+		target.Balance -= stolen
+		record.Balance += stolen
+		record.Earned += stolen
+		target.Spent += stolen
+		record.RobWins++
+	} else {
+		fine = record.Balance * rand.Intn(26) / 100
+		if fine < 10 {
+			fine = 10
+		}
+		if fine > record.Balance {
+			fine = record.Balance
+		}
+		record.Balance -= fine
+		record.Spent += fine
+		target.Balance += fine
+		target.Earned += fine
+		record.RobLosses++
+	}
+
+	record.LastRob = now
+	record.UpdatedAt = now
+
+	return RobResult{
+		Record:        record.copy(),
+		Target:        target.copy(),
+		Stolen:        stolen,
+		Fine:          fine,
+		Success:       success,
+		NextAvailable: now.Add(RobCooldown),
+	}, nil
+}
+
+func (s *Store) Shop() []ShopItem {
+	return ShopItems
+}
+
+func (s *Store) Buy(userID snowflake.ID, name string, itemID string, now time.Time) (BuyResult, error) {
+	var item *ShopItem
+	for _, shopItem := range ShopItems {
+		if shopItem.ID == itemID {
+			item = &shopItem
+			break
+		}
+	}
+	if item == nil {
+		return BuyResult{}, errors.New("item not found")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	record := s.ensureRecord(userID, name)
+	if record.Balance < item.Price {
+		return BuyResult{}, ErrInsufficientFund
+	}
+
+	record.Balance -= item.Price
+	record.Spent += item.Price
+	if record.Inventory == nil {
+		record.Inventory = make(map[string]*InventoryEntry)
+	}
+	if entry, ok := record.Inventory[item.ID]; ok {
+		entry.Quantity++
+	} else {
+		record.Inventory[item.ID] = &InventoryEntry{
+			ItemID:   item.ID,
+			ItemName: item.Name,
+			Quantity: 1,
+		}
+	}
+	record.UpdatedAt = now
+
+	return BuyResult{
+		Record: record.copy(),
+		Item:   *item,
+	}, nil
+}
+
+func (s *Store) Inventory(userID snowflake.ID, name string) []InventoryEntry {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	record := s.ensureRecord(userID, name)
+	if record.Inventory == nil {
+		return nil
+	}
+
+	entries := make([]InventoryEntry, 0, len(record.Inventory))
+	for _, entry := range record.Inventory {
+		entries = append(entries, *entry)
+	}
+	return entries
+}
+
+func (s *Store) Slots(userID snowflake.ID, name string, wager int, now time.Time) (SlotsResult, error) {
+	if wager <= 0 {
+		return SlotsResult{}, ErrInvalidAmount
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	record := s.ensureRecord(userID, name)
+	if record.Balance < wager {
+		return SlotsResult{}, ErrInsufficientFund
+	}
+
+	symbols := []string{"🍒", "🍋", "🍊", "🍇", "💎", "7️⃣", "⭐"}
+	reels := [3]string{
+		symbols[rand.Intn(len(symbols))],
+		symbols[rand.Intn(len(symbols))],
+		symbols[rand.Intn(len(symbols))],
+	}
+
+	var multiplier int
+	won := false
+
+	if reels[0] == reels[1] && reels[1] == reels[2] {
+		won = true
+		switch reels[0] {
+		case "7️⃣":
+			multiplier = 10
+		case "💎":
+			multiplier = 7
+		case "⭐":
+			multiplier = 5
+		case "🍇":
+			multiplier = 4
+		case "🍊":
+			multiplier = 3
+		default:
+			multiplier = 2
+		}
+	} else if reels[0] == reels[1] || reels[1] == reels[2] || reels[0] == reels[2] {
+		won = true
+		multiplier = 1
+	}
+
+	if won {
+		payout := wager * multiplier
+		record.Balance += payout
+		record.Earned += payout
+		record.SlotWins++
+	} else {
+		record.Balance -= wager
+		record.Spent += wager
+		record.SlotLosses++
+	}
+	record.UpdatedAt = now
+
+	return SlotsResult{
+		Record:     record.copy(),
+		Wager:      wager,
+		Won:        won,
+		Multiplier: multiplier,
+		Symbols:    reels,
+	}, nil
+}
+
 func (s *Store) ensureRecord(userID snowflake.ID, name string) *Record {
 	if record, ok := s.records[userID]; ok {
 		if name != "" {
@@ -267,6 +516,7 @@ func (s *Store) ensureRecord(userID snowflake.ID, name string) *Record {
 		UserID:    userID,
 		Name:      name,
 		Balance:   StartingBalance,
+		Inventory: make(map[string]*InventoryEntry),
 		CreatedAt: now,
 		UpdatedAt: now,
 	}

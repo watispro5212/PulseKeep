@@ -27,8 +27,16 @@ func handleEconomyCommand(store *economy.Store, e *events.ApplicationCommandInte
 		return payMessage(store, e, data), true
 	case "coinflip":
 		return coinflipMessage(store, e, data), true
-	case "leaderboard":
-		return leaderboardMessage(store), true
+	case "rob":
+		return robMessage(store, e, data), true
+	case "shop":
+		return shopMessage(store), true
+	case "buy":
+		return buyMessage(store, e, data), true
+	case "inventory":
+		return inventoryMessage(store, e), true
+	case "slots":
+		return slotsMessage(store, e, data), true
 	default:
 		return discord.MessageCreate{}, false
 	}
@@ -163,6 +171,135 @@ func leaderboardMessage(store *economy.Store) discord.MessageCreate {
 	return discord.NewMessageCreate().
 		AddEmbeds(economyEmbed("Pulse Leaderboard", strings.TrimSpace(rows.String())).
 			AddField("How to climb", "Claim `/daily`, run `/work`, win `/coinflip`, and trade with `/pay`.", false))
+}
+
+func robMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	target, ok := data.OptUser("user")
+	if !ok {
+		return economyError("Missing target", "Choose a member to rob.")
+	}
+
+	if target.ID == e.User().ID {
+		return economyError("Invalid target", "You cannot rob yourself.")
+	}
+
+	result, err := store.Rob(e.User().ID, e.User().EffectiveName(), target.ID, target.EffectiveName(), time.Now())
+	if err != nil {
+		return economyCommandError(err)
+	}
+
+	if result.OnCooldown {
+		return cooldownMessage("Rob is on cooldown", result.NextAvailable)
+	}
+
+	if result.Success {
+		return discord.NewMessageCreate().
+			AddEmbeds(economyEmbed("Robbery Succeeded", fmt.Sprintf("%s robbed **%s Pulses** from %s!", e.User().String(), formatPulses(result.Stolen), target.String())).
+				AddField("Your balance", formatPulses(result.Record.Balance), true).
+				AddField("Target balance", formatPulses(result.Target.Balance), true).
+				AddField("Next robbery", discordTimestamp(result.NextAvailable), true).
+				WithThumbnail(e.User().EffectiveAvatarURL()))
+	}
+
+	return discord.NewMessageCreate().
+		AddEmbeds(discord.NewEmbed().
+			WithTitle("Robbery Failed!").
+			WithDescription(fmt.Sprintf("%s got caught and paid a **%s Pulses** fine!", e.User().String(), formatPulses(result.Fine))).
+			WithColor(commands.ModerationMenuAccent).
+			AddField("Your balance", formatPulses(result.Record.Balance), true).
+			AddField("Next robbery", discordTimestamp(result.NextAvailable), true).
+			WithThumbnail(e.User().EffectiveAvatarURL()).
+			WithFooterText("Better luck next time."))
+}
+
+func shopMessage(store *economy.Store) discord.MessageCreate {
+	items := store.Shop()
+	if len(items) == 0 {
+		return discord.NewMessageCreate().
+			WithEphemeral(true).
+			AddEmbeds(economyEmbed("PulseKeep Shop", "The shop is currently empty. Check back later!"))
+	}
+
+	embed := discord.NewEmbed().
+		WithTitle("PulseKeep Shop").
+		WithColor(commands.EconomyMenuAccent).
+		WithDescription("Use `/buy item:<id>` to purchase an item.\nUse `/inventory` to view your items.")
+
+	for _, item := range items {
+		embed = embed.AddField(fmt.Sprintf("%s — %s Pulses", item.Name, formatPulses(item.Price)),
+			fmt.Sprintf("`%s` — %s", item.ID, item.Description), false)
+	}
+
+	return discord.NewMessageCreate().
+		WithEphemeral(true).
+		AddEmbeds(embed)
+}
+
+func buyMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	itemID := strings.ToLower(data.String("item"))
+
+	result, err := store.Buy(e.User().ID, e.User().EffectiveName(), itemID, time.Now())
+	if err != nil {
+		if err.Error() == "item not found" {
+			return economyError("Item not found", "Use `/shop` to see available items.")
+		}
+		return economyCommandError(err)
+	}
+
+	return discord.NewMessageCreate().
+		AddEmbeds(economyEmbed("Purchase Complete", fmt.Sprintf("%s bought **%s** for **%s Pulses**.", e.User().String(), result.Item.Name, formatPulses(result.Item.Price))).
+			AddField("New balance", formatPulses(result.Record.Balance), true).
+			AddField("Tip", "Use `/inventory` to see your items.", false).
+			WithThumbnail(e.User().EffectiveAvatarURL()))
+}
+
+func inventoryMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
+	items := store.Inventory(e.User().ID, e.User().EffectiveName())
+	if len(items) == 0 {
+		return discord.NewMessageCreate().
+			WithEphemeral(true).
+			AddEmbeds(economyEmbed("Inventory", "You don't own any items yet. Use `/shop` to browse what's available."))
+	}
+
+	var rows strings.Builder
+	for _, item := range items {
+		rows.WriteString(fmt.Sprintf("**%s** x%d\n", item.ItemName, item.Quantity))
+	}
+
+	return discord.NewMessageCreate().
+		WithEphemeral(true).
+		AddEmbeds(economyEmbed(fmt.Sprintf("%s's Inventory", e.User().EffectiveName()), strings.TrimSpace(rows.String())).
+			WithThumbnail(e.User().EffectiveAvatarURL()))
+}
+
+func slotsMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	wager := data.Int("amount")
+
+	result, err := store.Slots(e.User().ID, e.User().EffectiveName(), wager, time.Now())
+	if err != nil {
+		return economyCommandError(err)
+	}
+
+	reels := fmt.Sprintf("%s %s %s", result.Symbols[0], result.Symbols[1], result.Symbols[2])
+	title := "Pulse Slots"
+	color := commands.ModerationMenuAccent
+	outcome := "Lost"
+
+	if result.Won {
+		title = "Pulse Slots — You Won!"
+		color = commands.EconomyMenuAccent
+		outcome = "Won"
+	}
+
+	return discord.NewMessageCreate().
+		AddEmbeds(discord.NewEmbed().
+			WithTitle(title).
+			WithDescription(fmt.Sprintf("%s spun `%s` and **%s %s Pulses** (x%d).", e.User().String(), reels, outcome, formatPulses(result.Wager), result.Multiplier)).
+			WithColor(color).
+			AddField("New balance", formatPulses(result.Record.Balance), true).
+			AddField("Record", fmt.Sprintf("%dW / %dL", result.Record.SlotWins, result.Record.SlotLosses), true).
+			WithThumbnail(e.User().EffectiveAvatarURL()).
+			WithFooterText("PulseKeep Slots"))
 }
 
 func economyCommandError(err error) discord.MessageCreate {

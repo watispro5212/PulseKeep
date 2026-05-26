@@ -25,7 +25,7 @@ Prefix: Slash commands
 
 Primary command for reviewers: `/help`
 
-Backup test commands: `/ping`, `/menu`, `/stats`, `/uptime`
+Backup test commands: `/ping`, `/stats`, `/uptime`
 
 ## Short Description
 
@@ -41,10 +41,10 @@ Key features:
 - Audit-friendly logging for moderation and server activity.
 - Private ticket panel for support workflows.
 - Economy commands including balance, profile, daily, work, pay, coinflip, and leaderboard.
-- Utility commands including ping, uptime, stats, help, menu, server info, user info, and avatar.
+- Utility commands including ping, uptime, stats, help, server info, user info, and avatar.
 - Live website status through the PulseKeep status page.
 
-The fastest way to test PulseKeep after inviting it is to run `/help`, `/menu`, or `/ping`.
+The fastest way to test PulseKeep after inviting it is to run `/help` or `/ping`.
 
 ## Categories
 
@@ -60,5 +60,5 @@ Suggested categories:
 - Keep the bot service online during review.
 - Confirm the public status page shows the service online before submitting.
 - Confirm the OAuth invite works in a test server.
-- Confirm `/help`, `/menu`, `/ping`, `/stats`, and `/uptime` are usable by reviewers.
+- Confirm `/help`, `/ping`, `/stats`, and `/uptime` are usable by reviewers.
 - Make sure the public website is deployed after the latest `web/` changes.
