@@ -112,6 +112,10 @@ func Register() []discord.ApplicationCommandCreate {
 			},
 		},
 		discord.SlashCommandCreate{
+			Name:        "about",
+			Description: "Show PulseKeep version, tech stack, and links",
+		},
+		discord.SlashCommandCreate{
 			Name:        "uptime",
 			Description: "Show how long PulseKeep has been running since last restart",
 		},

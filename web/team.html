@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team — PulseKeep</title>
-    <meta name="description" content="The PulseKeep project team — built and maintained by watispro1.">
+    <meta name="description" content="The PulseKeep project team, tech stack, contributors, and infrastructure behind the Go-powered Discord bot.">
     <meta name="theme-color" content="#070a14">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,7 +47,7 @@
             <div class="container">
                 <span class="hero-eyebrow"><i class="fa-solid fa-code" style="font-size: 0.7rem;"></i> Project team</span>
                 <h1 class="hero-title">Built for real Discord staff work.</h1>
-                <p class="hero-subtitle">PulseKeep is a solo-built, Go-powered Discord bot with a public website, live metrics, and review-ready documentation.</p>
+                <p class="hero-subtitle">PulseKeep is a solo-built, Go-powered Discord bot with a public website, live metrics, and review-ready documentation. One developer, one vision, 40+ commands.</p>
             </div>
         </section>
 
@@ -56,18 +56,115 @@
                 <article class="team-card scroll-reveal">
                     <i class="fa-solid fa-code"></i>
                     <h3>Owner & Developer</h3>
-                    <p>PulseKeep is built and maintained by <strong>watispro1</strong>. The entire Go backend, Discord integration, website, and deployment pipeline are managed as a single project.</p>
+                    <p><strong>watispro1</strong> is the sole developer behind PulseKeep. Every line of Go backend code, Discord integration, website page, deployment pipeline, and documentation file is written and maintained by one person. The bot went from concept to production in a single development cycle, using modern Go patterns and the disgo library for Discord interactions.</p>
+                    <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-wrap: wrap;">
+                        <span style="padding: 4px 10px; border-radius: 4px; background: rgba(79,140,255,0.08); color: var(--primary); font-size: 0.78rem; font-weight: 600;"><i class="fa-brands fa-github"></i> watispro1</span>
+                        <span style="padding: 4px 10px; border-radius: 4px; background: rgba(56,213,200,0.08); color: var(--cyan); font-size: 0.78rem; font-weight: 600;"><i class="fa-brands fa-discord"></i> watispro1</span>
+                    </div>
                 </article>
                 <article class="team-card scroll-reveal">
                     <i class="fa-solid fa-database"></i>
-                    <h3>Infrastructure</h3>
-                    <p>PostgreSQL via Neon for persistence, Fly.io for the Go backend, Netlify for the frontend site, with GitHub Actions for CI/CD and auto-deployment.</p>
+                    <h3>Backend & Data</h3>
+                    <p><strong>Go</strong> powers the bot process — a single binary handling gateway events, slash commands, economy logic, ticket management, and REST API endpoints. <strong>PostgreSQL</strong> via Neon provides serverless persistence for balances, inventories, shop items, and transaction history. The bot starts instantly and maintains a persistent WebSocket connection to Discord's gateway.</p>
                 </article>
                 <article class="team-card scroll-reveal">
-                    <i class="fa-solid fa-life-ring"></i>
-                    <h3>Support</h3>
-                    <p>Community support is available through the ticket panel in any server running PulseKeep. For direct inquiries, reach out to watispro1 on Discord.</p>
+                    <i class="fa-solid fa-cloud"></i>
+                    <h3>Deployment & CI/CD</h3>
+                    <p><strong>Fly.io</strong> hosts the Go binary as a globally distributed application with automatic TLS, health checks, and scale-to-zero for idle periods. <strong>Netlify</strong> serves the static website with instant rollbacks and form handling. <strong>GitHub Actions</strong> runs tests, builds the binary, and auto-deploys both backend and frontend on every push to main.</p>
                 </article>
+            </div>
+        </section>
+
+        <section class="container content-section" style="padding-top: 0;">
+            <div class="team-grid">
+                <article class="team-card scroll-reveal">
+                    <i class="fa-solid fa-life-ring"></i>
+                    <h3>Support & Community</h3>
+                    <p>Community support is handled through the built-in ticket panel in any server running PulseKeep. Staff teams use the <strong>/ticketpanel</strong> command to create a support entry point, and members open tickets with a single button click. For direct inquiries, reach out to watispro1 on Discord.</p>
+                    <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);">
+                        <p style="color: var(--muted); font-size: 0.82rem;"><i class="fa-solid fa-circle-info" style="color: var(--cyan); margin-right: 6px;"></i>Support channels are private. Staff will never ask for your bot token.</p>
+                    </div>
+                </article>
+                <article class="team-card scroll-reveal">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <h3>Security & Compliance</h3>
+                    <p>PulseKeep follows Discord's bot best practices and <strong>top.gg</strong> review guidelines. The bot does not collect personal data, logs are limited to operational metrics, and all economy transactions are validated server-side. A <strong>SECURITY.md</strong> file is available in the repository for reporting vulnerabilities.</p>
+                    <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-wrap: wrap;">
+                        <span style="padding: 4px 10px; border-radius: 4px; background: rgba(56,213,200,0.08); color: var(--cyan); font-size: 0.78rem; font-weight: 600;">MIT License</span>
+                        <span style="padding: 4px 10px; border-radius: 4px; background: rgba(245,189,79,0.08); color: var(--amber); font-size: 0.78rem; font-weight: 600;">top.gg compliant</span>
+                        <span style="padding: 4px 10px; border-radius: 4px; background: rgba(251,113,133,0.08); color: var(--rose); font-size: 0.78rem; font-weight: 600;">CSRF protected</span>
+                    </div>
+                </article>
+                <article class="team-card scroll-reveal">
+                    <i class="fa-solid fa-gem"></i>
+                    <h3>Open Source & Licensing</h3>
+                    <p>PulseKeep is released under the <strong>MIT License</strong>, allowing free use, modification, and distribution. The full source code is available on GitHub. The project welcomes contributions through the standard fork-and-PR workflow, with a code of conduct and contributor guide available in the repository.</p>
+                    <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);">
+                        <a href="https://github.com/watispro1/pulsekeep" style="color: var(--primary); font-size: 0.85rem; font-weight: 600; text-decoration: none;"><i class="fa-brands fa-github"></i> github.com/watispro1/pulsekeep <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem; margin-left: 4px;"></i></a>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="container content-section" style="padding-top: 0;">
+            <h2 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;"><i class="fa-solid fa-cubes" style="color: var(--primary);"></i> Tech Stack</h2>
+            <div class="features-grid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+                <div class="feature-card scroll-reveal" style="text-align: center; padding: 20px;">
+                    <i class="fa-brands fa-golang" style="font-size: 1.5rem; color: var(--primary);"></i>
+                    <h4 style="margin: 10px 0 4px; font-size: 0.9rem;">Go</h4>
+                    <p style="color: var(--muted); font-size: 0.78rem; margin: 0;">Binary runtime</p>
+                </div>
+                <div class="feature-card scroll-reveal" style="text-align: center; padding: 20px;">
+                    <i class="fa-solid fa-database" style="font-size: 1.5rem; color: var(--cyan);"></i>
+                    <h4 style="margin: 10px 0 4px; font-size: 0.9rem;">PostgreSQL</h4>
+                    <p style="color: var(--muted); font-size: 0.78rem; margin: 0;">Neon serverless</p>
+                </div>
+                <div class="feature-card scroll-reveal" style="text-align: center; padding: 20px;">
+                    <i class="fa-solid fa-globe" style="font-size: 1.5rem; color: var(--amber);"></i>
+                    <h4 style="margin: 10px 0 4px; font-size: 0.9rem;">Fly.io</h4>
+                    <p style="color: var(--muted); font-size: 0.78rem; margin: 0;">Global backend</p>
+                </div>
+                <div class="feature-card scroll-reveal" style="text-align: center; padding: 20px;">
+                    <i class="fa-solid fa-cloud" style="font-size: 1.5rem; color: var(--rose);"></i>
+                    <h4 style="margin: 10px 0 4px; font-size: 0.9rem;">Netlify</h4>
+                    <p style="color: var(--muted); font-size: 0.78rem; margin: 0;">Frontend hosting</p>
+                </div>
+                <div class="feature-card scroll-reveal" style="text-align: center; padding: 20px;">
+                    <i class="fa-brands fa-github" style="font-size: 1.5rem; color: var(--text);"></i>
+                    <h4 style="margin: 10px 0 4px; font-size: 0.9rem;">GitHub Actions</h4>
+                    <p style="color: var(--muted); font-size: 0.78rem; margin: 0;">CI/CD pipeline</p>
+                </div>
+                <div class="feature-card scroll-reveal" style="text-align: center; padding: 20px;">
+                    <i class="fa-brands fa-discord" style="font-size: 1.5rem; color: #5865F2;"></i>
+                    <h4 style="margin: 10px 0 4px; font-size: 0.9rem;">Discord API</h4>
+                    <p style="color: var(--muted); font-size: 0.78rem; margin: 0;">disgo library</p>
+                </div>
+                <div class="feature-card scroll-reveal" style="text-align: center; padding: 20px;">
+                    <i class="fa-solid fa-chart-line" style="font-size: 1.5rem; color: var(--cyan);"></i>
+                    <h4 style="margin: 10px 0 4px; font-size: 0.9rem;">Prometheus</h4>
+                    <p style="color: var(--muted); font-size: 0.78rem; margin: 0;">Metrics</p>
+                </div>
+                <div class="feature-card scroll-reveal" style="text-align: center; padding: 20px;">
+                    <i class="fa-solid fa-code" style="font-size: 1.5rem; color: var(--amber);"></i>
+                    <h4 style="margin: 10px 0 4px; font-size: 0.9rem;">Go 1.24</h4>
+                    <p style="color: var(--muted); font-size: 0.78rem; margin: 0;">Standard library</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="container content-section" style="padding-top: 0;">
+            <div style="border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); backdrop-filter: blur(8px); padding: 32px; text-align: center;">
+                <i class="fa-solid fa-heart" style="font-size: 2rem; color: var(--rose); opacity: 0.6; margin-bottom: 12px;"></i>
+                <h3 style="margin: 0 0 8px;">Want to contribute?</h3>
+                <p style="color: var(--muted); max-width: 500px; margin: 0 auto 16px;">PulseKeep welcomes contributions big and small — bug reports, feature suggestions, documentation improvements, and pull requests are all appreciated.</p>
+                <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                    <a href="https://github.com/watispro1/pulsekeep/blob/main/CONTRIBUTING.md" class="btn btn-secondary" style="text-decoration: none;">
+                        <i class="fa-solid fa-book"></i> Contributing guide
+                    </a>
+                    <a href="https://github.com/watispro1/pulsekeep/issues" class="btn btn-secondary" style="text-decoration: none;">
+                        <i class="fa-solid fa-bug"></i> Report an issue
+                    </a>
+                </div>
             </div>
         </section>
     </main>
@@ -76,7 +173,7 @@
         <div class="container footer-container">
             <div class="footer-brand">
                 <span class="logo-text">PulseKeep</span>
-                <p>Maintained for Discord communities and staff teams.</p>
+                <p>Built by watispro1 · Go-powered Discord bot for staff teams.</p>
             </div>
             <div class="footer-links">
                 <a href="commands.html">Commands</a>

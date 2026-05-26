@@ -47,6 +47,8 @@ func handleEconomyCommand(store *economy.Store, e *events.ApplicationCommandInte
 		return sellMessage(store, e, data), true
 	case "use":
 		return useItemMessage(store, e, data), true
+	case "leaderboard":
+		return leaderboardMessage(store), true
 	default:
 		return discord.MessageCreate{}, false
 	}

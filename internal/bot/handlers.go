@@ -76,19 +76,23 @@ func New(token string, memCache *cache.Cache) *Bot {
 				if err := e.CreateMessage(commands.TicketPanelMessage(false)); err != nil {
 					log.Printf("failed to send ticket panel: %v", err)
 				}
-		case "ping":
-			if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
-				discord.NewEmbed().
-					WithTitle("🏓 Pong!").
-					WithDescription("PulseKeep is online and responding to commands.").
-					AddField("WebSocket", "Connected", true).
-					AddField("API", "Reachable", true).
-					WithColor(commands.UtilityMenuAccent).
-					WithFooterText("PulseKeep Utility").
-					WithTimestamp(time.Now()),
-			)); err != nil {
-				log.Printf("failed to send ping response: %v", err)
-			}
+			case "about":
+				if err := e.CreateMessage(aboutMessage(e)); err != nil {
+					log.Printf("failed to send about response: %v", err)
+				}
+			case "ping":
+				if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+					discord.NewEmbed().
+						WithTitle("🏓 Pong!").
+						WithDescription("PulseKeep is online and responding to commands.").
+						AddField("WebSocket", "Connected", true).
+						AddField("API", "Reachable", true).
+						WithColor(commands.UtilityMenuAccent).
+						WithFooterText("PulseKeep Utility").
+						WithTimestamp(time.Now()),
+				)); err != nil {
+					log.Printf("failed to send ping response: %v", err)
+				}
 			case "stats":
 				if err := e.CreateMessage(statsMessage(startedAt)); err != nil {
 					log.Printf("failed to send stats response: %v", err)
@@ -113,49 +117,49 @@ func New(token string, memCache *cache.Cache) *Bot {
 				if err := e.CreateMessage(announceMessage(e, data)); err != nil {
 					log.Printf("failed to send announcement response: %v", err)
 				}
-		case "purge":
-			if err := e.CreateMessage(handlePurge(e, data)); err != nil {
-				log.Printf("failed to send purge response: %v", err)
-			}
-		case "kick":
-			if err := e.CreateMessage(handleKick(e, data)); err != nil {
-				log.Printf("failed to send kick response: %v", err)
-			}
-		case "ban":
-			if err := e.CreateMessage(handleBan(e, data)); err != nil {
-				log.Printf("failed to send ban response: %v", err)
-			}
-		case "poll":
-			handlePoll(e, data)
-		case "role":
-			if err := e.CreateMessage(handleRole(e, data)); err != nil {
-				log.Printf("failed to send role response: %v", err)
-			}
-		case "unban":
-			if err := e.CreateMessage(handleUnban(e, data)); err != nil {
-				log.Printf("failed to send unban response: %v", err)
-			}
-		case "slowmode":
-			if err := e.CreateMessage(handleSlowmode(e, data)); err != nil {
-				log.Printf("failed to send slowmode response: %v", err)
-			}
-		case "nick":
-			if err := e.CreateMessage(handleNick(e, data)); err != nil {
-				log.Printf("failed to send nick response: %v", err)
-			}
-		case "timeout":
-			if err := e.CreateMessage(handleTimeout(e, data)); err != nil {
-				log.Printf("failed to send timeout response: %v", err)
-			}
-		case "lock":
-			if err := e.CreateMessage(handleLock(e)); err != nil {
-				log.Printf("failed to send lock response: %v", err)
-			}
-		case "unlock":
-			if err := e.CreateMessage(handleUnlock(e)); err != nil {
-				log.Printf("failed to send unlock response: %v", err)
-			}
-		default:
+			case "purge":
+				if err := e.CreateMessage(handlePurge(e, data)); err != nil {
+					log.Printf("failed to send purge response: %v", err)
+				}
+			case "kick":
+				if err := e.CreateMessage(handleKick(e, data)); err != nil {
+					log.Printf("failed to send kick response: %v", err)
+				}
+			case "ban":
+				if err := e.CreateMessage(handleBan(e, data)); err != nil {
+					log.Printf("failed to send ban response: %v", err)
+				}
+			case "poll":
+				handlePoll(e, data)
+			case "role":
+				if err := e.CreateMessage(handleRole(e, data)); err != nil {
+					log.Printf("failed to send role response: %v", err)
+				}
+			case "unban":
+				if err := e.CreateMessage(handleUnban(e, data)); err != nil {
+					log.Printf("failed to send unban response: %v", err)
+				}
+			case "slowmode":
+				if err := e.CreateMessage(handleSlowmode(e, data)); err != nil {
+					log.Printf("failed to send slowmode response: %v", err)
+				}
+			case "nick":
+				if err := e.CreateMessage(handleNick(e, data)); err != nil {
+					log.Printf("failed to send nick response: %v", err)
+				}
+			case "timeout":
+				if err := e.CreateMessage(handleTimeout(e, data)); err != nil {
+					log.Printf("failed to send timeout response: %v", err)
+				}
+			case "lock":
+				if err := e.CreateMessage(handleLock(e)); err != nil {
+					log.Printf("failed to send lock response: %v", err)
+				}
+			case "unlock":
+				if err := e.CreateMessage(handleUnlock(e)); err != nil {
+					log.Printf("failed to send unlock response: %v", err)
+				}
+			default:
 				if err := e.CreateMessage(commands.MenuMessage("", true)); err != nil {
 					log.Printf("failed to send fallback command menu: %v", err)
 				}
@@ -299,6 +303,24 @@ func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 	}
 
 	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(embed)
+}
+
+func aboutMessage(e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
+	version := "v5.4"
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("About PulseKeep").
+			WithDescription("A modern, Go-powered Discord bot built for staff teams and community engagement.").
+			AddField("Version", version, true).
+			AddField("Language", "Go (disgo)", true).
+			AddField("Database", "PostgreSQL (Neon)", true).
+			AddField("Commands", "40+ slash commands across 4 categories", true).
+			AddField("Creator", "watispro1", true).
+			AddField("Open source", "Yes (MIT)", true).
+			AddField("Links", "[Commands](https://pulsekeep.xyz/commands) · [Status](https://pulsekeep.xyz/status) · [Changelog](https://pulsekeep.xyz/changelog)", false).
+			WithColor(commands.UtilityMenuAccent).
+			WithFooterText("PulseKeep · Built for real Discord staff work").
+			WithTimestamp(time.Now()))
 }
 
 func avatarMessage(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
@@ -707,11 +729,41 @@ func handleLock(e *events.ApplicationCommandInteractionCreate) discord.MessageCr
 	}
 
 	channelID := e.Channel().ID()
-	overwrites := []discord.PermissionOverwrite{
-		discord.RolePermissionOverwrite{
+
+	channel, err := e.Client().Rest.GetChannel(channelID)
+	if err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Lock failed").
+				WithDescription(fmt.Sprintf("Could not fetch channel: %s", err.Error())).
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	guildChannel, ok := channel.(discord.GuildTextChannel)
+	if !ok {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in text channels.")
+	}
+
+	existing := guildChannel.PermissionOverwrites()
+	var overwrites []discord.PermissionOverwrite
+	found := false
+	for _, ov := range existing {
+		if roleOv, ok := ov.(discord.RolePermissionOverwrite); ok && roleOv.RoleID == *guildID {
+			overwrites = append(overwrites, discord.RolePermissionOverwrite{
+				RoleID: *guildID,
+				Deny:   roleOv.Deny | discord.PermissionSendMessages,
+				Allow:  roleOv.Allow &^ discord.PermissionSendMessages,
+			})
+			found = true
+		} else {
+			overwrites = append(overwrites, ov)
+		}
+	}
+	if !found {
+		overwrites = append(overwrites, discord.RolePermissionOverwrite{
 			RoleID: *guildID,
 			Deny:   discord.PermissionSendMessages,
-		},
+		})
 	}
 
 	if _, err := e.Client().Rest.UpdateChannel(channelID, discord.GuildTextChannelUpdate{
@@ -741,9 +793,40 @@ func handleUnlock(e *events.ApplicationCommandInteractionCreate) discord.Message
 
 	channelID := e.Channel().ID()
 
-	emptyOverwrites := []discord.PermissionOverwrite{}
+	channel, err := e.Client().Rest.GetChannel(channelID)
+	if err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Unlock failed").
+				WithDescription(fmt.Sprintf("Could not fetch channel: %s", err.Error())).
+				WithColor(commands.ModerationMenuAccent))
+	}
+
+	guildChannel, ok := channel.(discord.GuildTextChannel)
+	if !ok {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in text channels.")
+	}
+
+	existing := guildChannel.PermissionOverwrites()
+	var overwrites []discord.PermissionOverwrite
+	for _, ov := range existing {
+		if roleOv, ok := ov.(discord.RolePermissionOverwrite); ok && roleOv.RoleID == *guildID {
+			deny := roleOv.Deny &^ discord.PermissionSendMessages
+			allow := roleOv.Allow
+			if deny != 0 || allow != 0 {
+				overwrites = append(overwrites, discord.RolePermissionOverwrite{
+					RoleID: *guildID,
+					Deny:   deny,
+					Allow:  allow,
+				})
+			}
+		} else {
+			overwrites = append(overwrites, ov)
+		}
+	}
+
 	if _, err := e.Client().Rest.UpdateChannel(channelID, discord.GuildTextChannelUpdate{
-		PermissionOverwrites: &emptyOverwrites,
+		PermissionOverwrites: &overwrites,
 	}); err != nil {
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().

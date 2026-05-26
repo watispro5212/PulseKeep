@@ -59,6 +59,7 @@ var Categories = []CommandCategory{
 		Commands: []CommandInfo{
 			{Name: "/ping", Description: "Check whether PulseKeep is responding.", Usage: "/ping"},
 			{Name: "/help", Description: "Open this interactive command browser.", Usage: "/help"},
+			{Name: "/about", Description: "Show PulseKeep version, tech stack, and links.", Usage: "/about"},
 			{Name: "/stats", Description: "Show operational bot statistics.", Usage: "/stats"},
 			{Name: "/uptime", Description: "Show how long PulseKeep has been running.", Usage: "/uptime"},
 			{Name: "/serverinfo", Description: "Show details about the current server.", Usage: "/serverinfo"},
