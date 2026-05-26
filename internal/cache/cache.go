@@ -15,15 +15,13 @@ type Cache struct {
 	StartedAt     time.Time
 	muGuilds      sync.RWMutex
 	guildNames    map[string]string
-	muGuildJoined chan struct{}
 }
 
 func New() *Cache {
 	return &Cache{
-		data:          make(map[string]interface{}),
-		StartedAt:     time.Now(),
-		guildNames:    make(map[string]string),
-		muGuildJoined: make(chan struct{}, 1),
+		data:       make(map[string]interface{}),
+		StartedAt:  time.Now(),
+		guildNames: make(map[string]string),
 	}
 }
 

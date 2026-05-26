@@ -5,7 +5,6 @@ const statEls = {
     users: document.getElementById('stat-users'),
     commands: document.getElementById('stat-commands'),
     uptime: document.getElementById('stat-uptime'),
-    latency: document.getElementById('stat-latency'),
     apiSpeed: document.getElementById('api-speed'),
     database: document.getElementById('stat-database'),
     version: document.getElementById('stat-version'),
@@ -21,9 +20,8 @@ function setStatus(state, message) {
         dot.className = 'pulse-dot';
         if (state) dot.classList.add(state);
     }
-    badge.className = 'status-badge';
-    if (state) badge.classList.add(state);
     badge.className = 'hero-eyebrow';
+    if (state) badge.classList.add(state);
     if (state === 'online') {
         const icon = badge.querySelector('i');
         if (icon) icon.className = 'fa-solid fa-circle-check';

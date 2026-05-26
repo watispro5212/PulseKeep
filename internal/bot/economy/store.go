@@ -371,6 +371,9 @@ func (s *Store) load() {
 		}
 		s.records[userID] = record
 	}
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating economy records: %v", err)
+	}
 
 	invRows, err := s.db.QueryContext(ctx, `
 		SELECT user_id, item_id, item_name, quantity FROM user_inventory WHERE quantity > 0
@@ -400,6 +403,9 @@ func (s *Store) load() {
 				Quantity: quantity,
 			}
 		}
+	}
+	if err := invRows.Err(); err != nil {
+		log.Printf("Error iterating inventory records: %v", err)
 	}
 	log.Printf("Loaded %d economy records from database", len(s.records))
 }
@@ -790,7 +796,7 @@ func (s *Store) Buy(userID snowflake.ID, name string, itemID string, now time.Ti
 		}
 	}
 	if item == nil {
-		return BuyResult{}, errors.New("item not found")
+		return BuyResult{}, ErrItemNotFound
 	}
 
 	s.mu.Lock()
@@ -1347,5 +1353,13 @@ func (r Record) FlipTotal() int {
 }
 
 func (r Record) copy() Record {
-	return r
+	c := r
+	if r.Inventory != nil {
+		c.Inventory = make(map[string]*InventoryEntry, len(r.Inventory))
+		for k, v := range r.Inventory {
+			entry := *v
+			c.Inventory[k] = &entry
+		}
+	}
+	return c
 }

@@ -29,7 +29,6 @@ type Bot struct {
 func New(token string, memCache *cache.Cache, database *sql.DB) *Bot {
 	startedAt := time.Now()
 	economyStore := economy.NewStore(database)
-	_ = startedAt
 
 	client, err := disgo.New(token,
 		bot.WithGatewayConfigOpts(
@@ -221,7 +220,7 @@ func statsMessage(startedAt time.Time) discord.MessageCreate {
 			AddField("Latency", "Real-time in /ping", true).
 			AddField("Categories", "Utility · Moderation · Economy · Tickets · Gambling", false).
 			AddField("Get started", "Use `/help` to browse all commands.", false).
-			WithFooterText("PulseKeep v5.4 · Go runtime").
+			WithFooterText("PulseKeep v5.7 · Go runtime").
 			WithTimestamp(time.Now()))
 }
 
@@ -308,7 +307,7 @@ func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 }
 
 func aboutMessage(e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
-	version := "v5.4"
+	version := "v5.7"
 	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 		discord.NewEmbed().
 			WithTitle("About PulseKeep").
@@ -948,7 +947,7 @@ func startStatusRotation(ctx context.Context, client *bot.Client) {
 		{"/slowmode | /lock | /timeout", "playing"},
 		{"member activity", "watching"},
 		{"/poll | /role | /announce", "playing"},
-		{"PulseKeep v5.4", "playing"},
+		{"PulseKeep v5.7", "playing"},
 	}
 
 	ticker := time.NewTicker(3 * time.Minute)

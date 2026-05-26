@@ -28,6 +28,7 @@
             <nav class="nav-links" aria-label="Primary navigation">
                 <a href="index.html">Home</a>
                 <a href="commands.html">Commands</a>
+                <a href="dashboard.html">Dashboard</a>
                 <a href="status.html">Status</a>
                 <a href="team.html">Team</a>
                 <a href="changelog.html" class="active">Changelog</a>
@@ -35,13 +36,14 @@
             <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
                 <i class="fa-brands fa-discord" aria-hidden="true"></i> Invite
             </a>
-            <button class="mobile-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
-                <span></span><span></span><span></span>
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
             </button>
         </div>
         <nav class="mobile-nav" aria-label="Mobile navigation">
             <a href="index.html">Home</a>
             <a href="commands.html">Commands</a>
+            <a href="dashboard.html">Dashboard</a>
             <a href="status.html">Status</a>
             <a href="team.html">Team</a>
             <a href="changelog.html" class="active">Changelog</a>
@@ -84,7 +86,13 @@
                                             <li>Created custom 404.html page with branded error design</li>
                                             <li>Updated Worker proxy to serve 404 page for unknown routes</li>
                                             <li>Updated team page to reflect Cloudflare Workers deployment</li>
-                                            <li>Bumped status page version to v5.6</li>
+                                            <li><strong>Bug fixes:</strong> app.js setStatus() class overwrite, changelog.html mobile menu, string-based error comparisons → errors.Is(), Record.copy() deep copy Inventory, removed dead code, version string consistency (v5.4→v5.7)</li>
+                                            <li>Added /gift, /weekly, /rich to commands.html; fixed /leaderboard → /rich</li>
+                                            <li>Added real working Dashboard page with live bot + economy stats, top users table, and Chart.js doughnut chart</li>
+                                            <li>New /api/dashboard endpoint returning servers, users, commands, economy stats, top 5 users</li>
+                                            <li>Added Dashboard link to navigation on all pages</li>
+                                            <li>Added rows.Err() checks in economy store load() function</li>
+                                            <li>Bumped backend version to v5.7 across all Go files</li>
                                         </ul>
                                     </td>
                                 </tr>

@@ -245,7 +245,7 @@ func giftMessage(store *economy.Store, e *events.ApplicationCommandInteractionCr
 
 	result, err := store.GiftItem(e.User().ID, e.User().EffectiveName(), receiver.ID, receiver.EffectiveName(), itemID, time.Now())
 	if err != nil {
-		if err.Error() == "you do not own this item" {
+		if errors.Is(err, economy.ErrNotOwned) {
 			return economyError("Item not owned", "You don't have that item. Use `/inventory` to see your items.")
 		}
 		if errors.Is(err, economy.ErrSelfPayment) {
@@ -327,7 +327,7 @@ func buyMessage(store *economy.Store, e *events.ApplicationCommandInteractionCre
 
 	result, err := store.Buy(e.User().ID, e.User().EffectiveName(), itemID, time.Now())
 	if err != nil {
-		if err.Error() == "item not found" {
+		if errors.Is(err, economy.ErrItemNotFound) {
 			return economyError("Item not found", "Use `/shop` to see available items.")
 		}
 		return economyCommandError(err)
@@ -580,7 +580,7 @@ func sellMessage(store *economy.Store, e *events.ApplicationCommandInteractionCr
 
 	result, err := store.Sell(e.User().ID, e.User().EffectiveName(), itemID)
 	if err != nil {
-		if err.Error() == "you do not own this item" {
+		if errors.Is(err, economy.ErrNotOwned) {
 			return economyError("Item not owned", "You don't have that item. Use `/inventory` to see your items.")
 		}
 		return economyCommandError(err)
@@ -597,10 +597,10 @@ func useItemMessage(store *economy.Store, e *events.ApplicationCommandInteractio
 
 	result, err := store.UseItem(e.User().ID, e.User().EffectiveName(), itemID, time.Now())
 	if err != nil {
-		if err.Error() == "you do not own this item" {
+		if errors.Is(err, economy.ErrNotOwned) {
 			return economyError("Item not owned", "You don't have that item. Use `/inventory` to see your items.")
 		}
-		if err.Error() == "this item cannot be used" {
+		if errors.Is(err, economy.ErrCannotUse) {
 			return economyError("Cannot use", "That item cannot be used. Try `/sell` to get a refund instead.")
 		}
 		return economyCommandError(err)

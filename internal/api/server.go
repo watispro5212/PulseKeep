@@ -86,13 +86,71 @@ func NewServer(port string, allowedOrigin string, database *db.Database, memCach
 		cmds := getCommandsRun(memCache)
 
 		c.JSON(http.StatusOK, gin.H{
-			"bot":          "PulseKeep v5.4",
+			"bot":          "PulseKeep v5.7",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
 			"commands_run": cmds,
 			"uptime":       formatDuration(time.Since(startedAt)),
 			"go_version":   runtime.Version(),
+			"features": []string{
+				"moderation",
+				"tickets",
+				"audit_logs",
+				"economy",
+				"shop",
+				"polls",
+				"gambling",
+				"fishing",
+				"mining",
+				"channel_management",
+			},
+		})
+	})
+
+	r.GET("/api/dashboard", func(c *gin.Context) {
+		servers := getGuildCount(memCache)
+		users := getUserCount(memCache)
+		cmds := getCommandsRun(memCache)
+
+		economyStats := gin.H{"status": "unavailable"}
+		if database != nil && database.Conn != nil {
+			var totalRecords, totalBalance, avgBalance int
+			var topUsers []gin.H
+
+			err := database.Conn.QueryRow(`SELECT COUNT(*), COALESCE(SUM(balance),0), COALESCE(AVG(balance),0) FROM user_economy`).Scan(&totalRecords, &totalBalance, &avgBalance)
+			if err == nil {
+				rows, err := database.Conn.Query(`SELECT user_id, name, balance FROM user_economy ORDER BY balance DESC LIMIT 5`)
+				if err == nil {
+					for rows.Next() {
+						var uid, name string
+						var bal int
+						if rows.Scan(&uid, &name, &bal) == nil {
+							topUsers = append(topUsers, gin.H{"id": uid, "name": name, "balance": bal})
+						}
+					}
+					rows.Close()
+				}
+				economyStats = gin.H{
+					"status":        "ok",
+					"total_records": totalRecords,
+					"total_balance": totalBalance,
+					"avg_balance":   avgBalance,
+					"top_users":     topUsers,
+				}
+			}
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"bot":          "PulseKeep v5.7",
+			"status":       "online",
+			"servers":      servers,
+			"users":        users,
+			"commands_run": cmds,
+			"uptime":       formatDuration(time.Since(startedAt)),
+			"bot_uptime":   formatUptime(memCache),
+			"go_version":   runtime.Version(),
+			"database":     economyStats,
 			"features": []string{
 				"moderation",
 				"tickets",
