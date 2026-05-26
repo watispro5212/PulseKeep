@@ -184,6 +184,7 @@ func New(token string, memCache *cache.Cache) *Bot {
 			if _, err := e.Client().Rest.SetGlobalCommands(e.Client().ApplicationID, commands.Register()); err != nil {
 				log.Printf("failed to register global slash commands: %v", err)
 			}
+			startStatusRotation(context.Background(), e.Client())
 		}),
 	)
 
@@ -843,6 +844,70 @@ func handleTicketClose(e *events.ComponentInteractionCreate) {
 		time.Sleep(5 * time.Second)
 		if err := e.Client().Rest.DeleteChannel(channelID); err != nil {
 			log.Printf("failed to delete ticket channel: %v", err)
+		}
+	}()
+}
+
+func startStatusRotation(ctx context.Context, client *bot.Client) {
+	statuses := []struct {
+		text string
+		kind string
+	}{
+		{"/help to browse commands", "playing"},
+		{"over %d servers", "watching"},
+		{"PulseKeep Economy", "playing"},
+		{"/daily | /work | /slots", "playing"},
+		{"/gamble | /fish | /mine", "playing"},
+		{"moderation tickets", "watching"},
+		{"/purge | /kick | /ban", "playing"},
+		{"/slowmode | /lock | /timeout", "playing"},
+		{"member activity", "watching"},
+		{"/poll | /role | /announce", "playing"},
+		{"PulseKeep v5.4", "playing"},
+	}
+
+	ticker := time.NewTicker(3 * time.Minute)
+	idx := 0
+
+	applyStatus := func() {
+		s := statuses[idx%len(statuses)]
+		idx++
+
+		text := s.text
+		if s.kind != "watching" && s.kind != "playing" {
+			s.kind = "playing"
+		}
+
+		var opts []gateway.PresenceOpt
+		switch s.kind {
+		case "watching":
+			opts = []gateway.PresenceOpt{
+				gateway.WithWatchingActivity(text),
+				gateway.WithOnlineStatus(discord.OnlineStatusOnline),
+			}
+		default:
+			opts = []gateway.PresenceOpt{
+				gateway.WithPlayingActivity(text),
+				gateway.WithOnlineStatus(discord.OnlineStatusOnline),
+			}
+		}
+
+		if err := client.SetPresence(ctx, opts...); err != nil {
+			log.Printf("failed to set presence: %v", err)
+		}
+	}
+
+	applyStatus()
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				applyStatus()
+			case <-ctx.Done():
+				ticker.Stop()
+				return
+			}
 		}
 	}()
 }
