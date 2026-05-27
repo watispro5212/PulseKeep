@@ -1296,28 +1296,6 @@ func (s *Store) GiftItem(senderID snowflake.ID, senderName string, receiverID sn
 	}, nil
 }
 
-func (s *Store) RichLeaderboard(limit int) []Record {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	records := make([]Record, 0, len(s.records))
-	for _, record := range s.records {
-		records = append(records, record.copy())
-	}
-
-	sort.Slice(records, func(i, j int) bool {
-		if records[i].Balance == records[j].Balance {
-			return records[i].Earned > records[j].Earned
-		}
-		return records[i].Balance > records[j].Balance
-	})
-
-	if len(records) > limit {
-		records = records[:limit]
-	}
-	return records
-}
-
 func (s *Store) ensureRecord(userID snowflake.ID, name string) *Record {
 	if record, ok := s.records[userID]; ok {
 		if name != "" {

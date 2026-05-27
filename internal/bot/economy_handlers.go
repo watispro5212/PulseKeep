@@ -195,7 +195,7 @@ func leaderboardMessage(store *economy.Store) discord.MessageCreate {
 }
 
 func richMessage(store *economy.Store) discord.MessageCreate {
-	records := store.RichLeaderboard(10)
+	records := store.Leaderboard(10)
 	if len(records) == 0 {
 		return discord.NewMessageCreate().
 			WithEphemeral(true).

@@ -11,6 +11,7 @@ import (
 
 	"github.com/watispro5212/PulseKeep/internal/api"
 	"github.com/watispro5212/PulseKeep/internal/bot"
+	"github.com/watispro5212/PulseKeep/internal/bot/automod"
 	"github.com/watispro5212/PulseKeep/internal/cache"
 	"github.com/watispro5212/PulseKeep/internal/config"
 	"github.com/watispro5212/PulseKeep/internal/db"
@@ -41,7 +42,11 @@ func main() {
 	}
 
 	// 5. Init Web Server
-	server := api.NewServer(cfg, database, memCache, discordBot.GetConfigStore())
+	var cfgStore *automod.ConfigStore
+	if discordBot != nil {
+		cfgStore = discordBot.GetConfigStore()
+	}
+	server := api.NewServer(cfg, database, memCache, cfgStore)
 	go func() {
 		if err := server.Start(); err != nil {
 			log.Fatalf("Web server failed: %v", err)

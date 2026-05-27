@@ -351,7 +351,7 @@ func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 }
 
 func aboutMessage(e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
-	version := "v5.9"
+	version := "v5.9.1"
 	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 		discord.NewEmbed().
 			WithTitle("About PulseKeep").
@@ -996,7 +996,7 @@ func startStatusRotation(ctx context.Context, client *bot.Client, memCache *cach
 		{"/slowmode | /lock | /timeout", "playing"},
 		{"member activity", "watching"},
 		{"/poll | /role | /announce", "playing"},
-		{"PulseKeep v5.9", "competing"},
+		{"PulseKeep v5.9.1", "competing"},
 		{"support tickets", "listening"},
 		{"/shop | /rich | /weekly", "playing"},
 		{"automod", "watching"},

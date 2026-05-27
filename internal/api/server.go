@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -71,10 +70,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 			}
 		}
 
-		var goVersion string
-		if memCache != nil {
-			goVersion = runtime.Version()
-		}
+		goVersion := runtime.Version()
 
 		c.JSON(http.StatusOK, gin.H{
 			"status":      status,
@@ -94,7 +90,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		cmds := getCommandsRun(memCache)
 
 		c.JSON(http.StatusOK, gin.H{
-			"bot":          "PulseKeep v5.9",
+"bot": "PulseKeep v5.9.1",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
@@ -150,7 +146,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"bot":          "PulseKeep v5.9",
+"bot": "PulseKeep v5.9.1",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
@@ -238,36 +234,12 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 	r.GET("/api/guild/:id/config", func(c *gin.Context) {
 		guildID := c.Param("id")
 		// TODO: Verify user has permission to manage this guild (via Discord API)
-		// For now, just return the config
 		if cfgStore == nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Config store not initialized"})
 			return
 		}
-		config := cfgStore.Get(guildID)
-		if config == nil {
-			// Return default config
-			config = &automod.GuildConfig{
-				GuildID:         guildID,
-				AutomodEnabled:  true,
-				SpamEnabled:     true,
-				SpamMaxMessages: 5,
-				SpamWindowSecs:  30,
-				SpamAction:      "timeout",
-				MentionEnabled:  true,
-				MentionMax:      5,
-				MentionAction:   "delete",
-				LinksEnabled:    true,
-				LinksAction:     "delete",
-				CapsEnabled:     true,
-				CapsPercent:     70,
-				CapsMinLength:   7,
-				CapsAction:      "warn",
-				BannedWords:     "",
-				LogChannelID:    "",
-				ModRoleID:       "",
-			}
-		}
-		c.JSON(http.StatusOK, config)
+		guildCfg := cfgStore.Get(guildID)
+		c.JSON(http.StatusOK, guildCfg)
 	})
 
 	r.POST("/api/guild/:id/config", func(c *gin.Context) {
@@ -348,13 +320,6 @@ func formatDuration(d time.Duration) string {
 		return fmt.Sprintf("%dm %ds", minutes, secs)
 	}
 	return fmt.Sprintf("%ds", secs)
-}
-
-func formatUnit(value int, suffix string) string {
-	if value <= 0 {
-		return ""
-	}
-	return strings.TrimSpace(strings.Join([]string{strconv.Itoa(value), suffix}, ""))
 }
 
 func getGuildCount(memCache *cache.Cache) int64 {
