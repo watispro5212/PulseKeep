@@ -919,6 +919,13 @@ h1, .hero-title {
   color: var(--primary);
 }
 
+/* ===== COMMAND GRID ===== */
+.command-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
 /* ===== SHOP GRID ===== */
 .shop-grid {
   display: grid;
