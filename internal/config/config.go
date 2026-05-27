@@ -8,11 +8,14 @@ import (
 )
 
 type Config struct {
-	DiscordToken  string
-	DatabaseURL   string
-	Port          string
-	AllowedOrigin string
-	BotDisabled   bool
+	DiscordToken   string
+	DatabaseURL    string
+	Port           string
+	AllowedOrigin  string
+	BotDisabled    bool
+	DiscordClientID     string
+	DiscordClientSecret string
+	DiscordRedirectURI  string
 }
 
 func LoadConfig() *Config {
@@ -41,11 +44,21 @@ func LoadConfig() *Config {
 		allowedOrigin = "*"
 	}
 
+	clientID := os.Getenv("DISCORD_CLIENT_ID")
+	clientSecret := os.Getenv("DISCORD_CLIENT_SECRET")
+	redirectURI := os.Getenv("DISCORD_REDIRECT_URI")
+	if redirectURI == "" {
+		redirectURI = "http://localhost:" + port + "/auth/discord/callback"
+	}
+
 	return &Config{
-		DiscordToken:  token,
-		DatabaseURL:   dbURL,
-		Port:          port,
-		AllowedOrigin: allowedOrigin,
-		BotDisabled:   botDisabled,
+		DiscordToken:      token,
+		DatabaseURL:       dbURL,
+		Port:              port,
+		AllowedOrigin:     allowedOrigin,
+		BotDisabled:       botDisabled,
+		DiscordClientID:   clientID,
+		DiscordClientSecret: clientSecret,
+		DiscordRedirectURI: redirectURI,
 	}
 }

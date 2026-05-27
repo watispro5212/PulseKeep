@@ -85,8 +85,8 @@
 
                 <article class="command-group scroll-reveal">
                     <h2><i class="fa-solid fa-shield-halved"></i> Moderation</h2>
-                    <div style="margin-bottom: 12px; padding: 10px 14px; border: 1px solid rgba(251,113,133,0.15); border-radius: var(--radius-sm); background: rgba(251,113,133,0.04);">
-                        <span style="color: var(--muted); font-size: 0.85rem;"><i class="fa-solid fa-lock" style="color: var(--rose); margin-right: 6px;"></i>These commands require staff-level Discord permissions.</span>
+                    <div class="callout-box" style="border-color: rgba(251,113,133,0.15); background: rgba(251,113,133,0.04);">
+                        <i class="fa-solid fa-lock" style="color: var(--rose);"></i>These commands require staff-level Discord permissions.
                     </div>
                     <div class="command-items">
                         <div class="command-item"><code>/purge &lt;amount&gt;</code><span>Bulk delete messages in the current channel (1–100).</span></div>
@@ -107,9 +107,9 @@
                     <div class="command-items">
                         <div class="command-item"><code>/ticketpanel</code><span>Post the interactive ticket panel for members to open support requests.</span></div>
                     </div>
-                    <div style="margin-top: 12px; padding: 14px; border: 1px solid rgba(56,213,200,0.15); border-radius: var(--radius-sm); background: rgba(56,213,200,0.04);">
-                        <p style="color: var(--cyan); font-size: 0.85rem; font-weight: 600;"><i class="fa-solid fa-circle-info"></i> How tickets work</p>
-                        <p style="color: var(--muted); font-size: 0.82rem; margin-top: 4px;">When a member clicks "Open Ticket" on the panel, PulseKeep creates a private channel that only the member and staff can see. Members can close their ticket with a button, and the channel is deleted automatically.</p>
+                    <div class="callout-box" style="border-color: rgba(56,213,200,0.15); background: rgba(56,213,200,0.04);">
+                        <p style="color: var(--cyan); font-size: 0.85rem; font-weight: 600; margin-bottom: 4px;"><i class="fa-solid fa-circle-info"></i> How tickets work</p>
+                        When a member clicks "Open Ticket" on the panel, PulseKeep creates a private channel that only the member and staff can see. Members can close their ticket with a button, and the channel is deleted automatically.
                     </div>
                 </article>
 
@@ -136,45 +136,18 @@
                         <div class="command-item"><code>/sell &lt;item&gt;</code><span>Sell an item from your inventory for a 60% refund.</span></div>
                         <div class="command-item"><code>/use &lt;item&gt;</code><span>Use a usable item (e.g. Shield Token, Health Potion).</span></div>
                     </div>
-                    <div style="margin-top: 12px; padding: 14px; border: 1px solid rgba(245,189,79,0.15); border-radius: var(--radius-sm); background: rgba(245,189,79,0.04);">
-                        <p style="color: var(--amber); font-size: 0.85rem; font-weight: 600;"><i class="fa-solid fa-coins"></i> Shop items</p>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
-                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
-                                <strong style="font-size: 0.82rem;">Lucky Pickaxe</strong>
-                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">5,000 Pulses — +15% coinflip win chance</span>
-                            </div>
-                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
-                                <strong style="font-size: 0.82rem;">XP Boost</strong>
-                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">3,000 Pulses — 2x work earnings for 1 hour</span>
-                            </div>
-                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
-                                <strong style="font-size: 0.82rem;">Golden Watch</strong>
-                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">8,000 Pulses — Reduces daily cooldown by 4h</span>
-                            </div>
-                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
-                                <strong style="font-size: 0.82rem;">Shield Token</strong>
-                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">6,000 Pulses — Protects from one robbery</span>
-                            </div>
-                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
-                                <strong style="font-size: 0.82rem;">Lucky Clover</strong>
-                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">4,000 Pulses — +1 slot reel position</span>
-                            </div>
-                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
-                                <strong style="font-size: 0.82rem;">Fishing Rod</strong>
-                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">1,500 Pulses — Required for /fish</span>
-                            </div>
-                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
-                                <strong style="font-size: 0.82rem;">Iron Pickaxe</strong>
-                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">2,000 Pulses — Required for /mine</span>
-                            </div>
-                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
-                                <strong style="font-size: 0.82rem;">Lottery Ticket</strong>
-                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">500 Pulses — Entry for the server lottery draw</span>
-                            </div>
-                            <div style="padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px;">
-                                <strong style="font-size: 0.82rem;">Health Potion</strong>
-                                <span style="display: block; color: var(--muted); font-size: 0.78rem;">2,500 Pulses — Restores 25% of lost rob fines</span>
-                            </div>
+                    <div class="callout-box" style="border-color: rgba(245,189,79,0.15); background: rgba(245,189,79,0.04);">
+                        <p style="color: var(--amber); font-size: 0.85rem; font-weight: 600; margin-bottom: 8px;"><i class="fa-solid fa-coins"></i> Shop items</p>
+                        <div class="shop-grid">
+                            <div class="shop-item"><strong>Lucky Pickaxe</strong><span>5,000 Pulses — +15% coinflip win chance</span></div>
+                            <div class="shop-item"><strong>XP Boost</strong><span>3,000 Pulses — 2x work earnings for 1 hour</span></div>
+                            <div class="shop-item"><strong>Golden Watch</strong><span>8,000 Pulses — Reduces daily cooldown by 4h</span></div>
+                            <div class="shop-item"><strong>Shield Token</strong><span>6,000 Pulses — Protects from one robbery</span></div>
+                            <div class="shop-item"><strong>Lucky Clover</strong><span>4,000 Pulses — +1 slot reel position</span></div>
+                            <div class="shop-item"><strong>Fishing Rod</strong><span>1,500 Pulses — Required for /fish</span></div>
+                            <div class="shop-item"><strong>Iron Pickaxe</strong><span>2,000 Pulses — Required for /mine</span></div>
+                            <div class="shop-item"><strong>Lottery Ticket</strong><span>500 Pulses — Entry for the server lottery draw</span></div>
+                            <div class="shop-item"><strong>Health Potion</strong><span>2,500 Pulses — Restores 25% of lost rob fines</span></div>
                         </div>
                     </div>
                 </article>

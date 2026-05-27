@@ -48,6 +48,27 @@ func (db *Database) Migrate() {
 			quantity INTEGER NOT NULL DEFAULT 1,
 			UNIQUE(user_id, item_id)
 		)`,
+		`CREATE TABLE IF NOT EXISTS guild_config (
+			guild_id TEXT PRIMARY KEY,
+			automod_enabled BOOLEAN NOT NULL DEFAULT true,
+			spam_enabled BOOLEAN NOT NULL DEFAULT true,
+			spam_max_messages INTEGER NOT NULL DEFAULT 5,
+			spam_window_seconds INTEGER NOT NULL DEFAULT 5,
+			spam_action TEXT NOT NULL DEFAULT 'warn',
+			mention_enabled BOOLEAN NOT NULL DEFAULT true,
+			mention_max INTEGER NOT NULL DEFAULT 5,
+			mention_action TEXT NOT NULL DEFAULT 'delete',
+			links_enabled BOOLEAN NOT NULL DEFAULT false,
+			links_action TEXT NOT NULL DEFAULT 'delete',
+			caps_enabled BOOLEAN NOT NULL DEFAULT true,
+			caps_percent INTEGER NOT NULL DEFAULT 70,
+			caps_min_length INTEGER NOT NULL DEFAULT 15,
+			caps_action TEXT NOT NULL DEFAULT 'warn',
+			banned_words TEXT NOT NULL DEFAULT '',
+			log_channel_id TEXT NOT NULL DEFAULT '',
+			mod_role_id TEXT NOT NULL DEFAULT '',
+			updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		)`,
 	}
 
 	for _, q := range queries {

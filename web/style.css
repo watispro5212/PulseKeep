@@ -919,6 +919,71 @@ h1, .hero-title {
   color: var(--primary);
 }
 
+/* ===== SHOP GRID ===== */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.shop-item {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.shop-item strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.shop-item span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .shop-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== CALLOUT BOX ===== */
+.callout-box {
+  margin-top: 10px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--muted);
+}
+
+.callout-box i {
+  margin-right: 6px;
+  color: var(--amber);
+}
+
+/* ===== STATUS PAGE UPDATES ===== */
+.status-runtime {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ===== TEAM ICON COLORS (cards 4-6) ===== */
+.team-card:nth-child(4) i { background: rgba(251, 113, 133, 0.1); color: var(--rose); }
+.team-card:nth-child(5) i { background: rgba(54, 211, 153, 0.1); color: var(--green); }
+.team-card:nth-child(6) i { background: rgba(56, 213, 200, 0.1); color: var(--cyan); }
+
+/* ===== TEAM TECH GRID ===== */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
 /* ===== CONTENT SECTIONS ===== */
 .content-section { padding: 60px 0; }
 

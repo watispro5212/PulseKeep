@@ -140,7 +140,7 @@
                 <i class="fa-solid fa-bars" aria-hidden="true"></i>
             </button>
         </div>
-        <nav class="mobile-nav" aria-label="Mobile navigation">
+        <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
             <a href="index.html">Home</a>
             <a href="commands.html">Commands</a>
             <a href="dashboard.html">Dashboard</a>
@@ -162,11 +162,37 @@
         <section class="container content-section">
             <div class="changelog-list">
 
+                <!-- v5.9 -->
+                <article class="version-card">
+                    <div class="version-header">
+                        <div class="version-badge">
+                            <span class="tag latest">v5.9</span>
+                            <span class="version-date">May 26, 2026</span>
+                        </div>
+                    </div>
+                    <ul class="version-changes">
+                        <li class="feature"><span class="change-tag feature">Feature</span>Complete auto-mod system with spam detection, mass mention protection, keyword filter, link blocking, and caps lock detection</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Auto-mod actions: delete, warn, timeout — configurable per rule with log channel support</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Discord OAuth2 login for the web dashboard — log in to manage your server settings</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>Guild configuration API endpoints for reading and updating auto-mod settings</li>
+                        <li class="feature"><span class="change-tag feature">Feature</span>guild_config database table with full migration for per-guild auto-mod persistence</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Auto-mod now checks every message in real-time with in-memory rate limiting</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Rotating status now shows live server/user counts via %d interpolation</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Fixed setStatus() class overwrite bug — status badge now preserves styling on status page</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Fixed mobile navigation on changelog page — added missing id="mobile-nav"</li>
+                        <li class="fix"><span class="change-tag fix">Fix</span>Added app.js to 404 and dashboard pages for mobile menu support</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Refactored commands.html to use CSS classes — removed 90+ lines of inline styles</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Runtime metric on status page now dynamically reads from health API</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Added team card icon colors for all 6 team members</li>
+                        <li class="feature"><span class="change-tag feature">Polishing</span>Refactored index.html command preview to use CSS classes</li>
+                    </ul>
+                </article>
+
                 <!-- v5.8 -->
                 <article class="version-card">
                     <div class="version-header">
                         <div class="version-badge">
-                            <span class="tag latest">v5.8</span>
+                            <span class="tag">v5.8</span>
                             <span class="version-date">May 26, 2026</span>
                         </div>
                     </div>

@@ -27,15 +27,7 @@ func main() {
 	// 3. Init Cache
 	memCache := cache.New()
 
-	// 4. Init Web Server
-	server := api.NewServer(cfg.Port, cfg.AllowedOrigin, database, memCache)
-	go func() {
-		if err := server.Start(); err != nil {
-			log.Fatalf("Web server failed: %v", err)
-		}
-	}()
-
-	// 5. Init Bot
+	// 4. Init Bot (to get config store)
 	var discordBot *bot.Bot
 
 	if cfg.BotDisabled {
@@ -46,6 +38,18 @@ func main() {
 			dbConn = database.Conn
 		}
 		discordBot = bot.New(cfg.DiscordToken, memCache, dbConn)
+	}
+
+	// 5. Init Web Server
+	server := api.NewServer(cfg, database, memCache, discordBot.GetConfigStore())
+	go func() {
+		if err := server.Start(); err != nil {
+			log.Fatalf("Web server failed: %v", err)
+		}
+	}()
+
+	// 6. Start Bot
+	if !cfg.BotDisabled && discordBot != nil {
 		ctx := context.Background()
 		if err := discordBot.Start(ctx); err != nil {
 			log.Fatalf("Failed to start Discord bot: %v", err)

@@ -6,25 +6,32 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/watispro5212/PulseKeep/internal/auth"
+	"github.com/watispro5212/PulseKeep/internal/bot/automod"
 	"github.com/watispro5212/PulseKeep/internal/cache"
+	"github.com/watispro5212/PulseKeep/internal/config"
 	"github.com/watispro5212/PulseKeep/internal/db"
 )
 
 type Server struct {
-	httpServer *http.Server
-	port       string
-	startedAt  time.Time
-	database   *db.Database
-	cache      *cache.Cache
+	httpServer   *http.Server
+	config       *config.Config
+	startedAt    time.Time
+	database     *db.Database
+	cache        *cache.Cache
+	cfgStore     *automod.ConfigStore
 }
 
-func NewServer(port string, allowedOrigin string, database *db.Database, memCache *cache.Cache) *Server {
+const discordAPIURL = "https://discord.com/api/v10"
+
+func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache, cfgStore *automod.ConfigStore) *Server {
 	// Set Gin to release mode in production
 	gin.SetMode(gin.ReleaseMode)
 
@@ -34,8 +41,8 @@ func NewServer(port string, allowedOrigin string, database *db.Database, memCach
 	// CORS Middleware to allow Netlify frontend to securely fetch stats from Fly.io backend
 	r.Use(func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
-		if allowedOrigin == "*" || origin == allowedOrigin || isAllowedOrigin(origin, allowedOrigin) {
-			if allowedOrigin == "*" {
+		if cfg.AllowedOrigin == "*" || origin == cfg.AllowedOrigin || isAllowedOrigin(origin, cfg.AllowedOrigin) {
+			if cfg.AllowedOrigin == "*" {
 				c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 			} else {
 				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
@@ -87,7 +94,7 @@ func NewServer(port string, allowedOrigin string, database *db.Database, memCach
 		cmds := getCommandsRun(memCache)
 
 		c.JSON(http.StatusOK, gin.H{
-			"bot":          "PulseKeep v5.8",
+			"bot":          "PulseKeep v5.9",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
@@ -143,7 +150,7 @@ func NewServer(port string, allowedOrigin string, database *db.Database, memCach
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"bot":          "PulseKeep v5.8",
+			"bot":          "PulseKeep v5.9",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
@@ -167,21 +174,139 @@ func NewServer(port string, allowedOrigin string, database *db.Database, memCach
 		})
 	})
 
+	// Discord OAuth2 endpoints
+	r.GET("/auth/discord", func(c *gin.Context) {
+		if cfg.DiscordClientID == "" || cfg.DiscordClientSecret == "" {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "OAuth not configured"})
+			return
+		}
+		// In a real app, you'd generate and store a state value for CSRF protection
+		params := url.Values{}
+		params.Set("client_id", cfg.DiscordClientID)
+		params.Set("redirect_uri", cfg.DiscordRedirectURI)
+		params.Set("response_type", "code")
+		params.Set("scope", "identify guilds")
+		redirectURL := fmt.Sprintf("%s/oauth2/authorize?%s", discordAPIURL, params.Encode())
+		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+	})
+
+	r.GET("/auth/discord/callback", func(c *gin.Context) {
+		code := c.Query("code")
+		// In a real app, you'd verify state matches the one stored in session/cookie
+		if code == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing code parameter"})
+			return
+		}
+
+		token, err := auth.ExchangeCode(cfg, code)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to exchange code for token: " + err.Error()})
+			return
+		}
+
+		user, err := auth.GetUser(token)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user info: " + err.Error()})
+			return
+		}
+
+		// Redirect to dashboard with token in URL fragment
+		dashURL := fmt.Sprintf("/dashboard.html#access_token=%s&user_id=%s", url.QueryEscape(token), url.QueryEscape(user.ID))
+		c.Redirect(http.StatusTemporaryRedirect, dashURL)
+	})
+
+	// Guild config endpoints
+	r.GET("/api/guilds", func(c *gin.Context) {
+		token := c.Query("token")
+		if token == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing token parameter"})
+			return
+		}
+		guilds, err := auth.GetUserGuilds(token)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch guilds: " + err.Error()})
+			return
+		}
+		user, err := auth.GetUser(token)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user: " + err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"user": user, "guilds": guilds})
+	})
+
+	r.GET("/api/guild/:id/config", func(c *gin.Context) {
+		guildID := c.Param("id")
+		// TODO: Verify user has permission to manage this guild (via Discord API)
+		// For now, just return the config
+		if cfgStore == nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Config store not initialized"})
+			return
+		}
+		config := cfgStore.Get(guildID)
+		if config == nil {
+			// Return default config
+			config = &automod.GuildConfig{
+				GuildID:         guildID,
+				AutomodEnabled:  true,
+				SpamEnabled:     true,
+				SpamMaxMessages: 5,
+				SpamWindowSecs:  30,
+				SpamAction:      "timeout",
+				MentionEnabled:  true,
+				MentionMax:      5,
+				MentionAction:   "delete",
+				LinksEnabled:    true,
+				LinksAction:     "delete",
+				CapsEnabled:     true,
+				CapsPercent:     70,
+				CapsMinLength:   7,
+				CapsAction:      "warn",
+				BannedWords:     "",
+				LogChannelID:    "",
+				ModRoleID:       "",
+			}
+		}
+		c.JSON(http.StatusOK, config)
+	})
+
+	r.POST("/api/guild/:id/config", func(c *gin.Context) {
+		guildID := c.Param("id")
+		// TODO: Verify user has permission to manage this guild (via Discord API and OAuth2 token)
+		var configUpdate automod.GuildConfig
+		if err := c.ShouldBindJSON(&configUpdate); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON: " + err.Error()})
+			return
+		}
+		// Ensure GuildID matches
+		configUpdate.GuildID = guildID
+		if cfgStore == nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Config store not initialized"})
+			return
+		}
+		if err := cfgStore.Update(&configUpdate); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update config: " + err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+
 	return &Server{
 		httpServer: &http.Server{
-			Addr:              ":" + port,
+			Addr:              ":" + cfg.Port,
 			Handler:           r,
 			ReadHeaderTimeout: 5 * time.Second,
 		},
-		port:      port,
+		config:    cfg,
 		startedAt: startedAt,
 		database:  database,
 		cache:     memCache,
+		cfgStore:  cfgStore,
 	}
 }
 
 func (s *Server) Start() error {
-	log.Printf("Starting web server on port %s", s.port)
+	log.Printf("Starting web server on port %s", s.config.Port)
 	if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}

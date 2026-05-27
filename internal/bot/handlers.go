@@ -16,19 +16,24 @@ import (
 	"github.com/disgoorg/omit"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/watispro5212/PulseKeep/internal/bot/commands"
+	"github.com/watispro5212/PulseKeep/internal/bot/automod"
 	"github.com/watispro5212/PulseKeep/internal/bot/economy"
 	"github.com/watispro5212/PulseKeep/internal/cache"
 )
 
 type Bot struct {
-	Client     *bot.Client
-	cache      *cache.Cache
-	db         *sql.DB
+	Client      *bot.Client
+	cache       *cache.Cache
+	db          *sql.DB
+	automod     *automod.Engine
+	cfgStore    *automod.ConfigStore
 }
 
 func New(token string, memCache *cache.Cache, database *sql.DB) *Bot {
 	startedAt := time.Now()
 	economyStore := economy.NewStore(database)
+	cfgStore := automod.NewConfigStore(database)
+	am := automod.NewEngine(cfgStore)
 
 	client, err := disgo.New(token,
 		bot.WithGatewayConfigOpts(
@@ -47,6 +52,35 @@ func New(token string, memCache *cache.Cache, database *sql.DB) *Bot {
 			}
 			if e.Message.Content == "!menu" || e.Message.Content == "!help" {
 				_, _ = e.Client().Rest.CreateMessage(e.ChannelID, commands.MenuMessage("", false).WithMessageReferenceByID(e.Message.ID))
+			}
+			// Auto-mod check on every message
+			if e.GuildID != nil && am != nil {
+				guildID := e.GuildID.String()
+				result := am.CheckMessage(guildID, e.Message.Author.ID.String(), e.Message.Content)
+				if result.Action != automod.ActionNone {
+					cfg := cfgStore.Get(guildID)
+					if result.DeleteMsg {
+						_ = e.Client().Rest.DeleteMessage(e.ChannelID, e.MessageID)
+					}
+					if cfg != nil && cfg.LogChannelID != "" {
+						logEmbed := discord.NewEmbed().
+							WithTitle("Auto-mod action").
+							WithDescription(fmt.Sprintf("**User:** <@%s>\n**Action:** %s\n**Reason:** %s\n**Content:** %s", e.Message.Author.ID.String(), string(result.Action), result.Reason, e.Message.Content)).
+							WithColor(0xfc8181).
+							WithTimestamp(time.Now())
+						if logChanID, err := snowflake.Parse(cfg.LogChannelID); err == nil {
+							_, _ = e.Client().Rest.CreateMessage(logChanID, discord.NewMessageCreate().AddEmbeds(logEmbed))
+						}
+					}
+					if result.Action == automod.ActionWarn || result.Action == automod.ActionTimeout {
+						warnEmbed := discord.NewEmbed().
+							WithTitle("Auto-mod notice").
+							WithDescription(fmt.Sprintf("Your message was removed: **%s**\nPlease follow the server rules.", result.Reason)).
+							WithColor(0xf5bd4f).
+							WithTimestamp(time.Now())
+						_, _ = e.Client().Rest.CreateMessage(e.ChannelID, discord.NewMessageCreate().AddEmbeds(warnEmbed))
+					}
+				}
 			}
 		}),
 		bot.WithEventListenerFunc(func(e *events.GuildJoin) {
@@ -189,15 +223,25 @@ func New(token string, memCache *cache.Cache, database *sql.DB) *Bot {
 			if _, err := e.Client().Rest.SetGlobalCommands(e.Client().ApplicationID, commands.Register()); err != nil {
 				log.Printf("failed to register global slash commands: %v", err)
 			}
-			startStatusRotation(context.Background(), e.Client())
+			startStatusRotation(context.Background(), e.Client(), memCache)
 		}),
 	)
-
 	if err != nil {
 		log.Fatalf("error while building disgo instance: %s", err)
 	}
 
-	return &Bot{Client: client, cache: memCache}
+	return &Bot{
+		Client:   client,
+		cache:    memCache,
+		db:       database,
+		automod:  am,
+		cfgStore: cfgStore,
+	}
+}
+
+// GetConfigStore returns the automod config store
+func (b *Bot) GetConfigStore() *automod.ConfigStore {
+	return b.cfgStore
 }
 
 func (b *Bot) Start(ctx context.Context) error {
@@ -220,7 +264,7 @@ func statsMessage(startedAt time.Time) discord.MessageCreate {
 			AddField("Latency", "Real-time in /ping", true).
 			AddField("Categories", "Utility · Moderation · Economy · Tickets · Gambling", false).
 			AddField("Get started", "Use `/help` to browse all commands.", false).
-			WithFooterText("PulseKeep v5.8 · Go runtime").
+			WithFooterText("PulseKeep v5.9 · Go runtime").
 			WithTimestamp(time.Now()))
 }
 
@@ -307,7 +351,7 @@ func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 }
 
 func aboutMessage(e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
-	version := "v5.8"
+	version := "v5.9"
 	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 		discord.NewEmbed().
 			WithTitle("About PulseKeep").
@@ -937,7 +981,7 @@ func handleTicketClose(e *events.ComponentInteractionCreate) {
 	}()
 }
 
-func startStatusRotation(ctx context.Context, client *bot.Client) {
+func startStatusRotation(ctx context.Context, client *bot.Client, memCache *cache.Cache) {
 	statuses := []struct {
 		text string
 		kind string
@@ -947,15 +991,18 @@ func startStatusRotation(ctx context.Context, client *bot.Client) {
 		{"PulseKeep Economy", "playing"},
 		{"/daily | /work | /slots", "playing"},
 		{"/gamble | /fish | /mine", "playing"},
-		{"moderation tickets", "watching"},
+		{"%d servers · %d users", "watching"},
 		{"/purge | /kick | /ban", "playing"},
 		{"/slowmode | /lock | /timeout", "playing"},
 		{"member activity", "watching"},
 		{"/poll | /role | /announce", "playing"},
-		{"PulseKeep v5.8", "playing"},
+		{"PulseKeep v5.9", "competing"},
+		{"support tickets", "listening"},
+		{"/shop | /rich | /weekly", "playing"},
+		{"automod", "watching"},
 	}
 
-	ticker := time.NewTicker(3 * time.Minute)
+	ticker := time.NewTicker(2 * time.Minute)
 	idx := 0
 
 	applyStatus := func() {
@@ -963,8 +1010,10 @@ func startStatusRotation(ctx context.Context, client *bot.Client) {
 		idx++
 
 		text := s.text
-		if s.kind != "watching" && s.kind != "playing" {
-			s.kind = "playing"
+		if memCache != nil {
+			guildCount := memCache.GuildCount.Load()
+			userCount := memCache.UserCount.Load()
+			text = fmt.Sprintf(text, guildCount, userCount)
 		}
 
 		var opts []gateway.PresenceOpt
@@ -972,6 +1021,16 @@ func startStatusRotation(ctx context.Context, client *bot.Client) {
 		case "watching":
 			opts = []gateway.PresenceOpt{
 				gateway.WithWatchingActivity(text),
+				gateway.WithOnlineStatus(discord.OnlineStatusOnline),
+			}
+		case "listening":
+			opts = []gateway.PresenceOpt{
+				gateway.WithListeningActivity(text),
+				gateway.WithOnlineStatus(discord.OnlineStatusOnline),
+			}
+		case "competing":
+			opts = []gateway.PresenceOpt{
+				gateway.WithCompetingActivity(text),
 				gateway.WithOnlineStatus(discord.OnlineStatusOnline),
 			}
 		default:

@@ -8,6 +8,7 @@ const statEls = {
     apiSpeed: document.getElementById('api-speed'),
     database: document.getElementById('stat-database'),
     version: document.getElementById('stat-version'),
+    runtime: document.getElementById('stat-runtime'),
 };
 
 function setStatus(state, message) {
@@ -20,7 +21,8 @@ function setStatus(state, message) {
         dot.className = 'pulse-dot';
         if (state) dot.classList.add(state);
     }
-    badge.className = 'hero-eyebrow';
+    // Preserve status-badge class (used on status page), add/remove state class
+    badge.classList.remove('online', 'offline', 'degraded');
     if (state) badge.classList.add(state);
     if (state === 'online') {
         const icon = badge.querySelector('i');
@@ -54,6 +56,7 @@ function setFallback() {
     if (statEls.apiSpeed) statEls.apiSpeed.textContent = '-- ms';
     if (statEls.database) statEls.database.textContent = 'Unknown';
     if (statEls.version) statEls.version.textContent = '--';
+    if (statEls.runtime) statEls.runtime.textContent = 'Offline';
 }
 
 async function timedFetch(path, options = {}) {
@@ -79,6 +82,7 @@ async function fetchHealth() {
         const data = await response.json();
         if (statEls.apiSpeed) statEls.apiSpeed.textContent = `${duration} ms`;
         if (statEls.database) statEls.database.textContent = data.database === 'ok' ? 'Healthy' : data.database || 'Unknown';
+        if (statEls.runtime) statEls.runtime.textContent = data.uptime || 'Online';
         return data;
     } catch (error) {
         if (statEls.apiSpeed) statEls.apiSpeed.textContent = '-- ms';

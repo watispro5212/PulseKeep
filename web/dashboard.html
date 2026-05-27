@@ -138,6 +138,31 @@
             color: var(--muted);
             font-size: 0.88rem;
         }
+        .config-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .config-row label {
+            font-size: 0.9rem;
+        }
+        .config-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--cyan);
+            cursor: default;
+        }
+        .btn-discord {
+            background: #5865F2;
+            color: #fff;
+            border: none;
+        }
+        .btn-discord:hover {
+            background: #4752c4;
+            color: #fff;
+        }
         @media (max-width: 768px) {
             .chart-row {
                 grid-template-columns: 1fr;
@@ -183,6 +208,16 @@
                 <span class="hero-eyebrow"><i class="fa-solid fa-chart-simple"></i> Live analytics</span>
                 <h1 class="hero-title">PulseKeep dashboard</h1>
                 <p class="hero-subtitle">Real-time bot performance, economy stats, and server insights. Auto-refreshes every 60 seconds.</p>
+                <div class="hero-actions" style="margin-top: 18px;">
+                    <a href="/auth/discord" class="btn btn-primary btn-large">
+                        <i class="fa-brands fa-discord"></i> Login with Discord
+                    </a>
+                </div>
+                <div id="guild-config-section" style="display:none; margin-top: 16px;">
+                    <p style="color: var(--muted); font-size: 0.9rem;">Select a server to configure:</p>
+                    <div id="guild-selector" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;"></div>
+                    <div id="guild-config-panel" style="display:none; margin-top: 20px;"></div>
+                </div>
             </div>
         </section>
 
@@ -393,9 +428,74 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        function handleAuth() {
+            var hash = window.location.hash;
+            var params = {};
+            if (hash) {
+                hash.replace('#', '').split('&').forEach(function(pair) {
+                    var parts = pair.split('=');
+                    params[parts[0]] = decodeURIComponent(parts[1] || '');
+                });
+            }
+            var token = params['access_token'] || localStorage.getItem('discord_token');
+            if (token) {
+                localStorage.setItem('discord_token', token);
+                document.getElementById('guild-config-section').style.display = 'block';
+                fetch('/api/guilds?token=' + encodeURIComponent(token))
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.error) return;
+                        var selector = document.getElementById('guild-selector');
+                        selector.innerHTML = '';
+                        (data.guilds || []).forEach(function(g) {
+                            var btn = document.createElement('button');
+                            btn.className = 'btn btn-secondary';
+                            btn.textContent = g.name;
+                            btn.style.fontSize = '0.85rem';
+                            btn.onclick = function() { loadGuildConfig(g.id, token); };
+                            selector.appendChild(btn);
+                        });
+                    })
+                    .catch(function() {});
+                window.location.hash = '';
+            }
+        }
+
+        function loadGuildConfig(guildId, token) {
+            var panel = document.getElementById('guild-config-panel');
+            panel.style.display = 'block';
+            panel.innerHTML = '<p style="color: var(--muted);"><i class="fa-solid fa-spinner fa-spin"></i> Loading config...</p>';
+            fetch('/api/guild/' + guildId + '/config?token=' + encodeURIComponent(token))
+                .then(function(r) { return r.json(); })
+                .then(function(cfg) {
+                    if (cfg.error) { panel.innerHTML = '<p style="color: var(--rose);">Error: ' + cfg.error + '</p>'; return; }
+                    panel.innerHTML = '<div class="dash-card" style="padding: 20px;">' +
+                        '<h3 style="margin-bottom: 14px;"><i class="fa-solid fa-sliders"></i> Server config: <code>' + (cfg.GuildID || guildId) + '</code></h3>' +
+                        '<div class="config-row"><label>Auto-mod enabled</label><input type="checkbox" ' + (cfg.AutomodEnabled ? 'checked' : '') + ' disabled></div>' +
+                        '<div class="config-row"><label>Spam protection</label><input type="checkbox" ' + (cfg.SpamEnabled ? 'checked' : '') + ' disabled></div>' +
+                        '<div class="config-row"><label>Mass mention</label><input type="checkbox" ' + (cfg.MentionEnabled ? 'checked' : '') + ' disabled></div>' +
+                        '<div class="config-row"><label>Link protection</label><input type="checkbox" ' + (cfg.LinksEnabled ? 'checked' : '') + ' disabled></div>' +
+                        '<div class="config-row"><label>Caps protection</label><input type="checkbox" ' + (cfg.CapsEnabled ? 'checked' : '') + ' disabled></div>' +
+                        '<p style="color: var(--muted); font-size: 0.82rem; margin-top: 12px;">Config editing coming soon — this is read-only for now.</p>' +
+                        '</div>';
+                })
+                .catch(function() { panel.innerHTML = '<p style="color: var(--rose);">Failed to load config</p>'; });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
             loadDashboard();
             setInterval(loadDashboard, 60000);
+            handleAuth();
+            var toggle = document.getElementById('mobile-menu-toggle');
+            var mobileNav = document.getElementById('mobile-nav');
+            if (toggle && mobileNav) {
+                toggle.addEventListener('click', function() {
+                    var isOpen = mobileNav.classList.toggle('active');
+                    toggle.setAttribute('aria-expanded', String(isOpen));
+                    var icon = toggle.querySelector('i');
+                    if (icon) icon.className = isOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+                });
+            }
         });
     </script>
 </body>
