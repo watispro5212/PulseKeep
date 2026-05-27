@@ -11,8 +11,21 @@ export default {
 				headers: {
 					'Accept': 'application/json',
 				},
+				redirect: 'manual',
 			});
-			return fetch(apiRequest);
+			const response = await fetch(apiRequest);
+			if (response.status >= 300 && response.status < 400) {
+				const location = response.headers.get('Location');
+				if (location && !location.startsWith('http')) {
+					const newLocation = url.origin + location;
+					return new Response(response.body, {
+						status: response.status,
+						statusText: response.statusText,
+						headers: { Location: newLocation },
+					});
+				}
+			}
+			return response;
 		}
 
 		const response = await env.ASSETS.fetch(request);
