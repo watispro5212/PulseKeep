@@ -454,7 +454,6 @@ func formatPulses(amount int) string {
 
 func fishMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
 	interest := store.ApplyInterest(e.User().ID, e.User().EffectiveName(), time.Now())
-	_ = interest
 
 	result := store.Fish(e.User().ID, e.User().EffectiveName(), time.Now())
 	if result.OnCooldown {
@@ -486,11 +485,16 @@ func fishMessage(store *economy.Store, e *events.ApplicationCommandInteractionCr
 		rarityColor = 0x78716c
 	}
 
+	desc := fmt.Sprintf("%s cast a line and caught... **%s %s** (%s, %s)!\nThey sold it for **%s Pulses**.",
+		e.User().String(), result.Fish.Emoji, result.Fish.Name, result.Fish.Weight, result.Fish.Rarity, formatPulses(result.Reward))
+	if interest > 0 {
+		desc += fmt.Sprintf("\n💤 Passive interest: **+%s Pulses**", formatPulses(interest))
+	}
+
 	return discord.NewMessageCreate().
 		AddEmbeds(discord.NewEmbed().
 			WithTitle(fmt.Sprintf("🎣 Fishing — %s", result.Fish.Rarity)).
-			WithDescription(fmt.Sprintf("%s cast a line and caught... **%s %s** (%s, %s)!\nThey sold it for **%s Pulses**.",
-				e.User().String(), result.Fish.Emoji, result.Fish.Name, result.Fish.Weight, result.Fish.Rarity, formatPulses(result.Reward))).
+			WithDescription(desc).
 			WithColor(rarityColor).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Fish caught", fmt.Sprintf("%d", result.Record.FishCaught), true).
@@ -501,7 +505,6 @@ func fishMessage(store *economy.Store, e *events.ApplicationCommandInteractionCr
 
 func mineMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
 	interest := store.ApplyInterest(e.User().ID, e.User().EffectiveName(), time.Now())
-	_ = interest
 
 	result := store.Mine(e.User().ID, e.User().EffectiveName(), time.Now())
 	if result.OnCooldown {
@@ -533,11 +536,16 @@ func mineMessage(store *economy.Store, e *events.ApplicationCommandInteractionCr
 		rarityColor = 0x78716c
 	}
 
+	desc := fmt.Sprintf("%s swung their pickaxe and found... **%s %s** (%s)!\nThey sold it for **%s Pulses**.",
+		e.User().String(), result.Ore.Emoji, result.Ore.Name, result.Ore.Rarity, formatPulses(result.Reward))
+	if interest > 0 {
+		desc += fmt.Sprintf("\n💤 Passive interest: **+%s Pulses**", formatPulses(interest))
+	}
+
 	return discord.NewMessageCreate().
 		AddEmbeds(discord.NewEmbed().
 			WithTitle(fmt.Sprintf("⛏️ Mining — %s", result.Ore.Rarity)).
-			WithDescription(fmt.Sprintf("%s swung their pickaxe and found... **%s %s** (%s)!\nThey sold it for **%s Pulses**.",
-				e.User().String(), result.Ore.Emoji, result.Ore.Name, result.Ore.Rarity, formatPulses(result.Reward))).
+			WithDescription(desc).
 			WithColor(rarityColor).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Ores mined", fmt.Sprintf("%d", result.Record.MineMined), true).

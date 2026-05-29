@@ -13,6 +13,7 @@ import (
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
+	"github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/omit"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/watispro5212/PulseKeep/internal/bot/commands"
@@ -22,11 +23,11 @@ import (
 )
 
 type Bot struct {
-	Client      *bot.Client
-	cache       *cache.Cache
-	db          *sql.DB
-	automod     *automod.Engine
-	cfgStore    *automod.ConfigStore
+	Client   *bot.Client
+	cache    *cache.Cache
+	db       *sql.DB
+	automod  *automod.Engine
+	cfgStore *automod.ConfigStore
 }
 
 func New(token string, memCache *cache.Cache, database *sql.DB) *Bot {
@@ -34,6 +35,7 @@ func New(token string, memCache *cache.Cache, database *sql.DB) *Bot {
 	economyStore := economy.NewStore(database)
 	cfgStore := automod.NewConfigStore(database)
 	am := automod.NewEngine(cfgStore)
+	var statusCancel context.CancelFunc
 
 	client, err := disgo.New(token,
 		bot.WithGatewayConfigOpts(
@@ -218,12 +220,18 @@ func New(token string, memCache *cache.Cache, database *sql.DB) *Bot {
 			}
 		}),
 		bot.WithEventListenerFunc(func(e *events.Ready) {
-			log.Printf("Bot is ready as %s#%s", e.User.Username, e.User.Discriminator)
+			log.Printf("Bot is ready as %s", e.User.EffectiveName())
+			memCache.ResetGuilds()
 			memCache.GuildCount.Store(int64(len(e.Guilds)))
 			if _, err := e.Client().Rest.SetGlobalCommands(e.Client().ApplicationID, commands.Register()); err != nil {
 				log.Printf("failed to register global slash commands: %v", err)
 			}
-			startStatusRotation(context.Background(), e.Client(), memCache)
+			if statusCancel != nil {
+				statusCancel()
+			}
+			var statusCtx context.Context
+			statusCtx, statusCancel = context.WithCancel(context.Background())
+			startStatusRotation(statusCtx, e.Client(), memCache)
 		}),
 	)
 	if err != nil {
@@ -249,7 +257,9 @@ func (b *Bot) Start(ctx context.Context) error {
 }
 
 func (b *Bot) Stop(ctx context.Context) {
-	b.Client.Close(ctx)
+	if ctx != nil {
+		b.Client.Close(ctx)
+	}
 }
 
 func statsMessage(startedAt time.Time) discord.MessageCreate {
@@ -429,7 +439,7 @@ func handlePurge(e *events.ApplicationCommandInteractionCreate, data discord.Sla
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Purge failed").
-				WithDescription(fmt.Sprintf("Could not fetch messages: %s", err.Error())).
+				WithDescription("Could not fetch messages. Make sure I have **Read Message History** permission.").
 				WithColor(commands.ModerationMenuAccent))
 	}
 
@@ -442,7 +452,7 @@ func handlePurge(e *events.ApplicationCommandInteractionCreate, data discord.Sla
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Purge failed").
-				WithDescription(fmt.Sprintf("Could not delete messages: %s", err.Error())).
+				WithDescription("Could not delete messages. Make sure I have **Manage Messages** permission.").
 				WithColor(commands.ModerationMenuAccent))
 	}
 
@@ -471,11 +481,11 @@ func handleKick(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 		reason = "No reason provided"
 	}
 
-	if err := e.Client().Rest.RemoveMember(*guildID, user.ID); err != nil {
+	if err := e.Client().Rest.RemoveMember(*guildID, user.ID, rest.WithReason(reason)); err != nil {
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Kick failed").
-				WithDescription(fmt.Sprintf("Could not kick %s: %s", user.Tag(), err.Error())).
+				WithDescription(fmt.Sprintf("Could not kick %s. Check that I have **Kick Members** permission and my role is above theirs.", user.Tag())).
 				WithColor(commands.ModerationMenuAccent))
 	}
 
@@ -505,11 +515,11 @@ func handleBan(e *events.ApplicationCommandInteractionCreate, data discord.Slash
 		reason = "No reason provided"
 	}
 
-	if err := e.Client().Rest.AddBan(*guildID, user.ID, 0); err != nil {
+	if err := e.Client().Rest.AddBan(*guildID, user.ID, 0, rest.WithReason(reason)); err != nil {
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Ban failed").
-				WithDescription(fmt.Sprintf("Could not ban %s: %s", user.Tag(), err.Error())).
+				WithDescription(fmt.Sprintf("Could not ban %s. Check that I have **Ban Members** permission and my role is above theirs.", user.Tag())).
 				WithColor(commands.ModerationMenuAccent))
 	}
 
@@ -586,9 +596,31 @@ func handleRole(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 		return discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a role.")
 	}
 
-	// try to remove first, if member already has the role
-	err := e.Client().Rest.RemoveMemberRole(*guildID, user.ID, role.ID)
-	if err == nil {
+	member, err := e.Client().Rest.GetMember(*guildID, user.ID)
+	if err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Role update failed").
+				WithDescription("Could not fetch member info. Make sure I can see them.").
+				WithColor(commands.UtilityMenuAccent))
+	}
+
+	hasRole := false
+	for _, rid := range member.RoleIDs {
+		if rid == role.ID {
+			hasRole = true
+			break
+		}
+	}
+
+	if hasRole {
+		if err := e.Client().Rest.RemoveMemberRole(*guildID, user.ID, role.ID); err != nil {
+			return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+				discord.NewEmbed().
+					WithTitle("Role update failed").
+					WithDescription("Could not remove role. Check that I have **Manage Roles** permission and my role is above theirs.").
+					WithColor(commands.UtilityMenuAccent))
+		}
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Role removed").
@@ -598,12 +630,11 @@ func handleRole(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 				WithTimestamp(time.Now()))
 	}
 
-	// member doesn't have the role, add it
 	if err := e.Client().Rest.AddMemberRole(*guildID, user.ID, role.ID); err != nil {
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Role update failed").
-				WithDescription(fmt.Sprintf("Could not update role for %s: %s", user.Tag(), err.Error())).
+				WithDescription("Could not add role. Check that I have **Manage Roles** permission and my role is above theirs.").
 				WithColor(commands.UtilityMenuAccent))
 	}
 
@@ -632,7 +663,7 @@ func handleUnban(e *events.ApplicationCommandInteractionCreate, data discord.Sla
 				WithColor(commands.ModerationMenuAccent))
 	}
 
-	if err := e.Client().Rest.DeleteBan(*guildID, userID); err != nil {
+	if err := e.Client().Rest.DeleteBan(*guildID, userID, rest.WithReason("Unbanned via /unban")); err != nil {
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Unban failed").
@@ -672,7 +703,7 @@ func handleSlowmode(e *events.ApplicationCommandInteractionCreate, data discord.
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Slowmode failed").
-				WithDescription(fmt.Sprintf("Could not set slowmode: %s", err.Error())).
+				WithDescription("Could not set slowmode. Check that I have **Manage Channels** permission.").
 				WithColor(commands.ModerationMenuAccent))
 	}
 
@@ -709,7 +740,7 @@ func handleNick(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Nickname failed").
-				WithDescription(fmt.Sprintf("Could not change nickname: %s", err.Error())).
+				WithDescription("Could not change nickname. Check that I have **Manage Nicknames** permission and my role is above theirs.").
 				WithColor(commands.ModerationMenuAccent))
 	}
 
@@ -759,7 +790,7 @@ func handleTimeout(e *events.ApplicationCommandInteractionCreate, data discord.S
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Timeout failed").
-				WithDescription(fmt.Sprintf("Could not timeout %s: %s", user.Tag(), err.Error())).
+				WithDescription(fmt.Sprintf("Could not timeout %s. Check that I have **Moderate Members** permission and my role is above theirs.", user.Tag())).
 				WithColor(commands.ModerationMenuAccent))
 	}
 
@@ -772,10 +803,33 @@ func handleTimeout(e *events.ApplicationCommandInteractionCreate, data discord.S
 			WithTimestamp(time.Now()))
 }
 
+func requireManageChannels(e *events.ApplicationCommandInteractionCreate) (bool, string) {
+	member := e.Member()
+	if member == nil {
+		return false, "This command can only be used in a server."
+	}
+	if member.Permissions.Has(discord.PermissionAdministrator) {
+		return true, ""
+	}
+	if !member.Permissions.Has(discord.PermissionManageChannels) {
+		return false, "You need the **Manage Channels** permission to use this command."
+	}
+	botPerms := e.AppPermissions()
+	if botPerms == nil || !botPerms.Has(discord.PermissionManageChannels) {
+		return false, "I need the **Manage Channels** permission to lock or unlock channels."
+	}
+	return true, ""
+}
+
 func handleLock(e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
 	guildID := e.GuildID()
 	if guildID == nil {
 		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
+	}
+
+	ok, msg := requireManageChannels(e)
+	if !ok {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent(msg)
 	}
 
 	channelID := e.Channel().ID()
@@ -785,7 +839,7 @@ func handleLock(e *events.ApplicationCommandInteractionCreate) discord.MessageCr
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Lock failed").
-				WithDescription(fmt.Sprintf("Could not fetch channel: %s", err.Error())).
+				WithDescription("Could not fetch channel info. Make sure I have access to this channel.").
 				WithColor(commands.ModerationMenuAccent))
 	}
 
@@ -822,7 +876,7 @@ func handleLock(e *events.ApplicationCommandInteractionCreate) discord.MessageCr
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Lock failed").
-				WithDescription(fmt.Sprintf("Could not lock channel: %s", err.Error())).
+				WithDescription("Could not lock the channel. Check that I have **Manage Channels** permission and try again.").
 				WithColor(commands.ModerationMenuAccent))
 	}
 
@@ -841,6 +895,11 @@ func handleUnlock(e *events.ApplicationCommandInteractionCreate) discord.Message
 		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
 	}
 
+	ok, msg := requireManageChannels(e)
+	if !ok {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent(msg)
+	}
+
 	channelID := e.Channel().ID()
 
 	channel, err := e.Client().Rest.GetChannel(channelID)
@@ -848,7 +907,7 @@ func handleUnlock(e *events.ApplicationCommandInteractionCreate) discord.Message
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Unlock failed").
-				WithDescription(fmt.Sprintf("Could not fetch channel: %s", err.Error())).
+				WithDescription("Could not fetch channel info. Make sure I have access to this channel.").
 				WithColor(commands.ModerationMenuAccent))
 	}
 
@@ -881,7 +940,7 @@ func handleUnlock(e *events.ApplicationCommandInteractionCreate) discord.Message
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Unlock failed").
-				WithDescription(fmt.Sprintf("Could not unlock channel: %s", err.Error())).
+				WithDescription("Could not unlock the channel. Check that I have **Manage Channels** permission and try again.").
 				WithColor(commands.ModerationMenuAccent))
 	}
 

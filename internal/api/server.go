@@ -20,12 +20,11 @@ import (
 )
 
 type Server struct {
-	httpServer   *http.Server
-	config       *config.Config
-	startedAt    time.Time
-	database     *db.Database
-	cache        *cache.Cache
-	cfgStore     *automod.ConfigStore
+	httpServer *http.Server
+	config     *config.Config
+	database   *db.Database
+	cache      *cache.Cache
+	cfgStore   *automod.ConfigStore
 }
 
 const discordAPIURL = "https://discord.com/api/v10"
@@ -119,7 +118,8 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 
 		economyStats := gin.H{"status": "unavailable"}
 		if database != nil && database.Conn != nil {
-			var totalRecords, totalBalance, avgBalance int
+			var totalRecords, totalBalance int
+			var avgBalance float64
 			var topUsers []gin.H
 
 			err := database.Conn.QueryRow(`SELECT COUNT(*), COALESCE(SUM(balance),0), COALESCE(AVG(balance),0) FROM user_economy`).Scan(&totalRecords, &totalBalance, &avgBalance)
@@ -139,7 +139,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 					"status":        "ok",
 					"total_records": totalRecords,
 					"total_balance": totalBalance,
-					"avg_balance":   avgBalance,
+					"avg_balance":   int(avgBalance),
 					"top_users":     topUsers,
 				}
 			}
@@ -269,11 +269,10 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 			Handler:           r,
 			ReadHeaderTimeout: 5 * time.Second,
 		},
-		config:    cfg,
-		startedAt: startedAt,
-		database:  database,
-		cache:     memCache,
-		cfgStore:  cfgStore,
+		config:   cfg,
+		database: database,
+		cache:    memCache,
+		cfgStore: cfgStore,
 	}
 }
 

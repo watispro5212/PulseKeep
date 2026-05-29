@@ -56,11 +56,20 @@ func (c *Cache) SetUsers(count int64) {
 	c.UserCount.Store(count)
 }
 
+func (c *Cache) ResetGuilds() {
+	c.muGuilds.Lock()
+	defer c.muGuilds.Unlock()
+	c.guildNames = make(map[string]string)
+	c.GuildCount.Store(0)
+}
+
 func (c *Cache) AddGuild(guildID, name string) {
 	c.muGuilds.Lock()
 	defer c.muGuilds.Unlock()
-	c.guildNames[guildID] = name
-	c.GuildCount.Add(1)
+	if _, exists := c.guildNames[guildID]; !exists {
+		c.guildNames[guildID] = name
+		c.GuildCount.Add(1)
+	}
 }
 
 func (c *Cache) RemoveGuild(guildID string) {

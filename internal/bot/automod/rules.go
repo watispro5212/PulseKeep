@@ -1,6 +1,7 @@
 package automod
 
 import (
+	"math/rand"
 	"regexp"
 	"strings"
 	"sync"
@@ -88,6 +89,18 @@ func (e *Engine) checkSpam(guildID, userID string, cfg *GuildConfig) RuleResult 
 	now := time.Now()
 
 	e.spam.mu.Lock()
+
+	// periodic cleanup of stale entries (every 100 writes)
+	if rand.Intn(100) == 0 {
+		cutoff := now.Add(-10 * time.Minute)
+		for k := range e.spam.times {
+			times := e.spam.times[k]
+			if len(times) > 0 && times[len(times)-1].Before(cutoff) {
+				delete(e.spam.times, k)
+			}
+		}
+	}
+
 	times := e.spam.times[key]
 
 	// prune old entries

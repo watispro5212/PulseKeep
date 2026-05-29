@@ -115,7 +115,7 @@ func TestBuyRejectsUnknownItem(t *testing.T) {
 	now := time.Now()
 
 	_, err := store.Buy(snowflake.ID(1), "Buyer", "nonexistent", now)
-	if err == nil || err.Error() != "item not found" {
+	if err == nil || !errors.Is(err, ErrItemNotFound) {
 		t.Fatalf("expected item not found error, got %v", err)
 	}
 }

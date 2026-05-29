@@ -1,15 +1,16 @@
 package auth
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
-	"crypto/rand"
+	"time"
 
 	"github.com/watispro5212/PulseKeep/internal/config"
 )
+
+var httpClient = &http.Client{Timeout: 10 * time.Second}
 
 var (
 	discordAPIURL = "https://discord.com/api/v10"
@@ -55,7 +56,7 @@ func ExchangeCode(cfg *config.Config, code string) (string, error) {
 	data.Set("redirect_uri", cfg.DiscordRedirectURI)
 	data.Set("scope", "identify guilds")
 
-	resp, err := http.PostForm(discordAPIURL+"/oauth2/token", data)
+	resp, err := httpClient.PostForm(discordAPIURL+"/oauth2/token", data)
 	if err != nil {
 		return "", err
 	}
@@ -88,8 +89,7 @@ func GetUser(accessToken string) (*DiscordUser, error) {
 	}
 	req.Header.Set("Authorization", "Bearer "+accessToken)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -118,8 +118,7 @@ func GetUserGuilds(accessToken string) ([]DiscordGuild, error) {
 	q.Set("limit", "100") // Max allowed by Discord
 	req.URL.RawQuery = q.Encode()
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -137,11 +136,3 @@ func GetUserGuilds(accessToken string) ([]DiscordGuild, error) {
 	return guilds, nil
 }
 
-// State generates a random state string for OAuth2 CSRF protection
-func State() string {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		return base64.URLEncoding.EncodeToString(b[:16]) // fallback
-	}
-	return base64.URLEncoding.EncodeToString(b)
-}

@@ -3,6 +3,7 @@ package automod
 import (
 	"context"
 	"database/sql"
+	"log"
 	"sync"
 )
 
@@ -80,6 +81,9 @@ func (cs *ConfigStore) loadAll() {
 			continue
 		}
 		cs.cache[cfg.GuildID] = &cfg
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("Error iterating guild_config rows: %v", err)
 	}
 }
 

@@ -178,6 +178,21 @@
 						<li class="fix"><span class="change-tag fix">Fix</span>Removed conflicting shadowed config variable in /api/guild/:id/config handler</li>
 						<li class="fix"><span class="change-tag fix">Fix</span>Removed duplicate RichLeaderboard function in store.go — consolidated into single Leaderboard</li>
 						<li class="fix"><span class="change-tag fix">Fix</span>Removed dead formatUnit function from server.go</li>
+						<li class="fix"><span class="change-tag fix">Fix</span>Improved error messages across all moderation commands — no more raw Discord API errors exposed to users</li>
+						<li class="fix"><span class="change-tag fix">Fix</span>Added explicit permission checks to /lock and /unlock — clear error messages for missing Manage Channels</li>
+						<li class="critical"><span class="change-tag critical">Critical</span>Fixed guild count doubling on startup — Ready handler now resets guild cache before GuildJoin builds it</li>
+						<li class="critical"><span class="change-tag critical">Critical</span>Fixed guild_config table name mismatch — db/guild.go used guild_configs but migrate creates guild_config</li>
+						<li class="critical"><span class="change-tag critical">Critical</span>Deleted empty db/economy.go dead file</li>
+						<li class="fix"><span class="change-tag fix">Fix</span>Fixed /kick, /ban, /unban audit log reasons — commands now pass reason to Discord's audit log</li>
+						<li class="fix"><span class="change-tag fix">Fix</span>Added 10s timeout to all Discord OAuth HTTP calls — prevents hung requests</li>
+						<li class="fix"><span class="change-tag fix">Fix</span>Fixed startStatusRotation goroutine leak on reconnect — old context cancelled before new rotation starts</li>
+						<li class="fix"><span class="change-tag fix">Fix</span>Fixed spam tracker memory leak — periodic cleanup of stale tracker entries</li>
+						<li class="fix"><span class="change-tag fix">Fix</span>Added missing rows.Err() check after scan loop in automod config.go</li>
+						<li class="fix"><span class="change-tag fix">Fix</span>Removed dead State() function from auth/discord.go (unused CSRF helper)</li>
+						<li class="fix"><span class="change-tag fix">Fix</span>Fixed app.js fallback version string 'v5.8' → 'v5.9.1'</li>
+						<li class="fix"><span class="change-tag fix">Fix</span>Fixed commands.html health potion description — matches actual behavior (625 Pulse restore)</li>
+						<li class="fix"><span class="change-tag fix">Fix</span>Fixed TestBuyRejectsUnknownItem string comparison → errors.Is() pattern</li>
+						<li class="fix"><span class="change-tag fix">Fix</span>Fixed Bot struct unused statusCtxCancel field</li>
 					</ul>
 				</article>
 
