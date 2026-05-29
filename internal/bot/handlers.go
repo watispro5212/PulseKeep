@@ -1130,12 +1130,13 @@ func startStatusRotation(ctx context.Context, client *bot.Client, memCache *cach
 		s := statuses[idx%len(statuses)]
 		idx++
 
-		text := s.text
+		guildCount := int64(0)
+		userCount := int64(0)
 		if memCache != nil {
-			guildCount := memCache.GuildCount.Load()
-			userCount := memCache.UserCount.Load()
-			text = fmt.Sprintf(text, guildCount, userCount)
+			guildCount = memCache.GuildCount.Load()
+			userCount = memCache.UserCount.Load()
 		}
+		text := fmt.Sprintf(s.text, guildCount, userCount)
 
 		var opts []gateway.PresenceOpt
 		switch s.kind {

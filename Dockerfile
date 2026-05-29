@@ -1,7 +1,7 @@
 # ==========================================================
 # STAGE 1: Builder
 # ==========================================================
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 # Install build essentials
 RUN apk add --no-cache git ca-certificates build-base
