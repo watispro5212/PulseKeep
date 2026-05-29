@@ -8,8 +8,8 @@
     <meta name="theme-color" content="#070a14">
     <meta property="og:title" content="Dashboard — PulseKeep">
     <meta property="og:description" content="PulseKeep dashboard with real-time bot, server, and economy stats.">
-    <meta property="og:image" content="https://pulsekeep.workers.dev/assets/logo.png">
-    <meta property="og:url" content="https://pulsekeep.workers.dev/dashboard.html">
+    <meta property="og:image" content="https://pulsekeep.xyz/assets/logo.png">
+    <meta property="og:url" content="https://pulsekeep.xyz/dashboard.html">
     <meta property="og:type" content="website">
     <link rel="icon" href="assets/logo.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -307,7 +307,7 @@
         <div class="container footer-container">
             <div class="footer-brand">
                 <span class="logo-text">PulseKeep</span>
-                <p>Live dashboard with real-time analytics.</p>
+                <p>Live dashboard with real-time analytics.</p><br><span style="font-size:0.8rem;color:var(--muted);">&copy; <span id="footer-year"></span> PulseKeep. All rights reserved.</span>
             </div>
             <div class="footer-links">
                 <a href="commands.html">Commands</a>
@@ -486,6 +486,8 @@
             loadDashboard();
             setInterval(loadDashboard, 60000);
             handleAuth();
+            var yearEl = document.getElementById('footer-year');
+            if (yearEl) yearEl.textContent = String(new Date().getFullYear());
             var toggle = document.getElementById('mobile-menu-toggle');
             var mobileNav = document.getElementById('mobile-nav');
             if (toggle && mobileNav) {
@@ -500,3 +502,4 @@
     </script>
 </body>
 </html>
+

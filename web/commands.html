@@ -8,8 +8,8 @@
     <meta name="theme-color" content="#070a14">
     <meta property="og:title" content="Commands — PulseKeep">
     <meta property="og:description" content="Complete PulseKeep slash command reference for moderation, tickets, economy, utility, and more.">
-    <meta property="og:image" content="https://pulsekeep.workers.dev/assets/logo.png">
-    <meta property="og:url" content="https://pulsekeep.workers.dev/commands.html">
+    <meta property="og:image" content="https://pulsekeep.xyz/assets/logo.png">
+    <meta property="og:url" content="https://pulsekeep.xyz/commands.html">
     <meta property="og:type" content="website">
     <link rel="icon" href="assets/logo.png" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -99,6 +99,8 @@
                         <div class="command-item"><code>/lock</code><span>Lock the current channel so @everyone cannot send messages.</span></div>
                         <div class="command-item"><code>/unlock</code><span>Unlock the current channel for @everyone.</span></div>
                         <div class="command-item"><code>/announce &lt;title&gt; &lt;message&gt;</code><span>Send a clean embedded announcement to the channel.</span></div>
+                        <div class="command-item"><code>/role &lt;user&gt; &lt;role&gt;</code><span>Add or remove a role from a member.</span></div>
+                        <div class="command-item"><code>/poll &lt;question&gt; &lt;option1&gt; &lt;option2&gt; [options 3-4]</code><span>Create a reaction-based poll with up to 4 options.</span></div>
                     </div>
                 </article>
 
@@ -148,6 +150,7 @@
                             <div class="shop-item"><strong>Iron Pickaxe</strong><span>2,000 Pulses — Required for /mine</span></div>
                             <div class="shop-item"><strong>Lottery Ticket</strong><span>500 Pulses — Entry for the server lottery draw</span></div>
                             <div class="shop-item"><strong>Health Potion</strong><span>2,500 Pulses — Restores 625 Pulses when used (25% refund of purchase price)</span></div>
+                            <div class="shop-item"><strong>Treasure Map</strong><span>7,000 Pulses — Doubles next fish/mine payout</span></div>
                         </div>
                     </div>
                 </article>
@@ -159,7 +162,7 @@
         <div class="container footer-container">
             <div class="footer-brand">
                 <span class="logo-text">PulseKeep</span>
-                <p>Complete slash command reference for staff and reviewers.</p>
+                <p>Complete slash command reference for staff and reviewers.</p><br><span style="font-size:0.8rem;color:var(--muted);">&copy; <span id="footer-year"></span> PulseKeep. All rights reserved.</span>
             </div>
             <div class="footer-links">
                 <a href="commands.html">Commands</a>
@@ -176,3 +179,4 @@
     <script src="app.js"></script>
 </body>
 </html>
+

@@ -170,11 +170,17 @@ function initScrollAnimations() {
     });
 }
 
+function initFooterYear() {
+    const el = document.getElementById('footer-year');
+    if (el) el.textContent = new Date().getFullYear().toString();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initSmoothScroll();
     initScrollAnimations();
     initCopyCommands();
+    initFooterYear();
     fetchStats();
     window.setInterval(fetchStats, 60_000);
 });

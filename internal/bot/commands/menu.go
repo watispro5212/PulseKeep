@@ -16,6 +16,7 @@ const (
 	UtilityMenuAccent    = 0x38d5c8
 	EconomyMenuAccent    = 0xf5bd4f
 	TicketMenuAccent     = 0x36d399
+	PulseKeepVersion     = "v5.9.1"
 )
 
 type CommandInfo struct {
@@ -141,7 +142,7 @@ func TicketPanelMessage(ephemeral bool) discord.MessageCreate {
 			WithColor(TicketMenuAccent).
 			AddField("Best for", "Setup help, deploy problems, moderation appeals, billing questions, and bug reports.", false).
 			AddField("Before opening", "Share the affected server, the command or feature involved, and any error text you saw.", false).
-			WithFooterText("PulseKeep Support Tickets")).
+			WithFooterText("PulseKeep v5.9.1 · Support Tickets")).
 		AddActionRow(discord.NewSuccessButton("Open Ticket", TicketPanelButtonID))
 }
 
@@ -159,7 +160,7 @@ func menuEmbed(selectedCategoryID string) discord.Embed {
 		WithTitle(fmt.Sprintf("PulseKeep Commands - %s", category.Label)).
 		WithDescription(category.Description).
 		WithColor(category.Color).
-		WithFooterText("Use the menu below to switch command groups.")
+		WithFooterText("PulseKeep v5.9.1 · Use the menu below")
 
 	for _, command := range category.Commands {
 		embed = embed.AddField(command.Name, fmt.Sprintf("%s\n`%s`", command.Description, command.Usage), false)
@@ -179,7 +180,7 @@ func overviewEmbed() discord.Embed {
 		WithDescription(strings.TrimSpace(summary.String())).
 		WithColor(CommandMenuAccent).
 		AddField("How to use it", "Pick a category from the dropdown or press Open Ticket for support. Staff-only actions still rely on Discord permissions.", false).
-		WithFooterText("PulseKeep command browser")
+		WithFooterText("PulseKeep v5.9.1 · Command browser")
 }
 
 func categorySelect(selectedCategoryID string) discord.StringSelectMenuComponent {

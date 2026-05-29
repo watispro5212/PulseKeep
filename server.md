@@ -1,401 +1,233 @@
-# PulseKeep Discord Server Blueprint
+# PulseKeep
 
-This blueprint is the recommended layout for a PulseKeep support, testing, and community server. It uses category-first permissions, a clear support workflow, dedicated command channels, and isolated sandbox areas for safe bot testing.
+**A modern, Go-powered Discord bot built for staff teams and community engagement.**
 
----
-
-## Table of Contents
-
-- [Core Goals](#core-goals)
-- [Role Hierarchy](#role-hierarchy)
-- [Permission Strategy](#permission-strategy)
-- [Channel Layout](#channel-layout)
-  - [1. Information](#1-information)
-  - [2. Community](#2-community)
-  - [3. Command Center](#3-command-center)
-  - [4. Economy Zone](#4-economy-zone)
-  - [5. Client Support](#5-client-support)
-  - [6. Active Tickets](#6-active-tickets)
-  - [7. Staff Operations](#7-staff-operations)
-- [Interactive Command Menu](#interactive-command-menu)
-- [Economy Setup Guide](#economy-setup-guide)
-- [Lock / Unlock Workflow](#lock--unlock-workflow)
-- [Slowmode Best Practices](#slowmode-best-practices)
-- [Webhook Recommendations](#webhook-recommendations)
-- [Permission Checklist](#permission-checklist)
-- [Launch Checklist](#launch-checklist)
-- [FAQ](#faq)
+PulseKeep brings together **utility tools, moderation controls, economy games, and an interactive ticket system** — all in one fast, reliable package. Built with Go and PostgreSQL, it handles servers of every size without breaking a sweat.
 
 ---
 
-## Core Goals
+## Quick Links
 
-- Keep public channels readable and low-noise.
-- Give support staff one obvious ticket workflow.
-- Keep bot testing contained to sandbox channels.
-- Use category permissions first, with channel overrides only when truly needed.
-- Make `/help` and the ticket panel the main interaction points.
-- Keep economy commands in a dedicated channel to avoid spam in general chat.
-
----
-
-## Role Hierarchy
-
-Create roles in this order from highest to lowest. Higher roles inherit permissions from lower roles — place roles carefully.
-
-| Role | Color | Purpose | Key Permissions |
-| --- | --- | --- | --- |
-| **Founder** | `#E74C3C` | Project owner and final authority. | Administrator |
-| **Administrator** | `#E67E22` | Senior operations and server configuration. | Manage Server, Manage Channels, Manage Roles, View Audit Log, Ban Members, Kick Members, Moderate Members |
-| **Moderator** | `#2ECC71` | Community safety and chat moderation. | Manage Messages, Moderate Members, Kick Members, Ban Members, View Audit Log |
-| **Support Team** | `#3498DB` | Handles tickets, setup help, and customer questions. | Manage Messages, Send Messages, Attach Files, Embed Links, Read Message History |
-| **PulseKeep Bot** | `#9B59B6` | The bot account for all slash commands and ticket flows. | Manage Messages, Send Messages, Embed Links, Attach Files, Read Message History, Use Slash Commands, Manage Channels (for ticket creation) |
-| **Server Booster** | `#FD79A8` | Trusted supporters with small perks. | Attach Files, Embed Links, Use External Emojis |
-| **Verified Member** | `#95A5A6` | Standard trusted community member. | View Channels, Send Messages, Read Message History, Use Slash Commands |
-| **@everyone** | Default | Pre-verification visitors. | View only the welcome/rules area |
-
-**Note:** The PulseKeep Bot role should be placed above Support Team in the role list so the bot can manage ticket channels that support members use.
+- **Website:** https://pulsekeep.xyz
+- **Support Server:** https://discord.gg/Y4uzWDyaxF
+- **Dashboard:** https://pulsekeep.xyz/dashboard
+- **Invite Bot:** https://pulsekeep.xyz/invite
+- **Changelog:** https://pulsekeep.xyz/changelog
 
 ---
 
-## Permission Strategy
+## Features
 
-- **Category permissions first** — set base access at the category level, not per-channel.
-- **Channel overrides only when necessary** — exceptions for things like read-only announcement channels.
-- **No `@everyone` access to staff or ticket categories** — use role-based access only.
-- **Least privilege for PulseKeep Bot** — give it only the permissions it needs. Do **not** give it Administrator.
+### Utility
+- **`/help`** — Interactive command browser with category dropdown
+- **`/ping`** — Check gateway connectivity
+- **`/stats`** — Bot runtime snapshot and metrics
+- **`/uptime`** — Time since last restart
+- **`/about`** — Version, tech stack, and links
+- **`/serverinfo`** — Current guild details (owner, members, boosts, roles, created)
+- **`/userinfo`** — Member lookup with join dates and role count
+- **`/avatar`** — Full-resolution avatar display
+- **`/poll`** — Reaction-based polls with 2–4 options
+
+### Moderation
+- **`/purge`** — Bulk delete 1–100 messages
+- **`/kick`** — Remove a member with optional audit-log reason
+- **`/ban`** — Ban a member with optional audit-log reason
+- **`/unban`** — Unban a user by ID
+- **`/timeout`** — Timeout a member for 1–40320 minutes
+- **`/nick`** — Change or reset a member's nickname
+- **`/slowmode`** — Set channel slowmode (0–21600s)
+- **`/lock`** — Lock channel for @everyone
+- **`/unlock`** — Unlock channel for @everyone
+- **`/announce`** — Send branded embedded announcements with optional @everyone ping
+- **`/role`** — Add or remove a role from a member
+
+Each moderation command checks the user's permissions first and gives clear, specific error messages when something is missing — not raw API errors.
+
+### Economy
+- **`/daily`** — Streak-based daily reward (24h cooldown)
+- **`/weekly`** — Weekly bonus (7-day cooldown)
+- **`/work`** — Random job payouts (45m cooldown)
+- **`/balance`** — Check wallet balance
+- **`/profile`** — Full economy stats (earned, spent, streaks, games played)
+- **`/pay`** — Send Pulses to another member
+- **`/shop`** — Browse purchasable items
+- **`/buy`** — Purchase an item
+- **`/sell`** — Sell an item for 60% refund
+- **`/use`** — Use a consumable item
+- **`/inventory`** — View owned items
+- **`/gift`** — Give an item to another member
+- **`/coinflip`** — 50/50 wager on heads or tails
+- **`/slots`** — 3-reel slot machine (up to 10x)
+- **`/gamble`** — Roll 1–100 (60+ wins, up to 10x at 100)
+- **`/fish`** — Cast a line (requires Fishing Rod, 13 species, 7 rarities)
+- **`/mine`** — Mine for ores (requires Iron Pickaxe, 13 ores, 7 rarities)
+- **`/rob`** — Attempt to steal Pulses (40% base rate, 4h cooldown)
+- **`/leaderboard`** — Top 10 by balance
+- **`/rich`** — Top 10 with rank badges
+
+Passive 0.1% interest is applied every 6 hours.
+
+### Tickets
+- **`/ticketpanel`** — Post the interactive ticket opener
+- **Open Ticket button** — Creates a private channel for 1-on-1 support
+- **Close Ticket button** — Closes and auto-deletes the ticket channel after 5 seconds
+
+### Auto-moderation
+- **Spam detection** — Repeated messages in quick succession
+- **Mass mention** — 5+ unique mentions per message
+- **Banned words** — Configurable word list per server
+- **Link spam** — Blocks messages with 3+ links
+- **All-caps abuse** — Messages >80% uppercase (min 15 chars)
+- **Configurable actions** — Delete only, warn, or timeout
+- **Log channel** — Optional channel for auto-mod action logs
 
 ---
 
-## Channel Layout
+## Self-hosting
 
-### 1. Information
+PulseKeep runs on **Fly.io** with a **Cloudflare Worker** as a reverse proxy.
 
-Read-only server information for all members.
+### Quick Deploy
 
-| Channel | Purpose |
-| --- | --- |
-| `#rules-and-info` | Rules, useful links, bot invite, and support expectations |
-| `#announcements` | Product updates, releases, outages, and important changes |
-| `#status-logs` | Automated deploy, uptime, and incident notices |
-| `#welcome` | New member greeting and first steps |
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/watispro5212/PulseKeep
+   cd PulseKeep
+   ```
+2. Set environment variables:
+   - `BOT_TOKEN` — Discord bot token
+   - `DATABASE_URL` — PostgreSQL connection string (Neon recommended)
+   - `CLIENT_ID` — Discord OAuth2 client ID
+   - `CLIENT_SECRET` — Discord OAuth2 client secret
+   - `SESSION_SECRET` — Random string for session signing
+3. Deploy the backend:
+   ```bash
+   fly deploy
+   ```
+4. Deploy the worker:
+   ```bash
+   npm install
+   npm run deploy
+   ```
+5. Set the Cloudflare Worker as your OAuth2 redirect URI:
+   ```
+   https://<your-worker>.workers.dev/auth/discord/callback
+   ```
 
-**Permissions:**
-- Staff can view, send, and manage messages.
-- PulseKeep Bot can view, send, and embed links.
-- Verified Member and @everyone can view and read history.
-- Verified Member and @everyone **cannot** send messages.
+### Required Bot Permissions
 
-**Recommended pinned message for `#rules-and-info`:**
-```text
-Welcome to PulseKeep.
+- **Administrator** (recommended for full functionality or)
+- **Manage Channels** — Lock/unlock, slowmode, ticket creation
+- **Manage Messages** — Purge, announce, poll
+- **Manage Roles** — /role command
+- **Manage Nicknames** — /nick command
+- **Kick Members** — /kick
+- **Ban Members** — /ban, /unban
+- **Moderate Members** — /timeout
+- **Read Message History** — Required for purge and userinfo
+- **Use Slash Commands** — Required for all commands
+- **Send Messages, Embed Links, Attach Files** — Required for command responses
 
-Start here:
-1. Read the rules.
-2. Use /help to browse commands.
-3. Use the ticket panel in #open-a-ticket when you need private setup help.
+### Tech Stack
 
-Do not post bot tokens, database URLs, or private server logs in public channels.
+| Component | Technology |
+|-----------|-----------|
+| Language | Go 1.24 |
+| Discord library | disgo |
+| Database | PostgreSQL (Neon) |
+| Hosting | Fly.io |
+| Proxy/Cache | Cloudflare Worker |
+| Frontend | HTML + CSS + vanilla JS |
+
+---
+
+## Server Setup Guide
+
+### Recommended Channel Layout
+
+```
+📢 INFORMATION
+  #welcome              — New member landing
+  #rules-and-info       — Rules and bot invite link
+  #announcements        — Product updates and releases
+  #status-logs          — Automated bot status posts
+
+💬 COMMUNITY
+  #general-chat         — Main community discussion
+  #bot-discussion       — PulseKeep questions and feature ideas
+  #showcase             — Server setups and configurations
+
+⚙️ COMMAND CENTER
+  #command-menu         — Pinned /help menu
+  #bot-sandbox          — Public slash command testing
+  #moderation-lab       — Staff-only moderation testing
+
+💰 ECONOMY ZONE
+  #economy-chat         — Economy commands (slowmode: 5s)
+  #economy-leaderboard  — Pinned leaderboard display
+
+🎫 CLIENT SUPPORT
+  #support-faq          — Common setup and troubleshooting answers
+  #open-a-ticket        — Permanent ticket panel (/ticketpanel)
+  #pre-sales            — Premium and custom-work questions
+
+📋 ACTIVE TICKETS
+  #ticket-0001+         — Auto-created by /ticketpanel
+
+🔒 STAFF OPERATIONS
+  #staff-chat           — Staff coordination
+  #mod-logs             — Moderation and audit events
+  #ticket-archives      — Closed ticket transcripts
+  #deploy-logs          — Deployment and incident notes
 ```
 
-### 2. Community
+### Role Hierarchy (highest to lowest)
 
-Normal conversation area for members.
-
-| Channel | Purpose |
-| --- | --- |
-| `#general-chat` | Main community chat |
-| `#bot-discussion` | Usage questions and feature ideas |
-| `#showcase` | Server setups, panels, and PulseKeep configurations |
-
-**Permissions:**
-- Verified Member can view, send messages, use slash commands, react, and read history.
-- Server Booster can also attach files and embed links.
-- Staff can manage messages.
-- @everyone cannot view this category.
-
-**Recommended settings:**
-- Slowmode: 3 seconds in `#general-chat`.
-- Disable link embeds for normal members unless you trust the community.
-
-### 3. Command Center
-
-The command center is where members discover and test PulseKeep commands. Keep these channels clean — no general chat here.
-
-| Channel | Purpose |
-| --- | --- |
-| `#command-menu` | The permanent PulseKeep interactive command menu |
-| `#bot-sandbox` | General testing for slash commands |
-| `#moderation-lab` | Staff-only testing for moderation commands |
-
-**Permissions:**
-- Verified Member can view `#command-menu` and `#bot-sandbox`.
-- Verified Member can use slash commands in both.
-- Moderator and above can view and use `#moderation-lab`.
-- PulseKeep Bot can send messages and embed links everywhere in the category.
-
-**Setup:**
-1. In `#command-menu`, run `/help`.
-2. Pin the bot's interactive command browser message.
-3. Tell users to use the dropdown to switch between categories.
-4. Keep normal chatting out of this channel.
-
-**Command aliases:**
-- `/help`: Opens the interactive command browser privately.
-- `!help`: Posts the menu publicly in a text channel.
-
-### 4. Economy Zone
-
-Dedicated space for PulseKeep's economy system — keeps gambling, fishing, and mining out of general chat.
-
-| Channel | Purpose |
-| --- | --- |
-| `#economy-chat` | Economy commands: `/daily`, `/work`, `/balance`, `/profile`, `/coinflip`, `/leaderboard`, `/pay`, `/rob`, `/shop`, `/buy`, `/inventory`, `/slots`, `/gamble`, `/fish`, `/mine`, `/sell`, `/use` |
-| `#economy-leaderboard` | Pinned leaderboard refreshes (manual or automated) |
-
-**Permissions:**
-- Verified Member can view, send messages, use slash commands, react, and read history.
-- Staff can manage messages.
-- Server Booster can attach files and embed links.
-
-**Recommended settings:**
-- Slowmode: 5 seconds in `#economy-chat`.
-- Pin the leaderboard in `#economy-leaderboard` after running `/leaderboard`.
-
-### 5. Client Support
-
-Support entry points for users needing help.
-
-| Channel | Purpose |
-| --- | --- |
-| `#support-faq` | Answers to common setup, deploy, and permission issues |
-| `#open-a-ticket` | The permanent ticket panel |
-| `#pre-sales` | Questions about premium features, setup help, and custom work |
-
-**Permissions:**
-- Verified Member can view, send messages, read history, and use slash commands.
-- Support Team, Moderator, Administrator, and Founder can manage messages.
-- @everyone cannot view this category.
-- PulseKeep Bot can send messages, embed links, and attach files.
-
-**Setup:**
-1. In `#open-a-ticket`, run `/ticketpanel`.
-2. Pin the ticket panel.
-3. Keep the channel locked to support questions only.
-4. Ask users to include: server name, command or feature, expected behavior, actual behavior, and any safe error text.
-
-**Recommended `#support-faq` topics:**
-- Fly.io deploy checklist
-- Netlify website checklist
-- Missing Discord permissions
-- Bot token and secret safety
-- Database connection troubleshooting
-- Slash commands not appearing
-- Lock/unlock not working
-- Economy balance not updating
-
-### 6. Active Tickets
-
-Private ticket channels for 1-on-1 support.
-
-| Channel | Purpose |
-| --- | --- |
-| `#ticket-0001`, `#ticket-0002`, etc. | Generated by the bot when a user opens a ticket |
-
-**Base category permissions:**
-- Founder, Administrator, and Support Team can view, send, attach files, embed links, and read history.
-- PulseKeep Bot can view, send, embed links, attach files, and manage channels.
-- @everyone and Verified Member cannot view.
-
-**Dynamic ticket override:**
-- The ticket creator gets: View Channel, Send Messages, Attach Files, Read Message History.
-- **Do not** add broad member-role overrides inside ticket channels.
-- Archive closed ticket transcripts into `#ticket-archives`.
-
-### 7. Staff Operations
-
-Private internal workspace for staff.
-
-| Channel | Purpose |
-| --- | --- |
-| `#staff-chat` | Coordination and escalation |
-| `#mod-logs` | Moderation actions, audit events, and security notes |
-| `#ticket-archives` | Closed ticket transcripts and summaries |
-| `#deploy-logs` | Fly.io, Netlify, database migration, and incident notes |
-
-**Permissions:**
-- Founder, Administrator, Moderator, and Support Team can view and send.
-- Only Administrator and Founder should manage channels and roles.
-- PulseKeep Bot can send logs and embeds.
-- @everyone, Verified Member, and Server Booster cannot view.
+| Role | Color | Permissions |
+|------|-------|-------------|
+| Founder | `#E74C3C` | Administrator |
+| Administrator | `#E67E22` | Manage Server, Manage Channels, Manage Roles, Ban/Kick Members, Moderate Members, View Audit Log |
+| Moderator | `#2ECC71` | Manage Messages, Moderate Members, Kick/Ban Members, View Audit Log |
+| Support Team | `#3498DB` | Manage Messages, Send Messages, Attach Files, Embed Links, Read Message History |
+| PulseKeep Bot | `#9B59B6` | Send Messages, Embed Links, Attach Files, Read Message History, Manage Channels (tickets) |
+| Server Booster | `#FD79A8` | Attach Files, Embed Links, External Emojis |
+| Verified Member | `#95A5A6` | Send Messages, Read History, Use Slash Commands |
+| @everyone | Default | View welcome area only |
 
 ---
 
-## Interactive Command Menu
+## Common Issues
 
-PulseKeep's interactive menu makes command discovery built-in.
+**Q: Slash commands aren't appearing.**
+- Make sure the bot has `applications.commands` scope when invited.
+- Re-invite the bot if needed.
+- Discord can take up to an hour to sync global commands in large servers.
 
-**Entry points:**
-- `/help`: Private interactive command menu.
-- `!help`: Public menu reply for legacy text-command users.
+**Q: The bot says I'm missing permissions, but I have them.**
+- Check that your role is above the bot's role in Server Settings > Roles.
+- Some commands check both your permissions and the bot's permissions separately.
 
-**Menu categories (40+ commands):**
+**Q: Ticket panel does nothing when clicked.**
+- Give the bot `Manage Channels` permission.
+- Make sure the bot role is above the Support Team role in the hierarchy.
 
-| Category | Commands |
-| --- | --- |
-| **Utility** (8) | `/ping`, `/help`, `/about`, `/stats`, `/uptime`, `/serverinfo`, `/userinfo`, `/avatar` |
-| **Moderation** (11) | `/purge`, `/kick`, `/ban`, `/unban`, `/timeout`, `/nick`, `/slowmode`, `/lock`, `/unlock`, `/announce`, `/poll` |
-| **Economy** (17) | `/balance`, `/profile`, `/daily`, `/work`, `/coinflip`, `/pay`, `/leaderboard`, `/rob`, `/shop`, `/buy`, `/inventory`, `/slots`, `/gamble`, `/fish`, `/mine`, `/sell`, `/use` |
-| **Tickets** (1+button) | `/ticketpanel`, Open Ticket button |
+**Q: Economy balance isn't updating.**
+- Check that the bot can see the channel and use slash commands.
+- Verify the PostgreSQL database is reachable.
+- Each economy command has a cooldown — use `/profile` to see your actual balance.
 
----
-
-## Economy Setup Guide
-
-PulseKeep's economy system runs in-memory with PostgreSQL persistence. All members start with 0 Pulses.
-
-### Getting Started for Members
-1. `/daily` — Claim your first daily reward.
-2. `/work` — Work a shift (45-min cooldown).
-3. `/balance` — Check your wallet.
-4. `/profile` — See your full economy stats.
-
-### Earning Pulses
-- **Daily rewards** — Streak-based, resets every 24 hours.
-- **Work** — Random job payouts with 45-min cooldown.
-- **Coinflip** — 50/50 chance to double your wager.
-- **Slots** — Match 3 symbols for up to 10x payout.
-- **Gamble** — Roll 60+ to win (85+ = 2x, 95+ = 4x, 100 = 10x).
-- **Fishing** — Requires `Fishing Rod` from shop. 13 fish types across 7 rarities.
-- **Mining** — Requires `Iron Pickaxe` from shop. 13 ore types across 7 rarities.
-- **Interest** — 0.1% passive balance growth every 6 hours.
-
-### Spending Pulses
-- **Shop** — Browse with `/shop`, buy with `/buy`.
-- **Sell** — 60% refund with `/sell`.
-- **Use** — Consumable items with `/use`.
-- **Pay** — Send Pulses to other members with `/pay`.
-
-### Shop Items
-
-| Item | Price | Effect |
-| --- | --- | --- |
-| Fishing Rod | 1,500 Pulses | Required for `/fish` |
-| Iron Pickaxe | 2,000 Pulses | Required for `/mine` |
-| XP Boost | 3,000 Pulses | 2x work earnings for 1 hour |
-| Lucky Clover | 4,000 Pulses | +1 slot reel position |
-| Lucky Pickaxe | 5,000 Pulses | +15% coinflip win chance |
-| Shield Token | 6,000 Pulses | Protects from one robbery (consumable) |
-| Golden Watch | 8,000 Pulses | Reduces daily cooldown by 4h |
-| Health Potion | 2,500 Pulses | Restores 25% of lost rob fines (consumable) |
-| Lottery Ticket | 500 Pulses | Entry for the server lottery draw |
-| Treasure Map | 7,000 Pulses | Doubles next fish/mine payout |
-
-### Rob Protection
-- Members with a **Shield Token** are immune to robbery.
-- The token is consumed on a successful robbery attempt.
-- 40% base success rate for robbers.
-- Failed robbery costs a fine.
-- 4-hour cooldown between robbery attempts.
+**Q: `err.Error()` is showing in a command response.**
+- This should not happen in PulseKeep v5.9.1+. All user-facing errors use clean messages. If you still see raw error text, report it in the support server.
 
 ---
 
-## Lock / Unlock Workflow
+## Links
 
-The `/lock` and `/unlock` commands control `@everyone` send permissions in a channel.
-
-**How it works:**
-- `/lock` — Sets `Deny: SendMessages` on the @everyone permission overwrite. **Preserves all other existing permission overwrites** (role-specific and member-specific).
-- `/unlock` — Removes only the `SendMessages` deny from the @everyone overwrite. **Does not touch any other overwrites.**
-
-**Best practices:**
-- Use `/lock` to stop chat during raids, announcements, or incidents.
-- Use `/unlock` to restore chat access.
-- These commands require `Manage Channels` permission.
-- Locking a channel does not affect staff — staff roles with `Manage Messages` or `Administrator` can still send messages.
-
----
-
-## Slowmode Best Practices
-
-| Channel type | Recommended slowmode |
-| --- | --- |
-| General chat | 3 seconds |
-| Economy chat | 5 seconds |
-| Bot sandbox | 0 seconds (no limit) |
-| Support channels | 5 seconds |
-| Announcement discussions | 10 seconds |
-| Staff chat | 0 seconds |
-
-The `/slowmode` command accepts values from 0 (disabled) to 21,600 (6 hours). Requires `Manage Channels` permission.
-
----
-
-## Webhook Recommendations
-
-Create separate webhooks for clean operational messages.
-
-| Channel | Webhook Name | Use |
-| --- | --- | --- |
-| `#announcements` | PulseKeep News | Releases and major updates |
-| `#status-logs` | PulseKeep Status | Uptime, deploys, incidents |
-| `#mod-logs` | PulseKeep Audit | Moderation and audit events |
-| `#deploy-logs` | PulseKeep Deploy | Fly.io, Netlify, and database deployment notes |
-
-**Do not** post secrets, full database URLs, bot tokens, or private user data through webhooks.
-
----
-
-## Permission Checklist
-
-Before launching the server, confirm:
-
-- [ ] Members cannot see staff channels.
-- [ ] Members cannot see active tickets unless they own that ticket.
-- [ ] Members can use slash commands in command and sandbox channels.
-- [ ] PulseKeep Bot has Send Messages, Embed Links, Attach Files, Read Message History, and Use Slash Commands.
-- [ ] PulseKeep Bot has Manage Channels **only** if automated ticket channel creation is enabled.
-- [ ] Staff moderation commands are protected by Discord permissions.
-- [ ] `/lock` and `/unlock` work correctly in text channels.
-- [ ] Commands that require permissions (ban, kick, timeout) are restricted by Discord's built-in permission system.
-- [ ] Economy commands are accessible in the economy channel.
-
----
-
-## Launch Checklist
-
-1. Create roles and categories.
-2. Apply category permissions.
-3. Create channels.
-4. Invite PulseKeep with required scopes: `bot` and `applications.commands`.
-5. Run `/help` in `#command-menu`.
-6. Run `/ticketpanel` in `#open-a-ticket`.
-7. Pin the generated bot messages.
-8. Test `/help`, `!help`, and the ticket button.
-9. Test member visibility with a non-staff account.
-10. Publish the website and link it in `#rules-and-info`.
-
----
-
-## FAQ
-
-**Q: Why can't I see the /help menu?**
-A: Make sure PulseKeep has `Use Slash Commands` permission in the channel.
-
-**Q: The ticket panel isn't creating channels.**
-A: Check that PulseKeep has `Manage Channels` permission and that the bot role is above the Support Team role.
-
-**Q: /lock says it failed.**
-A: Make sure PulseKeep has `Manage Channels` permission and that you're in a text channel.
-
-**Q: /slowmode isn't working.**
-A: The bot needs `Manage Channels` permission. Slowmode only works in text channels.
-
-**Q: Economy commands are not showing up.**
-A: Make sure the bot has `Use Slash Commands` permission. If commands were just added, wait a few minutes for Discord to sync.
-
-**Q: The leaderboard shows no entries.**
-A: Members need to use at least one economy command (`/daily` or `/work`) to appear on the leaderboard.
-
-**Q: How do I reset a user's economy data?**
-A: Economy data is stored in PostgreSQL. Contact the bot owner (watispro1 on Discord) for manual resets.
+- **Website:** https://pulsekeep.xyz
+- **Support Server:** https://discord.gg/Y4uzWDyaxF
+- **Dashboard:** https://pulsekeep.xyz/dashboard
+- **Invite Bot:** https://pulsekeep.xyz/invite
+- **Changelog:** https://pulsekeep.xyz/changelog
+- **GitHub:** https://github.com/watispro5212/PulseKeep
+- **Top.gg:** https://top.gg/bot/<bot-id>

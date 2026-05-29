@@ -71,16 +71,20 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 
 		goVersion := runtime.Version()
 
-		c.JSON(http.StatusOK, gin.H{
-			"status":      status,
-			"database":    dbStatus,
-			"uptime":      formatDuration(time.Since(startedAt)),
-			"bot_uptime":  formatUptime(memCache),
-			"go_version":  goVersion,
-			"servers":     getGuildCount(memCache),
-			"users":       getUserCount(memCache),
-			"commands":    getCommandsRun(memCache),
-		})
+		httpStatus := http.StatusOK
+		if status == "degraded" {
+			httpStatus = http.StatusServiceUnavailable
+		}
+		c.JSON(httpStatus, gin.H{
+		"status":      status,
+		"database":    dbStatus,
+		"uptime":      formatDuration(time.Since(startedAt)),
+		"bot_uptime":  formatUptime(memCache),
+		"go_version":  goVersion,
+		"servers":     getGuildCount(memCache),
+		"users":       getUserCount(memCache),
+		"commands":    getCommandsRun(memCache),
+	})
 	})
 
 	r.GET("/stats", func(c *gin.Context) {
@@ -139,7 +143,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 					"status":        "ok",
 					"total_records": totalRecords,
 					"total_balance": totalBalance,
-					"avg_balance":   int(avgBalance),
+					"avg_balance":   avgBalance,
 					"top_users":     topUsers,
 				}
 			}
