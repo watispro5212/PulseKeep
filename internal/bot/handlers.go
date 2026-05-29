@@ -1,10 +1,13 @@
 package bot
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -23,19 +26,29 @@ import (
 )
 
 type Bot struct {
-	Client   *bot.Client
-	cache    *cache.Cache
-	db       *sql.DB
-	automod  *automod.Engine
-	cfgStore *automod.ConfigStore
+	Client          *bot.Client
+	cache           *cache.Cache
+	db              *sql.DB
+	automod         *automod.Engine
+	cfgStore        *automod.ConfigStore
+	webhookURL      string
+	guildCount      int64
 }
 
-func New(token string, memCache *cache.Cache, database *sql.DB) *Bot {
+func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL string) *Bot {
 	startedAt := time.Now()
 	economyStore := economy.NewStore(database)
 	cfgStore := automod.NewConfigStore(database)
 	am := automod.NewEngine(cfgStore)
 	var statusCancel context.CancelFunc
+
+	b := &Bot{
+		cache:      memCache,
+		db:         database,
+		automod:    am,
+		cfgStore:   cfgStore,
+		webhookURL: webhookURL,
+	}
 
 	client, err := disgo.New(token,
 		bot.WithGatewayConfigOpts(
@@ -90,7 +103,17 @@ func New(token string, memCache *cache.Cache, database *sql.DB) *Bot {
 		bot.WithEventListenerFunc(func(e *events.GuildJoin) {
 			memCache.AddGuild(e.Guild.ID.String(), e.Guild.Name)
 			memCache.UserCount.Add(int64(e.Guild.MemberCount))
+			b.guildCount = memCache.GuildCount.Load()
 			log.Printf("Joined guild: %s (%d members)", e.Guild.Name, e.Guild.MemberCount)
+			b.sendWebhook(discord.NewEmbed().
+				WithTitle("Joined a new server").
+				WithDescription(fmt.Sprintf("PulseKeep was added to **%s**.", e.Guild.Name)).
+				AddField("Members", fmt.Sprintf("%d", e.Guild.MemberCount), true).
+				AddField("Total servers", fmt.Sprintf("%d", b.guildCount), true).
+				AddField("Owner", fmt.Sprintf("<@%s>", e.Guild.OwnerID), true).
+				WithColor(0x4f8cff).
+				WithFooterText("PulseKeep v5.9.1 · Status").
+				WithTimestamp(time.Now()))
 		}),
 		bot.WithEventListenerFunc(func(e *events.GuildLeave) {
 			memCache.UserCount.Add(-int64(e.Guild.MemberCount))
@@ -223,8 +246,10 @@ func New(token string, memCache *cache.Cache, database *sql.DB) *Bot {
 		}),
 		bot.WithEventListenerFunc(func(e *events.Ready) {
 			log.Printf("Bot is ready as %s", e.User.EffectiveName())
+			gc := int64(len(e.Guilds))
+			b.guildCount = gc
 			memCache.ResetGuilds()
-			memCache.GuildCount.Store(int64(len(e.Guilds)))
+			memCache.GuildCount.Store(gc)
 			if _, err := e.Client().Rest.SetGlobalCommands(e.Client().ApplicationID, commands.Register()); err != nil {
 				log.Printf("failed to register global slash commands: %v", err)
 			}
@@ -234,19 +259,22 @@ func New(token string, memCache *cache.Cache, database *sql.DB) *Bot {
 			var statusCtx context.Context
 			statusCtx, statusCancel = context.WithCancel(context.Background())
 			startStatusRotation(statusCtx, e.Client(), memCache)
+			log.Printf("PulseKeep online — %d guilds", gc)
+			b.sendWebhook(discord.NewEmbed().
+				WithTitle("PulseKeep is online").
+				WithDescription(fmt.Sprintf("**%s** is ready across **%d** guilds.", e.User.EffectiveName(), gc)).
+				AddField("Users", fmt.Sprintf("%d", memCache.UserCount.Load()), true).
+				WithColor(0x36d399).
+				WithFooterText("PulseKeep v5.9.1 · Status").
+				WithTimestamp(time.Now()))
 		}),
 	)
 	if err != nil {
 		log.Fatalf("error while building disgo instance: %s", err)
 	}
 
-	return &Bot{
-		Client:   client,
-		cache:    memCache,
-		db:       database,
-		automod:  am,
-		cfgStore: cfgStore,
-	}
+	b.Client = client
+	return b
 }
 
 // GetConfigStore returns the automod config store
@@ -259,9 +287,41 @@ func (b *Bot) Start(ctx context.Context) error {
 }
 
 func (b *Bot) Stop(ctx context.Context) {
+	b.sendWebhook(discord.NewEmbed().
+		WithTitle("PulseKeep went offline").
+		WithDescription(fmt.Sprintf("Bot process is shutting down. Served **%d** guilds.", b.guildCount)).
+		WithColor(0xfb7185).
+		WithFooterText("PulseKeep v5.9.1 · Status").
+		WithTimestamp(time.Now()))
 	if ctx != nil {
 		b.Client.Close(ctx)
 	}
+}
+
+func (b *Bot) sendWebhook(embed discord.Embed) {
+	if b.webhookURL == "" {
+		return
+	}
+	payload, err := json.Marshal(map[string]any{
+		"embeds": []discord.Embed{embed},
+	})
+	if err != nil {
+		log.Printf("failed to marshal webhook payload: %v", err)
+		return
+	}
+	req, err := http.NewRequest(http.MethodPost, b.webhookURL, bytes.NewReader(payload))
+	if err != nil {
+		log.Printf("failed to create webhook request: %v", err)
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("failed to send webhook: %v", err)
+		return
+	}
+	resp.Body.Close()
 }
 
 func statsMessage(startedAt time.Time) discord.MessageCreate {

@@ -8,14 +8,15 @@ import (
 )
 
 type Config struct {
-	DiscordToken   string
-	DatabaseURL    string
-	Port           string
-	AllowedOrigin  string
-	BotDisabled    bool
-	DiscordClientID     string
+	DiscordToken      string
+	DatabaseURL       string
+	Port              string
+	AllowedOrigin     string
+	BotDisabled       bool
+	DiscordClientID   string
 	DiscordClientSecret string
 	DiscordRedirectURI  string
+	StatusWebhookURL  string
 }
 
 func LoadConfig() *Config {
@@ -51,14 +52,17 @@ func LoadConfig() *Config {
 		redirectURI = "http://localhost:" + port + "/auth/discord/callback"
 	}
 
+	webhookURL := os.Getenv("STATUS_WEBHOOK_URL")
+
 	return &Config{
-		DiscordToken:      token,
-		DatabaseURL:       dbURL,
-		Port:              port,
-		AllowedOrigin:     allowedOrigin,
-		BotDisabled:       botDisabled,
-		DiscordClientID:   clientID,
+		DiscordToken:        token,
+		DatabaseURL:         dbURL,
+		Port:                port,
+		AllowedOrigin:       allowedOrigin,
+		BotDisabled:         botDisabled,
+		DiscordClientID:     clientID,
 		DiscordClientSecret: clientSecret,
-		DiscordRedirectURI: redirectURI,
+		DiscordRedirectURI:  redirectURI,
+		StatusWebhookURL:    webhookURL,
 	}
 }

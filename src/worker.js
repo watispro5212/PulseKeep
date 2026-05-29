@@ -6,26 +6,50 @@ export default {
 
 		if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/') || url.pathname === '/health' || url.pathname === '/stats') {
 			const apiUrl = API_ORIGIN + url.pathname + url.search;
+			const headers = new Headers(request.headers);
+			headers.set('Accept', 'application/json');
+
 			const apiRequest = new Request(apiUrl, {
 				method: request.method,
-				headers: {
-					'Accept': 'application/json',
-				},
+				headers: headers,
 				redirect: 'manual',
 			});
-			const response = await fetch(apiRequest);
-			if (response.status >= 300 && response.status < 400) {
-				const location = response.headers.get('Location');
-				if (location && !location.startsWith('http')) {
-					const newLocation = url.origin + location;
-					return new Response(response.body, {
-						status: response.status,
-						statusText: response.statusText,
-						headers: { Location: newLocation },
-					});
+
+			try {
+				const response = await fetch(apiRequest);
+				if (response.status >= 300 && response.status < 400) {
+					const location = response.headers.get('Location');
+					if (location && !location.startsWith('http')) {
+						const newLocation = url.origin + location;
+						return new Response(response.body, {
+							status: response.status,
+							statusText: response.statusText,
+							headers: { Location: newLocation },
+						});
+					}
 				}
+				return response;
+			} catch (err) {
+				return new Response(JSON.stringify({
+					status: 'offline',
+					database: 'unavailable',
+					servers: 0,
+					users: 0,
+					commands_run: 0,
+					uptime: 'unknown',
+					bot_uptime: 'unknown',
+					go_version: 'unknown',
+					error: 'Backend unreachable',
+				}), {
+					status: 503,
+					headers: {
+						'Content-Type': 'application/json',
+						'Access-Control-Allow-Origin': '*',
+						'Access-Control-Allow-Methods': 'GET, OPTIONS',
+						'Access-Control-Allow-Headers': '*',
+					},
+				});
 			}
-			return response;
 		}
 
 		const response = await env.ASSETS.fetch(request);

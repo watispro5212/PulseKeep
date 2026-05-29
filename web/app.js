@@ -61,7 +61,7 @@ function setFallback() {
 
 async function timedFetch(path, options = {}) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), 15000);
     const startedAt = performance.now();
     try {
         const response = await fetch(`${API_BASE_URL.replace(/\/$/, '')}${path}`, {

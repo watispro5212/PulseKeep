@@ -38,7 +38,7 @@ func main() {
 		if database != nil {
 			dbConn = database.Conn
 		}
-		discordBot = bot.New(cfg.DiscordToken, memCache, dbConn)
+		discordBot = bot.New(cfg.DiscordToken, memCache, dbConn, cfg.StatusWebhookURL)
 	}
 
 	// 5. Init Web Server
