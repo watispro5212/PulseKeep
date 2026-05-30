@@ -1,7 +1,6 @@
-const API_ORIGIN = 'https://pulsekeep.fly.dev';
-
 export default {
 	async fetch(request, env, ctx) {
+		const API_ORIGIN = env.API_ORIGIN || 'https://pulsekeep.fly.dev';
 		const url = new URL(request.url);
 
 		if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/') || url.pathname === '/health' || url.pathname === '/stats') {

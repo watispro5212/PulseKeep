@@ -35,7 +35,8 @@ WORKDIR /
 COPY --from=builder /app/pulsekeep /pulsekeep
 
 # Expose default HTTP Port
-EXPOSE 8080
+EXPOSE 7860
+ENV PORT=7860
 
 # Run the app
 ENTRYPOINT ["/pulsekeep"]
