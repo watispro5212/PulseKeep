@@ -44,9 +44,9 @@
 <main>
   <section class="hero-small section-band">
     <div class="container">
-      <span class="hero-eyebrow"><i class="fa-solid fa-heart-pulse" style="font-size:0.7rem"></i> Live service status</span>
+      <span class="hero-eyebrow"><i class="fa-solid fa-heart-pulse"></i> Live service status</span>
       <h1 class="hero-title">Status</h1>
-      <p class="hero-subtitle">Live metrics pulled directly from PulseKeep's API. Updates every 60 seconds.</p>
+      <p class="hero-subtitle">Real-time metrics from PulseKeep's Fly.io backend. <span id="refresh-countdown"></span></p>
     </div>
   </section>
 
@@ -57,9 +57,23 @@
           <span class="pulse-dot" aria-hidden="true"></span>
           <span class="badge-text" data-status-text>Checking service…</span>
         </div>
+        <div class="status-controls">
+          <button class="btn btn-sm" id="btn-refresh"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        </div>
         <span class="status-updated" id="status-updated"></span>
       </div>
+      <div id="status-error" class="status-error" style="display:none"></div>
       <div class="status-metrics" id="status-metrics"></div>
+      <div class="status-footer" id="status-footer">
+        <div class="response-sparkline-wrap">
+          <span class="sparkline-label">Response time</span>
+          <div class="sparkline" id="sparkline"></div>
+        </div>
+        <div class="status-footer-info">
+          <span id="uptime-tracking"></span>
+          <span id="poll-count"></span>
+        </div>
+      </div>
     </div>
   </section>
 </main>
@@ -84,77 +98,166 @@
 </footer>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const API = window.location.origin;
+(function () {
+  const API = 'https://pulsekeep.fly.dev';
+  const INTERVAL = 30000;
+
   const metrics = document.getElementById('status-metrics');
   const badge = document.getElementById('bot-status-badge');
   const badgeText = badge.querySelector('.badge-text');
   const dot = badge.querySelector('.pulse-dot');
   const updated = document.getElementById('status-updated');
+  const errorDiv = document.getElementById('status-error');
   const footerYear = document.getElementById('footer-year');
+  const countdownEl = document.getElementById('refresh-countdown');
+  const sparklineEl = document.getElementById('sparkline');
+  const uptimeTracking = document.getElementById('uptime-tracking');
+  const pollCount = document.getElementById('poll-count');
+
+  const latencies = [];
+  const maxSamples = 40;
+  let pollIndex = 0;
+  let healthyPolls = 0;
+  let totalPolls = 0;
+  let countdown = 0;
+  let countdownTimer = null;
+  let sessionStart = Date.now();
 
   const cards = [
+    { key: 'status', label: 'API', icon: 'fa-heart-pulse', cls: 'green' },
     { key: 'servers', label: 'Guilds', icon: 'fa-server', cls: '' },
-    { key: 'users', label: 'Users', icon: 'fa-users', cls: '' },
+    { key: 'users', label: 'Users (cached)', icon: 'fa-users', cls: '' },
     { key: 'commands', label: 'Commands run', icon: 'fa-bolt', cls: '' },
     { key: 'uptime', label: 'API uptime', icon: 'fa-clock', cls: '' },
     { key: 'bot_uptime', label: 'Bot uptime', icon: 'fa-robot', cls: 'cyan' },
     { key: 'response', label: 'Response time', icon: 'fa-gauge-high', cls: '' },
     { key: 'database', label: 'Database', icon: 'fa-database', cls: 'green' },
     { key: 'version', label: 'Version', icon: 'fa-code-branch', cls: '' },
-    { key: 'memory', label: 'Memory', icon: 'fa-microchip', cls: 'amber' },
+    { key: 'memory', label: 'Memory (RSS)', icon: 'fa-microchip', cls: 'amber' },
     { key: 'goroutines', label: 'Goroutines', icon: 'fa-tasks', cls: '' },
     { key: 'go_version', label: 'Runtime', icon: 'fa-cloud', cls: 'cyan' },
     { key: 'cpu_cores', label: 'CPU cores', icon: 'fa-cubes', cls: '' },
   ];
 
+  function cls(key) {
+    for (const c of cards) if (c.key === key) return c.cls || '';
+    return '';
+  }
+
   function setStatus(state, msg) {
     badge.className = 'status-badge ' + state;
     badgeText.textContent = msg;
-    dot.className = 'pulse-dot' + (state === 'online' ? ' online' : '');
+    dot.className = 'pulse-dot';
+    if (state === 'online') dot.style.animation = 'pulse-dot 2s ease-in-out infinite';
+    else dot.style.animation = 'none';
+  }
+
+  function renderSparkline() {
+    if (!latencies.length) return;
+    const max = Math.max(...latencies, 1);
+    const w = 200, h = 40;
+    const pad = 2;
+    const step = (w - pad * 2) / Math.max(latencies.length - 1, 1);
+    const points = latencies.map((v, i) => {
+      const x = pad + i * step;
+      const y = h - pad - ((v / max) * (h - pad * 2));
+      return x + ',' + y;
+    }).join(' ');
+    sparklineEl.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" style="width:100%;height:100%"><path d="M' + points + '" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M' + points + '" fill="none" stroke="var(--primary)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.15"/></svg>';
+  }
+
+  function updateCountdown(sec) {
+    if (countdownEl) countdownEl.textContent = 'Next check in ' + sec + 's';
+  }
+
+  function startCountdown() {
+    countdown = Math.round(INTERVAL / 1000);
+    updateCountdown(countdown);
+    clearInterval(countdownTimer);
+    countdownTimer = setInterval(function () {
+      countdown--;
+      if (countdown <= 0) countdown = 0;
+      updateCountdown(countdown);
+    }, 1000);
   }
 
   async function fetchAll() {
     const t0 = performance.now();
+    totalPolls++;
     try {
-      const resp = await fetch(API + '/health');
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      const d = await resp.json();
+      const resp = await fetch(API + '/health', { mode: 'cors' });
       const dur = Math.round(performance.now() - t0);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status + ' ' + resp.statusText);
+      const d = await resp.json();
+
+      healthyPolls++;
+      latencies.push(dur);
+      if (latencies.length > maxSamples) latencies.shift();
+      renderSparkline();
+
+      const isDbOk = d.database === 'ok';
+      const overall = isDbOk ? 'online' : 'degraded';
+      setStatus(overall, isDbOk ? 'All systems online' : 'Database degraded — API running');
 
       const vals = {};
-      vals.servers = d.servers != null ? d.servers.toLocaleString() : '--';
-      vals.users = d.users != null ? d.users.toLocaleString() : '--';
-      vals.commands = d.commands != null ? d.commands.toLocaleString() : '--';
+      vals.status = d.status === 'ok' ? '<span style="color:var(--green)">Healthy</span>' : '<span style="color:var(--rose)">' + (d.status || 'Unknown') + '</span>';
+      vals.servers = d.servers != null ? Number(d.servers).toLocaleString() : '--';
+      vals.users = d.users != null ? Number(d.users).toLocaleString() : '--';
+      vals.commands = d.commands != null ? Number(d.commands).toLocaleString() : '--';
       vals.uptime = d.uptime || '--';
       vals.bot_uptime = d.bot_uptime || '--';
       vals.response = dur + ' ms';
-      vals.database = d.database === 'ok' ? '<span style="color:var(--green)">Healthy</span>' : (d.database || 'Unknown');
+      vals.database = isDbOk ? '<span style="color:var(--green)"><i class="fa-solid fa-circle-check"></i> Connected</span>' : '<span style="color:var(--rose)"><i class="fa-solid fa-circle-exclamation"></i> ' + (d.database || 'Unavailable') + '</span>';
       vals.version = d.version || 'v6.0.0';
-      vals.memory = d.memory_mb ? Math.round(d.memory_mb) + ' MB' : '-- MB';
-      vals.goroutines = d.goroutines != null ? d.goroutines.toLocaleString() : '--';
+      vals.memory = d.memory_mb ? parseFloat(d.memory_mb).toFixed(1) + ' MB' : '-- MB';
+      vals.goroutines = d.goroutines != null ? Number(d.goroutines).toLocaleString() : '--';
       vals.go_version = d.go_version || '--';
       vals.cpu_cores = d.cpu_cores != null ? String(d.cpu_cores) : '--';
 
       let html = '';
       for (const c of cards) {
-        html += `<article class="metric-card"><div class="metric-icon${c.cls ? ' ' + c.cls : ''}"><i class="fa-solid ${c.icon}"></i></div><span class="stat-label">${c.label}</span><strong class="stat-value">${vals[c.key] || '--'}</strong></article>`;
+        const v = vals[c.key] || '--';
+        const highlight = c.key === 'database' && !isDbOk ? ' style="border-color:rgba(251,113,133,0.3);background:rgba(251,113,133,0.04)"' : '';
+        html += '<article class="metric-card"' + highlight + '><div class="metric-icon' + (c.cls ? ' ' + c.cls : '') + '"><i class="fa-solid ' + c.icon + '"></i></div><span class="stat-label">' + c.label + '</span><strong class="stat-value">' + v + '</strong></article>';
       }
       metrics.innerHTML = html;
-      setStatus('online', 'All systems online');
+
+      errorDiv.style.display = 'none';
       const now = new Date();
-      updated.textContent = 'Updated ' + now.toLocaleTimeString();
+      updated.textContent = 'Updated ' + now.toLocaleTimeString() + ' (' + dur + 'ms)';
       updated.style.display = '';
     } catch (e) {
-      metrics.innerHTML = cards.map(c => `<article class="metric-card"><div class="metric-icon"><i class="fa-solid ${c.icon}"></i></div><span class="stat-label">${c.label}</span><strong class="stat-value">--</strong></article>`).join('');
-      setStatus('offline', 'Service offline');
+      const dur = Math.round(performance.now() - t0);
+      latencies.push(dur);
+      if (latencies.length > maxSamples) latencies.shift();
+      renderSparkline();
+
+      setStatus('offline', 'Service unreachable — retrying…');
+      metrics.innerHTML = cards.map(function (c) {
+        return '<article class="metric-card" style="opacity:0.5"><div class="metric-icon' + (c.cls ? ' ' + c.cls : '') + '"><i class="fa-solid ' + c.icon + '"></i></div><span class="stat-label">' + c.label + '</span><strong class="stat-value">--</strong></article>';
+      }).join('');
+      errorDiv.textContent = 'Fetch failed: ' + (e.message || 'Unknown error') + '. Retrying every ' + (INTERVAL / 1000) + 's.';
+      errorDiv.style.display = '';
+      updated.textContent = 'Last attempt: ' + new Date().toLocaleTimeString();
     }
+
+    pollIndex++;
+    const pct = totalPolls > 0 ? Math.round(healthyPolls / totalPolls * 100) : 100;
+    if (uptimeTracking) uptimeTracking.textContent = 'Session uptime: ' + pct + '% (' + healthyPolls + '/' + totalPolls + ' ok)';
+    if (pollCount) pollCount.textContent = 'Poll #' + pollIndex;
+    startCountdown();
   }
 
   if (footerYear) footerYear.textContent = new Date().getFullYear().toString();
+
+  document.getElementById('btn-refresh').addEventListener('click', function () {
+    clearInterval(countdownTimer);
+    fetchAll();
+  });
+
   fetchAll();
-  setInterval(fetchAll, 60000);
-});
+  setInterval(fetchAll, INTERVAL);
+})();
 </script>
 </body>
 </html>

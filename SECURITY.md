@@ -4,8 +4,8 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 5.x     | :white_check_mark: |
-| < 5.0   | :x:                |
+| 6.x     | :white_check_mark: |
+| < 6.0   | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -51,6 +51,7 @@ Out of scope:
 - Economy operations use mutex locks to prevent race conditions
 - API endpoints return only aggregate statistics, not user-specific data
 - No secrets or tokens are logged or exposed in responses
+- `log.Fatalf` has been eliminated from all runtime paths — the web server degrades gracefully on failure
 
 ## Disclosure
 

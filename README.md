@@ -1,46 +1,65 @@
 # PulseKeep
 
-PulseKeep is a Go-powered Discord bot and static website for moderation, audit logging, support tickets, economy commands, and live service analytics.
+A Go-powered Discord bot for moderation, audit logging, support tickets, economy games, and live service analytics.
 
 ## What Is Included
 
-- Discord bot runtime built with Go and Disgo.
-- Gin API with `/health` and `/stats` endpoints for deploy checks and the website.
-- Cloudflare Pages static website in `web/`.
-- Fly.io deployment config tuned for a single always-on Discord bot machine.
-- Drizzle/Postgres schema for guild settings, command logs, bot stats, and economy balances.
-- Graceful shutdown on `SIGTERM` so deploys do not leave duplicate gateway sessions behind.
+- **Discord bot** — slash commands, event handling, component interactions, auto-moderation, economy loop
+- **Gin API** — `/health`, `/stats`, and `/api/dashboard` endpoints with CORS support
+- **Cloudflare Pages website** — 11-page static site in `web/` with live API polling
+- **Fly.io deployment** — single always-on machine tuned for Discord gateway uptime
+- **PostgreSQL persistence** — guild config, economy records, inventory, command logs
+- **Graceful shutdown** — clean SIGTERM handling so deploys don't duplicate gateway sessions
 
 ## Project Layout
 
 ```text
 PulseKeep/
   cmd/pulsekeep/          Go entrypoint
-  internal/api/           Gin API server
-  internal/bot/           Discord gateway client
-  internal/cache/         Thread-safe in-memory cache
-  internal/config/        Environment loading
-  internal/db/            Postgres connection helper
-  db/schema.ts            Drizzle schema
-  web/                    Cloudflare Pages static website
-  fly.toml                Fly.io app config
-  web/_headers            Cloudflare Pages security headers
+  internal/
+    api/                  Gin API server (health, stats, OAuth, guild config)
+    auth/                 Discord OAuth2 helpers
+    bot/
+      economy/            In-memory economy store with PostgreSQL persistence
+      automod/            Configurable auto-moderation engine
+      commands/           Slash command registration
+      handlers.go         Event listeners and command dispatch
+      economy_handlers.go Economy response builders
+    cache/                Thread-safe atomic counters for live stats
+    config/               Environment variable loader
+    db/                   PostgreSQL connection and migration runner
+  web/                    Cloudflare Pages static site (HTML/CSS/JS)
+  db/                     Drizzle schema and migration files
+  fly.toml                Fly.io app configuration
 ```
+
+## Tech Stack
+
+| Component | Technology |
+|-----------|-----------|
+| Language | Go 1.26 |
+| Discord library | disgo v0.19.3 |
+| HTTP router | Gin v1.12.0 |
+| Database | PostgreSQL via pgx v5 / Neon |
+| Hosting | Fly.io (iad, 256 MB, shared-cpu-1x) |
+| Frontend | HTML + CSS + vanilla JS (Cloudflare Pages) |
+| CI/CD | GitHub Actions (build + deploy to Fly.io) |
 
 ## Local Development
 
 ```bash
 cp .env.example .env
+# Fill in DISCORD_TOKEN and DATABASE_URL
 go run ./cmd/pulsekeep
 ```
 
-For API-only local testing without a Discord token:
+For API-only mode without connecting to Discord:
 
 ```bash
 BOT_DISABLED=true go run ./cmd/pulsekeep
 ```
 
-Then open the website from `web/index.html` or serve the folder with any static server. In production, the static site reads stats directly from the Fly.io API.
+The static site has no build step — open `web/index.html` or serve `web/` with any static server.
 
 ## Fly.io Deployment
 
@@ -49,47 +68,43 @@ fly launch --no-deploy
 fly secrets set DISCORD_TOKEN="your-token-here"
 fly secrets set DATABASE_URL="postgresql://..."
 fly secrets set ALLOWED_ORIGIN="https://your-cloudflare-site.pages.dev"
+fly secrets set DISCORD_CLIENT_ID="..."
+fly secrets set DISCORD_CLIENT_SECRET="..."
+fly secrets set DISCORD_REDIRECT_URI="https://your-site.com/auth/discord/callback"
 fly deploy
 ```
 
-The Fly config keeps one machine running because Discord bots should not be auto-stopped while connected to the gateway. It also checks `/health` during deploys.
+The Fly config keeps one machine running 24/7 because the Discord gateway requires a persistent connection. Health checks use `/health` and always return 200 (database status is reported in the response body).
 
-## Cloudflare Workers Deployment
+## Cloudflare Pages Deployment
 
-The project includes a `wrangler.toml` and `src/worker.js` that serve both the static site and proxy API calls to the Fly.io backend from a single origin — no CORS needed.
+The website auto-deploys from the `main` branch:
 
-### Prerequisites
-```bash
-npm install -g wrangler
-wrangler login
-```
-
-### Deploy
-```bash
-wrangler deploy
-```
-
-### How it works
-- `src/worker.js` serves static files from `web/` and proxies `/health` and `/stats` requests to `https://pulsekeep.fly.dev`.
-- `web/_headers` configures security headers and cache rules.
-- No CORS configuration needed — browser and API share the same origin.
-
-### Cloudflare Pages (alternative)
 ```bash
 npx wrangler pages deploy web --branch main
 ```
+
+Or connect the GitHub repo to Cloudflare Pages for automatic deployments on push.
+
+Environment variables on the Fly.io backend (`ALLOWED_ORIGIN`) must include the Cloudflare Pages domain for CORS to work with the live status polling.
 
 ## Environment Variables
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `DISCORD_TOKEN` | For full bot mode | Discord bot token from the Discord Developer Portal. |
-| `DATABASE_URL` | For database features | Postgres connection string. |
-| `PORT` | No | HTTP port, defaults to `8080`. |
-| `ALLOWED_ORIGIN` | No | Comma-separated browser origins allowed to call the API directly (only needed if accessing Fly.io API directly). |
-| `BOT_DISABLED` | No | Set to `true` to run API-only mode without opening a Discord gateway connection. |
+| `DISCORD_TOKEN` | For full bot mode | Discord bot token from the Discord Developer Portal |
+| `DATABASE_URL` | For database features | PostgreSQL connection string (Neon recommended) |
+| `PORT` | No | HTTP port, defaults to `8080` |
+| `ALLOWED_ORIGIN` | No | CORS origin(s) for API access, defaults to `*` |
+| `BOT_DISABLED` | No | Set `true` to run API-only without Discord gateway |
+| `DISCORD_CLIENT_ID` | For dashboard | Discord OAuth2 client ID |
+| `DISCORD_CLIENT_SECRET` | For dashboard | Discord OAuth2 client secret |
+| `DISCORD_REDIRECT_URI` | For dashboard | OAuth callback URL |
+| `STATUS_WEBHOOK_URL` | No | Discord webhook for status alerts |
 
 ## Database
+
+The project uses Drizzle for schema management:
 
 ```bash
 npm install
@@ -101,7 +116,13 @@ npm run db:migrate
 
 ```bash
 go build ./...
+go vet ./...
 go test ./...
 ```
 
-The static site has no build step; validate it by opening `web/index.html` or serving `web/` locally.
+## Links
+
+- Website: https://pulsekeep.williamdelilah3.workers.dev
+- Commands: https://pulsekeep.williamdelilah3.workers.dev/commands.html
+- Status: https://pulsekeep.williamdelilah3.workers.dev/status.html
+- GitHub: https://github.com/watispro5212/PulseKeep

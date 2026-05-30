@@ -6,17 +6,15 @@ Use this as the source copy when submitting PulseKeep to Top.gg.
 
 Bot name: PulseKeep
 
-Website: https://pulsekeep.netlify.app
+Website: https://pulsekeep.williamdelilah3.workers.dev
 
-Command page: https://pulsekeep.netlify.app/commands.html
+Command page: https://pulsekeep.williamdelilah3.workers.dev/commands.html
 
-Status page: https://pulsekeep.netlify.app/status.html
+Status page: https://pulsekeep.williamdelilah3.workers.dev/status.html
 
-Privacy policy: https://pulsekeep.netlify.app/privacy.html
+Privacy policy: https://pulsekeep.williamdelilah3.workers.dev/privacy.html
 
-Terms of service: https://pulsekeep.netlify.app/terms.html
-
-Support page: https://pulsekeep.netlify.app/support.html
+Terms of service: https://pulsekeep.williamdelilah3.workers.dev/terms.html
 
 Invite URL:
 https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands
@@ -37,18 +35,20 @@ PulseKeep helps Discord staff teams keep servers organized with practical slash 
 
 Key features:
 
-- Moderation commands including purge, kick, ban, and announce.
+- Moderation commands including purge, kick, ban, and announce with permission checks.
 - Audit-friendly logging for moderation and server activity.
-- Private ticket panel for support workflows.
-- Economy commands including balance, profile, daily, work, pay, coinflip, and leaderboard.
-- Utility commands including ping, uptime, stats, help, server info, user info, and avatar.
-- Live website status through the PulseKeep status page.
+- Private ticket panel with button-based support channel creation.
+- Economy commands: balance, profile, daily, work, pay, coinflip, gamble, blackjack, slots, and leaderboard.
+- Interactive blackjack with hit/stand buttons against a CPU dealer.
+- Fishing and mining activities with item requirements and rarity tables.
+- Weekly lottery with automatic draw.
+- Utility commands: ping, uptime, stats, help, serverinfo, userinfo, avatar, poll.
+- Live website status through the PulseKeep status page at /status.html.
+- Auto-moderation with configurable spam, mention, and link filters.
 
 The fastest way to test PulseKeep after inviting it is to run `/help` or `/ping`.
 
 ## Categories
-
-Suggested categories:
 
 - Moderation
 - Utility
@@ -57,8 +57,8 @@ Suggested categories:
 
 ## Review Checklist
 
-- Keep the bot service online during review.
-- Confirm the public status page shows the service online before submitting.
-- Confirm the OAuth invite works in a test server.
-- Confirm `/help`, `/ping`, `/stats`, and `/uptime` are usable by reviewers.
-- Make sure the public website is deployed after the latest `web/` changes.
+- [ ] Keep the bot service online during review.
+- [ ] Confirm the public status page shows the service online before submitting.
+- [ ] Confirm the OAuth invite works in a test server.
+- [ ] Confirm `/help`, `/ping`, `/stats`, and `/uptime` are usable by reviewers.
+- [ ] Make sure the public website and status page are deployed after the latest changes.

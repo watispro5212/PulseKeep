@@ -165,6 +165,16 @@ h1,.hero-title{font-size:clamp(2.6rem,6.5vw,4.8rem);line-height:0.96;letter-spac
 .status-badge.online .pulse-dot{animation:pulse-dot 2s ease-in-out infinite}
 .status-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .status-updated{color:var(--muted);font-size:0.82rem;margin-left:auto}
+.status-controls{display:flex;gap:8px}
+.status-error{background:rgba(251,113,133,0.08);border:1px solid rgba(251,113,133,0.2);border-radius:var(--radius);padding:12px 16px;color:var(--rose);font-size:0.85rem;margin-bottom:16px}
+.status-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);flex-wrap:wrap}
+.response-sparkline-wrap{display:flex;align-items:center;gap:12px}
+.sparkline-label{color:var(--muted);font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;white-space:nowrap}
+.sparkline{width:160px;height:32px}
+.status-footer-info{display:flex;gap:16px;color:var(--muted);font-size:0.78rem;font-weight:600}
+.status-footer-info span{white-space:nowrap}
+.btn-sm{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:rgba(255,255,255,0.04);color:var(--muted);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-sm:hover{border-color:var(--border-hover);color:var(--text);background:rgba(255,255,255,0.08)}
 
 /* ===== TEAM / LISTING GRID ===== */
 .team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -273,7 +283,7 @@ h1,.hero-title{font-size:clamp(2.6rem,6.5vw,4.8rem);line-height:0.96;letter-spac
   .nav-links{display:none}
   .mobile-menu-toggle{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border:1px solid var(--border);border-radius:var(--radius-sm);background:rgba(255,255,255,0.04);color:var(--text);cursor:pointer;font-size:1.1rem}
   .mobile-nav{display:none;border-bottom:1px solid var(--border);padding:12px 16px 16px;background:rgba(7,10,20,0.98)}
-  .mobile-nav.active{display:grid;gap:4px}
+  .mobile-nav.open,.mobile-nav.active{display:grid;gap:4px}
   .mobile-nav a{padding:10px 12px;color:var(--muted);font-weight:600;border-radius:var(--radius-sm);font-size:0.9rem}
   .mobile-nav a:hover{background:rgba(255,255,255,0.04);color:var(--text)}
   .hero-container,.support-container,.footer-container,.form-row{grid-template-columns:1fr}

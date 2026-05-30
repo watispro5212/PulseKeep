@@ -1,6 +1,6 @@
 # Contributing to PulseKeep
 
-Thank you for your interest in contributing to PulseKeep! This document outlines the process for contributing to the project.
+Thank you for your interest in contributing to PulseKeep.
 
 ## Code of Conduct
 
@@ -10,69 +10,74 @@ By participating, you agree to uphold the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Reporting Bugs
 
-1. Check the [issues](https://github.com/watispro5212/PulseKeep/issues) to avoid duplicates
+1. Check the [issues](https://github.com/watispro5212/PulseKeep/issues) for duplicates
 2. Use the **Bug Report** issue template
-3. Include clear steps to reproduce, expected behavior, and actual behavior
+3. Include steps to reproduce, expected behavior, and actual behavior
 4. Attach logs or screenshots if relevant
 
 ### Suggesting Features
 
 1. Open a **Feature Request** issue using the template
 2. Describe the problem you're solving and your proposed solution
-3. Explain how the feature benefits the broader PulseKeep community
+3. Explain how the feature benefits PulseKeep users
 
 ### Submitting Changes
 
 1. Fork the repository
 2. Create a branch: `git checkout -b feat/my-feature`
 3. Make your changes following the coding conventions below
-4. Run tests: `go test ./...`
-5. Run vet: `go vet ./...`
-6. Commit with a descriptive message
-7. Open a Pull Request using the PR template
+4. Run checks: `go build ./... && go vet ./... && go test ./...`
+5. Commit with a descriptive message
+6. Open a Pull Request using the PR template
 
 ## Development Setup
 
 ### Prerequisites
 
-- Go 1.22+
-- A Discord bot token
-- (Optional) A Neon PostgreSQL database for persistence
+- Go 1.26+
+- A Discord bot token (for full bot mode)
+- (Optional) A Neon PostgreSQL database
 
 ### Local Development
 
-1. Clone the repo: `git clone https://github.com/watispro5212/PulseKeep.git`
-2. Copy the example config: `cp .env.example .env`
-3. Fill in your `DISCORD_BOT_TOKEN` in `.env`
-4. Run: `go run ./cmd/pulsekeep`
+```bash
+git clone https://github.com/watispro5212/PulseKeep.git
+cd PulseKeep
+cp .env.example .env
+# Fill in DISCORD_TOKEN in .env
+go run ./cmd/pulsekeep
+```
 
 ### Project Structure
 
 ```
 cmd/pulsekeep/        — Application entrypoint
-internal/api/         — HTTP server (Gin) for health/stats endpoints
-internal/bot/         — Discord bot logic
-  commands/           — Slash command registration and menu system
-  economy/            — In-memory economy store and shop system
-  handlers.go         — Event handlers and command implementations
-  economy_handlers.go — Economy command response builders
+internal/api/         — HTTP server (Gin) for health/stats/OAuth
+internal/auth/        — Discord OAuth2 token exchange and API calls
+internal/bot/         — Discord gateway client and command handlers
+  commands/           — Slash command registration
+  economy/            — In-memory economy store with PostgreSQL persistence
+  automod/            — Configurable auto-moderation engine
+  handlers.go         — Event listeners and command dispatch
+  economy_handlers.go — Economy embed builders
 internal/cache/       — Atomic counters for live stats
-internal/config/      — Environment configuration loading
-internal/db/          — PostgreSQL database layer (optional)
-web/                  — Static website (HTML/CSS/JS)
+internal/config/      — Environment configuration loader
+internal/db/          — PostgreSQL connection and migrations
+web/                  — Cloudflare Pages static website (11 pages)
 ```
 
 ## Coding Conventions
 
-- Follow standard Go formatting (`gofmt` / `gofumpt`)
-- Use `discord.NewEmbed()` builder pattern for all message embeds
-- Register all slash commands in `commands/commands.go`
-- Add command descriptions and usage to `commands/menu.go` categories
+- Run `gofmt` before committing
+- Use `discord.NewEmbed()` builder for all message embeds
+- Register slash commands in `commands/commands.go`
+- Add descriptions to `commands/menu.go` categories
 - Keep economy logic in `economy/store.go`, not in handlers
 - Prefix component custom IDs with `pulsekeep:namespace:action`
 - Use descriptive variable names; avoid single-letter names outside loops
-- Handle errors; log with `log.Printf` for non-critical failures
-- Use ephemeral responses (`WithEphemeral(true)`) for confirmation messages
+- Handle all errors; use `log.Printf` for non-critical failures (never `log.Fatalf`)
+- Use ephemeral responses via `WithEphemeral(true)` for confirmations
+- Every database error path must degrade gracefully — the web server must keep running
 
 ## Testing
 
@@ -83,12 +88,13 @@ web/                  — Static website (HTML/CSS/JS)
 
 ## Pull Request Process
 
-1. Ensure all tests pass and `go vet` is clean
+1. Ensure `go build ./...` and `go vet ./...` pass
 2. Update documentation if you add or change commands
-3. Update `web/commands.html` and `commands/menu.go` for new commands
+3. Update `web/commands.html` for new commands
 4. Update `web/changelog.html` with a brief entry under the next version
-5. PRs require at least one review before merging
+5. Update `commands/menu.go` with new command descriptions
+6. PRs require at least one review before merging
 
 ## Questions?
 
-Open a [Discussion](https://github.com/watispro5212/PulseKeep/discussions) or join the PulseKeep support server.
+Open a [Discussion](https://github.com/watispro5212/PulseKeep/discussions) or join the support server.

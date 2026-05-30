@@ -87,19 +87,21 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 
 		goVersion := runtime.Version()
 
-		c.JSON(http.StatusOK, gin.H{
-		"status":       "ok",
-		"version":      "v6.0.0",
-		"database":     dbStatus,
-		"uptime":       formatDuration(time.Since(startedAt)),
-		"bot_uptime":   formatUptime(memCache),
-		"go_version":   goVersion,
-		"servers":      getGuildCount(memCache),
-		"users":        getUserCount(memCache),
-		"commands":     getCommandsRun(memCache),
-		"memory_mb":    getMemoryMB(),
-		"goroutines":   runtime.NumGoroutine(),
-		"cpu_cores":    runtime.NumCPU(),
+		avgLat := getAvgLatency(memCache)
+	c.JSON(http.StatusOK, gin.H{
+		"status":         "ok",
+		"version":        "v6.0.0",
+		"database":       dbStatus,
+		"uptime":         formatDuration(time.Since(startedAt)),
+		"bot_uptime":     formatUptime(memCache),
+		"go_version":     goVersion,
+		"servers":        getGuildCount(memCache),
+		"users":          getUserCount(memCache),
+		"commands":       getCommandsRun(memCache),
+		"memory_mb":      getMemoryMB(),
+		"goroutines":     runtime.NumGoroutine(),
+		"cpu_cores":      runtime.NumCPU(),
+		"avg_latency_ms": avgLat,
 	})
 	})
 
@@ -339,6 +341,11 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
+	// Catch-all for unknown routes — serve 404.html
+	r.NoRoute(func(c *gin.Context) {
+		c.HTML(http.StatusNotFound, "404.html", nil)
+	})
+
 	return &Server{
 		httpServer: &http.Server{
 			Addr:              ":" + cfg.Port,
@@ -429,4 +436,11 @@ func formatUptime(memCache *cache.Cache) string {
 		return "unknown"
 	}
 	return formatDuration(time.Since(memCache.StartedAt))
+}
+
+func getAvgLatency(memCache *cache.Cache) int64 {
+	if memCache == nil {
+		return 0
+	}
+	return memCache.AvgLatency().Milliseconds()
 }

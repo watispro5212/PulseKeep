@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Commands — PulseKeep</title>
-<meta name="description" content="Full PulseKeep slash command reference: moderation, economy, utility, and tickets.">
+<meta name="description" content="Full PulseKeep slash command reference: 42 commands across utility, moderation, economy, and tickets.">
 <meta name="theme-color" content="#070a14">
 <link rel="icon" href="/assets/logo.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,6 +12,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="/style.css">
+<style>
+.command-bar{display:flex;flex-direction:column;gap:16px;margin-bottom:28px}
+.command-bar-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.command-bar-top .command-count{color:var(--muted);font-size:0.82rem;font-weight:600;white-space:nowrap}
+.command-filters{display:flex;gap:6px;flex-wrap:wrap}
+.filter-btn{padding:6px 14px;border:1px solid var(--border);border-radius:100px;background:rgba(255,255,255,0.03);color:var(--muted);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.filter-btn:hover{border-color:var(--border-hover);color:var(--text)}
+.filter-btn.active{border-color:var(--primary);background:rgba(79,140,255,0.12);color:var(--primary)}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap input{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);color:var(--text);font-size:0.9rem;transition:border-color .2s}
+.search-wrap input:focus{border-color:var(--primary);outline:none}
+.search-wrap .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.85rem;pointer-events:none}
+.search-wrap .search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;display:none;padding:4px}
+.search-wrap .search-clear.visible{display:block}
+.command-group .cmd-item{display:flex;align-items:baseline;gap:10px;padding:10px 14px;border:1px solid transparent;border-radius:var(--radius-sm);transition:all .15s}
+.command-group .cmd-item:hover{border-color:var(--border);background:rgba(255,255,255,0.02)}
+.command-group .cmd-item.highlight{border-color:var(--primary-glow);background:rgba(79,140,255,0.05)}
+.command-group .cmd-name{font-family:var(--mono);font-size:0.88rem;font-weight:700;color:var(--text);white-space:nowrap}
+.command-group .cmd-desc{color:var(--muted);font-size:0.82rem;line-height:1.4}
+.command-group .cmd-cat-tag{font-size:0.65rem;color:var(--muted);background:rgba(255,255,255,0.04);padding:2px 6px;border-radius:4px;white-space:nowrap;display:none}
+</style>
 </head>
 <body>
 <header class="header">
@@ -44,17 +65,29 @@
 <main>
   <section class="hero-small section-band">
     <div class="container">
-      <span class="hero-eyebrow"><i class="fa-solid fa-terminal" style="font-size:0.7rem"></i> Full reference</span>
+      <span class="hero-eyebrow"><i class="fa-solid fa-terminal"></i> Full reference — 42 slash commands</span>
       <h1 class="hero-title">Commands</h1>
-      <p class="hero-subtitle">Every PulseKeep feature is a Discord slash command. Search or browse below.</p>
+      <p class="hero-subtitle">Every PulseKeep feature is a Discord slash command. Search, filter by category, or browse below.</p>
     </div>
   </section>
 
   <section class="container content-section">
-    <div class="command-search">
-      <input type="text" id="command-search-input" placeholder="Search commands…" aria-label="Search commands">
+    <div class="command-bar">
+      <div class="command-bar-top">
+        <div class="search-wrap">
+          <i class="fa-solid fa-search search-icon"></i>
+          <input type="text" id="command-search-input" placeholder="Search commands… (press /)" aria-label="Search commands">
+          <button class="search-clear" id="search-clear" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <span class="command-count" id="command-count"></span>
+      </div>
+      <div class="command-filters" id="command-filters"></div>
     </div>
     <div id="command-list" class="commands-list"></div>
+    <div id="no-results" style="display:none;text-align:center;padding:60px 20px;color:var(--muted)">
+      <i class="fa-solid fa-search" style="font-size:2rem;margin-bottom:12px;opacity:0.3"></i>
+      <p>No commands match your search. Try a different term or clear the filter.</p>
+    </div>
   </section>
 </main>
 
@@ -80,7 +113,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const categories = [
-    { name: 'Utility', icon: 'fa-bolt', accent: '#4f8cff', commands: [
+    { name: 'Utility', icon: 'fa-bolt', commands: [
       { name: '/ping', desc: 'Check whether PulseKeep is responding.' },
       { name: '/help', desc: 'Open the interactive command browser.' },
       { name: '/about', desc: 'Show PulseKeep version, tech stack, and links.' },
@@ -91,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
       { name: '/avatar', desc: 'Display a user avatar at full resolution.' },
       { name: '/poll', desc: 'Create a multi-option reaction poll.' },
     ]},
-    { name: 'Moderation', icon: 'fa-shield-halved', accent: '#fb7185', commands: [
+    { name: 'Moderation', icon: 'fa-shield-halved', commands: [
       { name: '/purge', desc: 'Bulk delete recent messages (1-100).' },
       { name: '/kick', desc: 'Remove a member with an optional reason.' },
       { name: '/ban', desc: 'Ban a member with an optional reason.' },
@@ -99,25 +132,25 @@ document.addEventListener('DOMContentLoaded', () => {
       { name: '/timeout', desc: 'Timeout a member for a duration in minutes.' },
       { name: '/nick', desc: 'Change a member nickname.' },
       { name: '/slowmode', desc: 'Set slowmode delay in seconds.' },
-      { name: '/lock', desc: 'Lock the current channel for @everyone.' },
+      { name: '/lock', desc: 'Lock the current channel for everyone.' },
       { name: '/unlock', desc: 'Unlock the current channel.' },
       { name: '/announce', desc: 'Send a clean embedded announcement.' },
       { name: '/role', desc: 'Toggle a role on a member.' },
     ]},
-    { name: 'Economy', icon: 'fa-coins', accent: '#f5bd4f', commands: [
+    { name: 'Economy', icon: 'fa-coins', commands: [
       { name: '/balance', desc: 'Check your Pulse balance or another user balance.' },
       { name: '/profile', desc: 'View wallet, earned/spent totals, streaks, and record.' },
-      { name: '/daily', desc: 'Claim your daily Pulses reward.' },
-      { name: '/work', desc: 'Work a shift to earn Pulses.' },
+      { name: '/daily', desc: 'Claim your daily Pulses reward with streak bonus.' },
+      { name: '/work', desc: 'Work a shift to earn Pulses (45m cooldown).' },
       { name: '/weekly', desc: 'Claim your weekly reward (7-day cooldown).' },
       { name: '/pay', desc: 'Send Pulses to another member.' },
-      { name: '/rob', desc: 'Attempt to steal Pulses from another member.' },
-      { name: '/coinflip', desc: 'Wager Pulses on heads or tails.' },
-      { name: '/gamble', desc: 'Roll 1-100 and wager Pulses on the outcome.' },
-      { name: '/blackjack', desc: 'Play blackjack against the CPU with difficulty tiers.' },
-      { name: '/slots', desc: 'Spin the slot machine to win big.' },
-      { name: '/fish', desc: 'Cast a line to catch and sell fish.' },
-      { name: '/mine', desc: 'Mine for valuable ores and minerals.' },
+      { name: '/rob', desc: 'Attempt to steal Pulses from another member (4h cooldown).' },
+      { name: '/coinflip', desc: 'Wager Pulses on heads or tails — 50/50 odds.' },
+      { name: '/gamble', desc: 'Roll 1-100 and wager Pulses on the outcome. Roll 40+ to push.' },
+      { name: '/blackjack', desc: 'Play blackjack against the CPU with interactive hit/stand buttons.' },
+      { name: '/slots', desc: 'Spin the slot machine — up to 10x payout.' },
+      { name: '/fish', desc: 'Cast a line to catch fish (requires Fishing Rod).' },
+      { name: '/mine', desc: 'Mine for valuable ores (requires Iron Pickaxe).' },
       { name: '/shop', desc: 'Browse the PulseKeep item shop.' },
       { name: '/buy', desc: 'Buy an item from the PulseKeep shop.' },
       { name: '/sell', desc: 'Sell an item for a 60% refund.' },
@@ -128,36 +161,122 @@ document.addEventListener('DOMContentLoaded', () => {
       { name: '/lottery', desc: 'Check the weekly lottery jackpot and status.' },
       { name: '/lottery-claim', desc: 'Claim your prize if you won the weekly draw.' },
     ]},
-    { name: 'Tickets', icon: 'fa-ticket', accent: '#38d5c8', commands: [
-      { name: '/ticketpanel', desc: 'Post the interactive ticket opener panel.' },
+    { name: 'Tickets', icon: 'fa-ticket', commands: [
+      { name: '/ticketpanel', desc: 'Post the interactive ticket opener panel for support requests.' },
     ]},
   ];
 
+  const total = categories.reduce((s, c) => s + c.commands.length, 0);
   const container = document.getElementById('command-list');
-  function render(filter) {
-    const q = (filter || '').toLowerCase();
-    let html = '';
-    for (const cat of categories) {
-      const filtered = cat.commands.filter(c => c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q));
-      if (!filtered.length) continue;
-      html += `<article class="command-group"><h2><i class="fa-solid ${cat.icon}"></i> ${cat.name}</h2><div class="tag-row">`;
-      for (const cmd of filtered) {
-        html += `<span title="${cmd.desc}">${cmd.name}</span>`;
-      }
-      html += `</div></article>`;
-    }
-    container.innerHTML = html || '<p style="color:var(--muted);text-align:center;padding:40px">No commands match your search.</p>';
-  }
-  render('');
+  const searchInput = document.getElementById('command-search-input');
+  const searchClear = document.getElementById('search-clear');
+  const countEl = document.getElementById('command-count');
+  const filtersEl = document.getElementById('command-filters');
+  const noResults = document.getElementById('no-results');
 
-  const input = document.getElementById('command-search-input');
-  let debounce;
-  input.addEventListener('input', () => {
-    clearTimeout(debounce);
-    debounce = setTimeout(() => render(input.value), 150);
+  let activeFilters = new Set();
+  let searchQuery = '';
+
+  /* Build filter buttons */
+  const allBtn = document.createElement('button');
+  allBtn.className = 'filter-btn active';
+  allBtn.textContent = 'All';
+  allBtn.dataset.cat = '__all';
+  filtersEl.appendChild(allBtn);
+  categories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.textContent = cat.name + ' (' + cat.commands.length + ')';
+    btn.dataset.cat = cat.name;
+    filtersEl.appendChild(btn);
+  });
+
+  function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function highlight(text, query) {
+    if (!query) return escapeHtml(text);
+    const re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    return escapeHtml(text).replace(re, '<mark style="background:rgba(79,140,255,0.25);color:var(--primary);padding:0 2px;border-radius:2px">$1</mark>');
+  }
+
+  function render() {
+    const q = searchQuery.toLowerCase().trim();
+    let totalVisible = 0;
+    let html = '';
+
+    for (const cat of categories) {
+      if (activeFilters.size > 0 && !activeFilters.has(cat.name)) continue;
+
+      const filtered = cat.commands.filter(c => !q || c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q));
+      if (!filtered.length && q) continue;
+
+      totalVisible += filtered.length;
+      html += '<article class="command-group">';
+      html += '<h2><i class="fa-solid ' + cat.icon + '"></i> ' + cat.name + ' <span style="font-size:0.75rem;color:var(--muted);font-weight:500;margin-left:auto">' + filtered.length + '</span></h2>';
+      html += '<div class="tag-row" style="flex-direction:column;gap:2px">';
+      for (const cmd of filtered) {
+        const highlighted = q ? ' cmd-item highlight' : '';
+        html += '<div class="cmd-item' + highlighted + '">';
+        html += '<span class="cmd-name">' + highlight(cmd.name, q) + '</span>';
+        html += '<span class="cmd-desc">' + highlight(cmd.desc, q) + '</span>';
+        html += '</div>';
+      }
+      html += '</div></article>';
+    }
+
+    container.innerHTML = html;
+    countEl.textContent = totalVisible + '/' + total + ' commands';
+    noResults.style.display = totalVisible === 0 ? '' : 'none';
+  }
+
+  /* Filter button clicks */
+  filtersEl.addEventListener('click', e => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    const cat = btn.dataset.cat;
+    if (cat === '__all') {
+      activeFilters.clear();
+      filtersEl.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === '__all'));
+    } else {
+      if (activeFilters.has(cat)) activeFilters.delete(cat);
+      else activeFilters.add(cat);
+      document.querySelector('.filter-btn[data-cat="__all"]').classList.toggle('active', activeFilters.size === 0);
+      filtersEl.querySelectorAll('.filter-btn:not([data-cat="__all"])').forEach(b => b.classList.toggle('active', activeFilters.has(b.dataset.cat)));
+    }
+    render();
+  });
+
+  /* Search */
+  searchInput.addEventListener('input', () => {
+    searchQuery = searchInput.value;
+    searchClear.classList.toggle('visible', searchQuery.length > 0);
+    render();
+  });
+  searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    searchQuery = '';
+    searchClear.classList.remove('visible');
+    render();
+    searchInput.focus();
+  });
+
+  /* Keyboard shortcut: / to focus search */
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    if (e.key === 'Escape' && document.activeElement === searchInput) {
+      searchInput.blur();
+    }
   });
 
   document.getElementById('footer-year').textContent = new Date().getFullYear();
+  render();
 });
 </script>
 </body>

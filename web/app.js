@@ -1,18 +1,15 @@
 'use strict';
 
 (function () {
-  const API = window.location.origin;
-
-  function getEl(id) { return document.getElementById(id); }
-  function setText(id, val) { const e = getEl(id); if (e) e.textContent = val; }
+  const API_FLY = 'https://pulsekeep.fly.dev';
 
   document.addEventListener('DOMContentLoaded', function () {
-    const yearEl = getEl('footer-year');
+    var yearEl = document.getElementById('footer-year');
     if (yearEl) yearEl.textContent = new Date().getFullYear().toString();
 
     /* --- Mobile menu toggle --- */
-    var toggle = getEl('mobile-menu-toggle');
-    var mobileNav = getEl('mobile-nav');
+    var toggle = document.getElementById('mobile-menu-toggle');
+    var mobileNav = document.getElementById('mobile-nav');
     if (toggle && mobileNav) {
       toggle.addEventListener('click', function () {
         var expanded = toggle.getAttribute('aria-expanded') === 'true' ? false : true;
@@ -36,14 +33,23 @@
     }
 
     /* --- Home page: live stats + status badge --- */
-    var statServers = getEl('stat-servers');
-    var statUsers = getEl('stat-users');
-    var statCommands = getEl('stat-commands');
-    var statUptime = getEl('stat-uptime');
-    var statusBadge = getEl('bot-status-badge');
+    var statServers = document.getElementById('stat-servers');
+    var statUsers = document.getElementById('stat-users');
+    var statCommands = document.getElementById('stat-commands');
+    var statUptime = document.getElementById('stat-uptime');
+    var statusBadge = document.getElementById('bot-status-badge');
+
+    function setStatus(state, label) {
+      if (!statusBadge) return;
+      var dot = statusBadge.querySelector('.pulse-dot');
+      var txt = statusBadge.querySelector('.badge-text');
+      statusBadge.className = 'hero-eyebrow';
+      if (dot) dot.className = 'pulse-dot' + (state === 'online' ? '' : ' offline');
+      if (txt) txt.textContent = label;
+    }
 
     function fetchStats() {
-      fetch(API + '/health')
+      fetch(API_FLY + '/health')
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (d) {
           if (!d) { setStatus('offline', 'Service offline'); return; }
@@ -56,16 +62,6 @@
         .catch(function () { setStatus('offline', 'Offline'); });
     }
 
-    function setStatus(state, label) {
-      if (!statusBadge) return;
-      statusBadge.className = 'hero-eyebrow';
-      var dot = statusBadge.querySelector('.pulse-dot');
-      var txt = statusBadge.querySelector('.badge-text');
-      if (dot) dot.className = 'pulse-dot' + (state === 'online' ? '' : ' offline');
-      if (txt) txt.textContent = label;
-    }
-
-    /* Only run on pages that have these elements */
     if (statusBadge || statServers) fetchStats();
   });
 })();

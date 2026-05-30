@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Changelog — PulseKeep</title>
-<meta name="description" content="PulseKeep version history and release notes.">
+<meta name="description" content="PulseKeep version history and release notes from v1.0.0 to v6.0.0.">
 <meta name="theme-color" content="#070a14">
 <link rel="icon" href="/assets/logo.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,6 +12,51 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="/style.css">
+<style>
+.changelog-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.changelog-bar .search-wrap{position:relative;flex:1;min-width:200px}
+.changelog-bar .search-wrap input{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);color:var(--text);font-size:0.9rem;transition:border-color .2s}
+.changelog-bar .search-wrap input:focus{border-color:var(--primary);outline:none}
+.changelog-bar .search-wrap .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.85rem;pointer-events:none}
+.changelog-bar .filter-group{display:flex;gap:6px}
+.changelog-bar .filter-group .filter-btn{padding:6px 14px;border:1px solid var(--border);border-radius:100px;background:rgba(255,255,255,0.03);color:var(--muted);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.changelog-bar .filter-group .filter-btn:hover{border-color:var(--border-hover);color:var(--text)}
+.changelog-bar .filter-group .filter-btn.active{border-color:var(--primary);background:rgba(79,140,255,0.12);color:var(--primary)}
+.changelog-list{display:grid;gap:20px;position:relative}
+.changelog-list::before{content:'';position:absolute;left:18px;top:0;bottom:0;width:1px;background:var(--border)}
+.changelog-entry{position:relative;padding-left:52px}
+.changelog-entry::before{content:'';position:absolute;left:11px;top:28px;width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:var(--bg);z-index:1;transition:all .3s}
+.changelog-entry.major::before{border-color:var(--primary);background:rgba(79,140,255,0.1)}
+.changelog-entry.minor::before{border-color:var(--cyan);background:rgba(56,213,200,0.1)}
+.changelog-entry.patch::before{border-color:var(--amber);background:rgba(245,189,79,0.1)}
+.changelog-entry:hover::before{transform:scale(1.2)}
+.changelog-card{border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);backdrop-filter:blur(8px);padding:24px;transition:all .3s}
+.changelog-card:hover{border-color:var(--border-hover)}
+.changelog-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.changelog-version-tag{display:inline-flex;align-items:center;gap:8px}
+.changelog-version-tag .version-badge{padding:3px 10px;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:var(--mono);background:rgba(79,140,255,0.12);color:var(--primary);border:1px solid rgba(79,140,255,0.2)}
+.changelog-version-tag .version-badge.major{background:rgba(79,140,255,0.12);color:var(--primary);border-color:rgba(79,140,255,0.2)}
+.changelog-version-tag .version-badge.minor{background:rgba(56,213,200,0.12);color:var(--cyan);border-color:rgba(56,213,200,0.2)}
+.changelog-version-tag .version-badge.patch{background:rgba(245,189,79,0.12);color:var(--amber);border-color:rgba(245,189,79,0.2)}
+.changelog-version-tag .version-label{display:none;font-size:0.7rem;text-transform:uppercase;font-weight:600;letter-spacing:0.04em}
+.changelog-version-tag .version-label.major{color:var(--primary)}
+.changelog-version-tag .version-label.minor{color:var(--cyan)}
+.changelog-version-tag .version-label.patch{color:var(--amber)}
+.changelog-date{color:var(--muted);font-size:0.82rem;font-weight:500;white-space:nowrap}
+.changelog-card h2{font-size:1.05rem;font-weight:700;margin-bottom:12px;line-height:1.3}
+.changelog-card ul{list-style:none;display:grid;gap:6px}
+.changelog-card li{display:flex;align-items:baseline;gap:8px;color:var(--muted);font-size:0.9rem;line-height:1.5}
+.changelog-card li .li-icon{flex-shrink:0;font-size:0.65rem;width:16px;text-align:center}
+.changelog-card li.added .li-icon i{color:var(--green)}
+.changelog-card li.fixed .li-icon i{color:var(--amber)}
+.changelog-card li.changed .li-icon i{color:var(--primary)}
+.changelog-card li.removed .li-icon i{color:var(--rose)}
+.changelog-card li.security .li-icon i{color:var(--rose)}
+.changelog-card li.highlight{background:rgba(79,140,255,0.04);border-radius:var(--radius-sm);padding:4px 8px;margin-left:-8px;margin-right:-8px}
+.changelog-card li strong{color:var(--text);font-weight:600}
+#no-results-changelog{display:none;text-align:center;padding:60px 20px;color:var(--muted)}
+@media(max-width:640px){.changelog-entry{padding-left:40px}.changelog-list::before{left:12px}.changelog-entry::before{left:5px}}
+</style>
 </head>
 <body>
 <header class="header">
@@ -44,107 +89,28 @@
 <main>
   <section class="hero-small section-band">
     <div class="container">
-      <span class="hero-eyebrow"><i class="fa-solid fa-clock-rotate-left" style="font-size:0.7rem"></i> Version history</span>
+      <span class="hero-eyebrow"><i class="fa-solid fa-clock-rotate-left"></i> 6 releases — Jan to May 2026</span>
       <h1 class="hero-title">Changelog</h1>
-      <p class="hero-subtitle">Every PulseKeep release, from the latest patch to the very first deploy.</p>
+      <p class="hero-subtitle">Every PulseKeep release, from the initial prototype to the latest economy audit and website rebuild.</p>
     </div>
   </section>
 
   <section class="container content-section">
-    <div class="changelog-list">
-      <article class="changelog-entry major">
-        <div class="changelog-version"><span>v6.0.0</span></div>
-        <div class="changelog-body">
-          <h2>Economy audit, frontend rebuild, graceful degradation</h2>
-          <span class="changelog-date">May 30, 2026</span>
-          <ul>
-            <li><strong>Gamble EV fixed</strong> — 5% house edge (was losing on rolls &le;40, now losing only on &le;39; 40+ pushes)</li>
-            <li><strong>Rob shield fixed</strong> — fine no longer transfers money to the target; shield now purely blocks the robbery</li>
-            <li><strong>Sell fixed</strong> — refund no longer added to the Earned stat</li>
-            <li><strong>Inventory race fixed</strong> — replaced RLock with full Lock in the Inventory() method</li>
-            <li><strong>Blackjack rewritten</strong> — button-based Hit/Stand interaction with 90-second timeout cleanup</li>
-            <li><strong>Moderation guards</strong> — kick and ban reject self-targeting; announce rejects @everyone without MentionEveryone permission</li>
-            <li><strong>API OAuth</strong> — random state parameter stored in cookie, validated on callback for CSRF protection</li>
-            <li><strong>API guild config</strong> — ManageGuild permission verified via Discord API before read/write</li>
-            <li><strong>Health check</strong> — always returns 200 OK (database status reported in body only)</li>
-            <li><strong>Graceful degradation</strong> — log.Fatalf replaced with log.Printf in database, migration, and bot init; web server stays running in degraded mode</li>
-            <li><strong>FlushAll</strong> — saves all economy data on graceful shutdown</li>
-            <li><strong>Inventory UPSERT</strong> — replaced DELETE+INSERT with ON CONFLICT DO UPDATE to eliminate data-loss window</li>
-            <li><strong>Website completely rebuilt</strong> — all HTML pages rewritten, style.css modernized, status page with live metrics</li>
-            <li><strong>Dockerfile updated</strong> — Go 1.26, Alpine 3.21, COPY web /web</li>
-            <li><strong>fly.toml cleaned</strong> — removed duplicate sections from bad merge</li>
-          </ul>
-        </div>
-      </article>
-      <article class="changelog-entry">
-        <div class="changelog-version"><span>v5.0.0</span></div>
-        <div class="changelog-body">
-          <h2>API server, OAuth, status page, dashboard</h2>
-          <span class="changelog-date">May 2026</span>
-          <ul>
-            <li>Added chi-based API server with health checks and stats endpoints</li>
-            <li>Discord OAuth2 login flow for dashboard</li>
-            <li>Guild configuration read/write via API</li>
-            <li>Status page with live metrics polling</li>
-            <li>Dashboard HTML with guild selector and config form</li>
-          </ul>
-        </div>
-      </article>
-      <article class="changelog-entry">
-        <div class="changelog-version"><span>v4.0.0</span></div>
-        <div class="changelog-body">
-          <h2>Tickets, economy items, lottery</h2>
-          <span class="changelog-date">April 2026</span>
-          <ul>
-            <li>Button-based ticket panel with private channel creation</li>
-            <li>Item shop system with buy/sell/use/gift</li>
-            <li>Weekly lottery with automatic draw and claim</li>
-            <li>Fishing and mining activities</li>
-            <li>Inventory system with item persistence</li>
-          </ul>
-        </div>
-      </article>
-      <article class="changelog-entry">
-        <div class="changelog-version"><span>v3.0.0</span></div>
-        <div class="changelog-body">
-          <h2>Economy system, blackjack, leaderboards</h2>
-          <span class="changelog-date">March 2026</span>
-          <ul>
-            <li>Full economy system with balances, daily rewards, work, and pay</li>
-            <li>Blackjack game with difficulty tiers</li>
-            <li>Slots, coinflip, and gamble commands</li>
-            <li>Robbery system with shield protection</li>
-            <li>Leaderboard (/rich)</li>
-          </ul>
-        </div>
-      </article>
-      <article class="changelog-entry">
-        <div class="changelog-version"><span>v2.0.0</span></div>
-        <div class="changelog-body">
-          <h2>Moderation, logging, command framework</h2>
-          <span class="changelog-date">February 2026</span>
-          <ul>
-            <li>Slash command framework with permission checks</li>
-            <li>Purge, kick, ban, unban, timeout, nick, slowmode</li>
-            <li>Channel lock/unlock, announce, role management</li>
-            <li>Audit logging to designated log channels</li>
-            <li>Serverinfo, userinfo, avatar, poll utility commands</li>
-          </ul>
-        </div>
-      </article>
-      <article class="changelog-entry">
-        <div class="changelog-version"><span>v1.0.0</span></div>
-        <div class="changelog-body">
-          <h2>Initial release</h2>
-          <span class="changelog-date">January 2026</span>
-          <ul>
-            <li>Basic ping, help, about commands</li>
-            <li>PostgreSQL database with migration system</li>
-            <li>Dockerized deployment on Fly.io</li>
-            <li>Static file serving for web pages</li>
-          </ul>
-        </div>
-      </article>
+    <div class="changelog-bar">
+      <div class="search-wrap">
+        <i class="fa-solid fa-search search-icon"></i>
+        <input type="text" id="changelog-search" placeholder="Search releases…" aria-label="Search changelog">
+      </div>
+      <div class="filter-group" id="changelog-filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="major">Major</button>
+        <button class="filter-btn" data-filter="minor">Minor</button>
+      </div>
+    </div>
+    <div class="changelog-list" id="changelog-list"></div>
+    <div id="no-results-changelog">
+      <i class="fa-solid fa-search" style="font-size:2rem;margin-bottom:12px;opacity:0.3"></i>
+      <p>No releases match your search or filter.</p>
     </div>
   </section>
 </main>
@@ -168,6 +134,150 @@
   </div>
 </footer>
 
-<script>document.addEventListener('DOMContentLoaded', () => { const y = document.getElementById('footer-year'); if (y) y.textContent = new Date().getFullYear().toString(); });</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const releases = [
+    {
+      version: 'v6.0.0', type: 'major', date: 'May 30, 2026',
+      title: 'Economy audit, frontend rebuild, graceful degradation',
+      changes: [
+        { kind: 'fixed', text: '<strong>Gamble EV</strong> — 5% house edge (lose on &le;39, push on 40+; was losing on &le;60)', highlight: true },
+        { kind: 'fixed', text: '<strong>Rob shield</strong> — fine no longer transfers money to the target; shield purely blocks the robbery' },
+        { kind: 'fixed', text: '<strong>Sell refund</strong> — refund no longer added to the Earned stat', highlight: true },
+        { kind: 'fixed', text: '<strong>Inventory race</strong> — replaced RLock with full Lock in the Inventory() method' },
+        { kind: 'changed', text: '<strong>Blackjack rewritten</strong> — button-based Hit/Stand interaction with 90-second timeout cleanup goroutine' },
+        { kind: 'added', text: '<strong>Moderation guards</strong> — kick/ban reject self-targeting; announce rejects @everyone without MentionEveryone permission' },
+        { kind: 'added', text: '<strong>API OAuth CSRF protection</strong> — random state parameter stored in cookie, validated on callback' },
+        { kind: 'added', text: '<strong>API guild config permission check</strong> — ManageGuild permission verified via Discord API before read/write' },
+        { kind: 'changed', text: '<strong>Health check</strong> — always returns 200 OK; database status reported in body only (was 503 on DB failure)' },
+        { kind: 'changed', text: '<strong>Graceful degradation</strong> — log.Fatalf replaced with log.Printf in database connection, migration, and bot init; web server stays running' },
+        { kind: 'added', text: '<strong>FlushAll</strong> — saves all economy records on graceful shutdown via SIGTERM' },
+        { kind: 'fixed', text: '<strong>Inventory UPSERT</strong> — replaced DELETE+INSERT with ON CONFLICT DO UPDATE to eliminate data-loss window' },
+        { kind: 'changed', text: '<strong>Website completely rebuilt</strong> — all 11 HTML pages rewritten, style.css modernized, status page with live API polling' },
+        { kind: 'changed', text: '<strong>Dockerfile updated</strong> — Go 1.26, Alpine 3.21, added COPY web /web' },
+        { kind: 'fixed', text: '<strong>fly.toml cleaned</strong> — removed duplicate sections from bad merge (port 8080 vs 7860 conflict)' },
+      ]
+    },
+    {
+      version: 'v5.0.0', type: 'minor', date: 'May 2026',
+      title: 'API server, OAuth dashboard, status page',
+      changes: [
+        { kind: 'added', text: 'Gin-based API server with /health, /stats, and /api/dashboard endpoints' },
+        { kind: 'added', text: 'Discord OAuth2 login flow with state validation for dashboard access' },
+        { kind: 'added', text: 'Guild configuration read/write via API with ManageGuild permission check' },
+        { kind: 'added', text: 'Status page with live metrics polling from Fly.io backend' },
+        { kind: 'added', text: 'Dashboard HTML with guild selector dropdown and config form' },
+        { kind: 'changed', text: 'CORS middleware to allow cross-origin requests from Cloudflare Pages' },
+      ]
+    },
+    {
+      version: 'v4.0.0', type: 'minor', date: 'April 2026',
+      title: 'Tickets, economy items, lottery system',
+      changes: [
+        { kind: 'added', text: 'Button-based ticket panel with private channel creation and auto-close' },
+        { kind: 'added', text: 'Item shop system with buy, sell (60% refund), use, and gift commands' },
+        { kind: 'added', text: 'Weekly lottery with automatic draw and claim command' },
+        { kind: 'added', text: 'Fishing activity with 13 species across 7 rarities (requires Fishing Rod)' },
+        { kind: 'added', text: 'Mining activity with 13 ores across 7 rarities (requires Iron Pickaxe)' },
+        { kind: 'added', text: 'Inventory system with PostgreSQL-backed item persistence' },
+      ]
+    },
+    {
+      version: 'v3.0.0', type: 'minor', date: 'March 2026',
+      title: 'Economy system, blackjack, leaderboards',
+      changes: [
+        { kind: 'added', text: 'Full economy system with balances, daily rewards (streak-based), work, and pay' },
+        { kind: 'added', text: 'Blackjack game with CPU dealer and difficulty tiers' },
+        { kind: 'added', text: 'Slots machine (3-reel, up to 10x), coinflip (50/50), and gamble (1-100 roll) commands' },
+        { kind: 'added', text: 'Robbery system with shield protection item and 4-hour cooldown' },
+        { kind: 'added', text: 'Leaderboard command (/rich) with top-10 rankings and rank badges' },
+        { kind: 'added', text: 'Passive 0.1% interest applied every 6 hours on wallet balances' },
+      ]
+    },
+    {
+      version: 'v2.0.0', type: 'minor', date: 'February 2026',
+      title: 'Moderation toolkit, audit logging, command framework',
+      changes: [
+        { kind: 'added', text: 'Slash command framework with Discord-native permission checks and error messages' },
+        { kind: 'added', text: 'Purge, kick, ban, unban, timeout, nick, and slowmode moderation commands' },
+        { kind: 'added', text: 'Channel lock/unlock, embedded announce, and role management commands' },
+        { kind: 'added', text: 'Audit logging system — sends formatted logs to a designated log channel' },
+        { kind: 'added', text: 'Serverinfo, userinfo, avatar, and poll utility commands' },
+      ]
+    },
+    {
+      version: 'v1.0.0', type: 'major', date: 'January 2026',
+      title: 'Initial release',
+      changes: [
+        { kind: 'added', text: 'Basic ping, help, and about commands for gateway verification' },
+        { kind: 'added', text: 'PostgreSQL database layer with automated migration system (Drizzle schema)' },
+        { kind: 'added', text: 'Dockerized deployment pipeline targeting Fly.io with multi-stage build' },
+        { kind: 'added', text: 'Thread-safe in-memory cache for live guild/user/command counters' },
+        { kind: 'added', text: 'Graceful shutdown handling for SIGTERM (clean disconnect from Discord gateway)' },
+      ]
+    }
+  ];
+
+  const container = document.getElementById('changelog-list');
+  const searchInput = document.getElementById('changelog-search');
+  const noResults = document.getElementById('no-results-changelog');
+  const filterBtns = document.querySelectorAll('#changelog-filters .filter-btn');
+  const footerYear = document.getElementById('footer-year');
+
+  let filterType = 'all';
+  let searchQuery = '';
+
+  const icons = { added: 'fa-plus-circle', fixed: 'fa-check-circle', changed: 'fa-arrow-right-arrow-left', removed: 'fa-circle-minus', security: 'fa-shield' };
+
+  function render() {
+    const q = searchQuery.toLowerCase().trim();
+    const filtered = releases.filter(r => {
+      if (filterType !== 'all' && r.type !== filterType) return false;
+      if (q && !r.version.toLowerCase().includes(q) && !r.title.toLowerCase().includes(q) && !r.changes.some(c => c.text.toLowerCase().includes(q))) return false;
+      return true;
+    });
+
+    if (!filtered.length) { container.innerHTML = ''; noResults.style.display = ''; return; }
+    noResults.style.display = 'none';
+
+    container.innerHTML = filtered.map(r => {
+      const changesHtml = r.changes.map(c => {
+        const cls = c.kind + (c.highlight ? ' highlight' : '');
+        return '<li class="' + cls + '"><span class="li-icon"><i class="fa-solid ' + (icons[c.kind] || 'fa-circle') + '"></i></span><span>' + c.text + '</span></li>';
+      }).join('');
+      return '<article class="changelog-entry ' + r.type + '">' +
+        '<div class="changelog-card">' +
+        '<div class="changelog-header">' +
+        '<div class="changelog-version-tag"><span class="version-badge ' + r.type + '">' + r.version + '</span></div>' +
+        '<span class="changelog-date">' + r.date + '</span>' +
+        '</div>' +
+        '<h2>' + r.title + '</h2>' +
+        '<ul>' + changesHtml + '</ul>' +
+        '</div></article>';
+    }).join('');
+  }
+
+  searchInput.addEventListener('input', () => { searchQuery = searchInput.value; render(); });
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterType = btn.dataset.filter;
+      render();
+    });
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    if (e.key === 'Escape' && document.activeElement === searchInput) searchInput.blur();
+  });
+
+  if (footerYear) footerYear.textContent = new Date().getFullYear().toString();
+  render();
+});
+</script>
 </body>
 </html>

@@ -15,6 +15,11 @@ type Cache struct {
 	StartedAt     time.Time
 	muGuilds      sync.RWMutex
 	guildNames    map[string]string
+	latencyMu     sync.Mutex
+	latencies     []time.Duration
+	latencyMax    int
+	latencyTotal  time.Duration
+	latencyCount  int64
 }
 
 func New() *Cache {
@@ -22,6 +27,8 @@ func New() *Cache {
 		data:       make(map[string]interface{}),
 		StartedAt:  time.Now(),
 		guildNames: make(map[string]string),
+		latencies:  make([]time.Duration, 0, 100),
+		latencyMax: 100,
 	}
 }
 
@@ -46,6 +53,32 @@ func (c *Cache) Delete(key string) {
 
 func (c *Cache) IncrCommands() {
 	c.CommandsRun.Add(1)
+}
+
+func (c *Cache) AddLatency(d time.Duration) {
+	c.latencyMu.Lock()
+	defer c.latencyMu.Unlock()
+	c.latencyTotal += d
+	c.latencyCount++
+	if len(c.latencies) >= c.latencyMax {
+		c.latencies = c.latencies[1:]
+	}
+	c.latencies = append(c.latencies, d)
+}
+
+func (c *Cache) AvgLatency() time.Duration {
+	c.latencyMu.Lock()
+	defer c.latencyMu.Unlock()
+	if c.latencyCount == 0 {
+		return 0
+	}
+	return c.latencyTotal / time.Duration(c.latencyCount)
+}
+
+func (c *Cache) LatencyCount() int64 {
+	c.latencyMu.Lock()
+	defer c.latencyMu.Unlock()
+	return c.latencyCount
 }
 
 func (c *Cache) SetGuilds(count int64) {

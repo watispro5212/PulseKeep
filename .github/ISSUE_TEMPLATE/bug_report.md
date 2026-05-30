@@ -26,7 +26,7 @@ If applicable, add screenshots or paste relevant log output.
 
 **Environment (please complete):**
 - Discord client: [e.g. desktop, web, mobile]
-- PulseKeep version: [e.g. v5.3]
+- PulseKeep version: [e.g. v6.0.0]
 - Server ID (optional):
 
 **Additional context**
