@@ -16,7 +16,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <style>
         .dashboard-grid {
@@ -461,6 +461,39 @@
             }
         }
 
+        function saveGuildConfig(guildId, token) {
+            var statusEl = document.getElementById('config-save-status');
+            statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            var data = {
+                GuildID: guildId,
+                AutomodEnabled: document.getElementById('cfg-automod').checked,
+                SpamEnabled: document.getElementById('cfg-spam').checked,
+                MentionEnabled: document.getElementById('cfg-mention').checked,
+                LinksEnabled: document.getElementById('cfg-links').checked,
+                CapsEnabled: document.getElementById('cfg-caps').checked,
+            };
+            fetch('/api/guild/' + guildId + '/config?token=' + encodeURIComponent(token), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(resp) {
+                if (resp.error) {
+                    statusEl.style.color = 'var(--rose)';
+                    statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ' + resp.error;
+                } else {
+                    statusEl.style.color = '#48bb78';
+                    statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> Saved!';
+                    setTimeout(function() { statusEl.innerHTML = ''; }, 3000);
+                }
+            })
+            .catch(function() {
+                statusEl.style.color = 'var(--rose)';
+                statusEl.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Save failed';
+            });
+        }
+
         function loadGuildConfig(guildId, token) {
             var panel = document.getElementById('guild-config-panel');
             panel.style.display = 'block';
@@ -471,12 +504,13 @@
                     if (cfg.error) { panel.innerHTML = '<p style="color: var(--rose);">Error: ' + cfg.error + '</p>'; return; }
                     panel.innerHTML = '<div class="dash-card" style="padding: 20px;">' +
                         '<h3 style="margin-bottom: 14px;"><i class="fa-solid fa-sliders"></i> Server config: <code>' + (cfg.GuildID || guildId) + '</code></h3>' +
-                        '<div class="config-row"><label>Auto-mod enabled</label><input type="checkbox" ' + (cfg.AutomodEnabled ? 'checked' : '') + ' disabled></div>' +
-                        '<div class="config-row"><label>Spam protection</label><input type="checkbox" ' + (cfg.SpamEnabled ? 'checked' : '') + ' disabled></div>' +
-                        '<div class="config-row"><label>Mass mention</label><input type="checkbox" ' + (cfg.MentionEnabled ? 'checked' : '') + ' disabled></div>' +
-                        '<div class="config-row"><label>Link protection</label><input type="checkbox" ' + (cfg.LinksEnabled ? 'checked' : '') + ' disabled></div>' +
-                        '<div class="config-row"><label>Caps protection</label><input type="checkbox" ' + (cfg.CapsEnabled ? 'checked' : '') + ' disabled></div>' +
-                        '<p style="color: var(--muted); font-size: 0.82rem; margin-top: 12px;">Config editing coming soon — this is read-only for now.</p>' +
+                        '<div class="config-row"><label>Auto-mod enabled</label><input type="checkbox" id="cfg-automod" ' + (cfg.AutomodEnabled ? 'checked' : '') + '></div>' +
+                        '<div class="config-row"><label>Spam protection</label><input type="checkbox" id="cfg-spam" ' + (cfg.SpamEnabled ? 'checked' : '') + '></div>' +
+                        '<div class="config-row"><label>Mass mention</label><input type="checkbox" id="cfg-mention" ' + (cfg.MentionEnabled ? 'checked' : '') + '></div>' +
+                        '<div class="config-row"><label>Link protection</label><input type="checkbox" id="cfg-links" ' + (cfg.LinksEnabled ? 'checked' : '') + '></div>' +
+                        '<div class="config-row"><label>Caps protection</label><input type="checkbox" id="cfg-caps" ' + (cfg.CapsEnabled ? 'checked' : '') + '></div>' +
+                        '<button class="btn btn-primary" style="margin-top: 14px;" onclick="saveGuildConfig(\'' + guildId + '\', \'' + token + '\')"><i class="fa-solid fa-floppy-disk"></i> Save config</button>' +
+                        '<span id="config-save-status" style="margin-left: 10px; font-size: 0.85rem;"></span>' +
                         '</div>';
                 })
                 .catch(function() { panel.innerHTML = '<p style="color: var(--rose);">Failed to load config</p>'; });

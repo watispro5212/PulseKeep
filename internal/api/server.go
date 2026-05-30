@@ -93,7 +93,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		cmds := getCommandsRun(memCache)
 
 		c.JSON(http.StatusOK, gin.H{
-"bot": "PulseKeep v5.9.1",
+"bot": "PulseKeep v6.0.0",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
@@ -150,7 +150,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-"bot": "PulseKeep v5.9.1",
+"bot": "PulseKeep v6.0.0",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,

@@ -16,7 +16,7 @@ const (
 	UtilityMenuAccent    = 0x38d5c8
 	EconomyMenuAccent    = 0xf5bd4f
 	TicketMenuAccent     = 0x36d399
-	PulseKeepVersion     = "v5.9.1"
+	PulseKeepVersion     = "v6.0.0"
 )
 
 type CommandInfo struct {
@@ -82,6 +82,9 @@ var Categories = []CommandCategory{
 			{Name: "/work", Description: "Work a shift to earn Pulses.", Usage: "/work"},
 			{Name: "/coinflip", Description: "Wager Pulses on heads or tails.", Usage: "/coinflip amount:100 side:heads"},
 			{Name: "/pay", Description: "Send Pulses to another member.", Usage: "/pay recipient:@member amount:100"},
+			{Name: "/blackjack", Description: "Play blackjack against the CPU with difficulty tiers.", Usage: "/blackjack amount:100 difficulty:easy"},
+			{Name: "/lottery", Description: "Check the weekly lottery jackpot and status.", Usage: "/lottery"},
+			{Name: "/lottery-claim", Description: "Claim your prize if you won the weekly draw.", Usage: "/lottery-claim"},
 			{Name: "/rich", Description: "Show the richest members in the economy.", Usage: "/rich"},
 			{Name: "/rob", Description: "Attempt to steal Pulses from another member.", Usage: "/rob user:@member"},
 			{Name: "/shop", Description: "Browse the PulseKeep item shop.", Usage: "/shop"},
@@ -142,7 +145,7 @@ func TicketPanelMessage(ephemeral bool) discord.MessageCreate {
 			WithColor(TicketMenuAccent).
 			AddField("Best for", "Setup help, deploy problems, moderation appeals, billing questions, and bug reports.", false).
 			AddField("Before opening", "Share the affected server, the command or feature involved, and any error text you saw.", false).
-			WithFooterText("PulseKeep v5.9.1 · Support Tickets")).
+			WithFooterText("PulseKeep v6.0.0 · Support Tickets")).
 		AddActionRow(discord.NewSuccessButton("Open Ticket", TicketPanelButtonID))
 }
 
@@ -160,7 +163,7 @@ func menuEmbed(selectedCategoryID string) discord.Embed {
 		WithTitle(fmt.Sprintf("PulseKeep Commands - %s", category.Label)).
 		WithDescription(category.Description).
 		WithColor(category.Color).
-		WithFooterText("PulseKeep v5.9.1 · Use the menu below")
+		WithFooterText("PulseKeep v6.0.0 · Use the menu below")
 
 	for _, command := range category.Commands {
 		embed = embed.AddField(command.Name, fmt.Sprintf("%s\n`%s`", command.Description, command.Usage), false)
@@ -180,7 +183,7 @@ func overviewEmbed() discord.Embed {
 		WithDescription(strings.TrimSpace(summary.String())).
 		WithColor(CommandMenuAccent).
 		AddField("How to use it", "Pick a category from the dropdown or press Open Ticket for support. Staff-only actions still rely on Discord permissions.", false).
-		WithFooterText("PulseKeep v5.9.1 · Command browser")
+		WithFooterText("PulseKeep v6.0.0 · Command browser")
 }
 
 func categorySelect(selectedCategoryID string) discord.StringSelectMenuComponent {

@@ -189,10 +189,6 @@ func Register() []discord.ApplicationCommandCreate {
 			},
 		},
 		discord.SlashCommandCreate{
-			Name:        "leaderboard",
-			Description: "Show the richest PulseKeep economy members",
-		},
-		discord.SlashCommandCreate{
 			Name:        "rob",
 			Description: "Attempt to rob another user for their Pulses",
 			Options: []discord.ApplicationCommandOption{
@@ -391,6 +387,31 @@ func Register() []discord.ApplicationCommandCreate {
 		discord.SlashCommandCreate{
 			Name:        "weekly",
 			Description: "Claim your weekly Pulses reward (7-day cooldown)",
+		},
+		discord.SlashCommandCreate{
+			Name:        "blackjack",
+			Description: "Play blackjack against the CPU and wager your Pulses",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionInt{
+					Name:        "amount",
+					Description: "How many Pulses to wager (min 100)",
+					Required:    true,
+					MinValue:    ptrInt(100),
+				},
+				discord.ApplicationCommandOptionString{
+					Name:        "difficulty",
+					Description: "Choose difficulty: easy, normal, hard, expert",
+					Required:    false,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:        "lottery",
+			Description: "Check the weekly lottery jackpot and status",
+		},
+		discord.SlashCommandCreate{
+			Name:        "lottery-claim",
+			Description: "Claim your prize if you won the weekly lottery draw",
 		},
 		discord.SlashCommandCreate{
 			Name:        "gift",

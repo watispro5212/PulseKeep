@@ -38,6 +38,7 @@ type Bot struct {
 func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL string) *Bot {
 	startedAt := time.Now()
 	economyStore := economy.NewStore(database)
+	economyStore.StartLotteryAutoDraw(context.Background())
 	cfgStore := automod.NewConfigStore(database)
 	am := automod.NewEngine(cfgStore)
 	var statusCancel context.CancelFunc
@@ -82,7 +83,7 @@ func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL strin
 						WithTitle("Auto-mod action").
 						WithDescription(fmt.Sprintf("**User:** <@%s>\n**Action:** %s\n**Reason:** %s\n**Content:** %s", e.Message.Author.ID.String(), string(result.Action), result.Reason, e.Message.Content)).
 						WithColor(0xfc8181).
-						WithFooterText("PulseKeep v5.9.1 · Auto-mod").
+						WithFooterText("PulseKeep v6.0.0 · Auto-mod").
 						WithTimestamp(time.Now())
 						if logChanID, err := snowflake.Parse(cfg.LogChannelID); err == nil {
 							_, _ = e.Client().Rest.CreateMessage(logChanID, discord.NewMessageCreate().AddEmbeds(logEmbed))
@@ -93,7 +94,7 @@ func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL strin
 							WithTitle("Auto-mod notice").
 							WithDescription(fmt.Sprintf("Your message was removed: **%s**\nPlease follow the server rules.", result.Reason)).
 							WithColor(0xf5bd4f).
-							WithFooterText("PulseKeep v5.9.1 · Auto-mod").
+							WithFooterText("PulseKeep v6.0.0 · Auto-mod").
 							WithTimestamp(time.Now())
 						_, _ = e.Client().Rest.CreateMessage(e.ChannelID, discord.NewMessageCreate().AddEmbeds(warnEmbed))
 					}
@@ -112,7 +113,7 @@ func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL strin
 				AddField("Total servers", fmt.Sprintf("%d", b.guildCount), true).
 				AddField("Owner", fmt.Sprintf("<@%s>", e.Guild.OwnerID), true).
 				WithColor(0x4f8cff).
-				WithFooterText("PulseKeep v5.9.1 · Status").
+				WithFooterText("PulseKeep v6.0.0 · Status").
 				WithTimestamp(time.Now()))
 		}),
 		bot.WithEventListenerFunc(func(e *events.GuildLeave) {
@@ -150,7 +151,7 @@ func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL strin
 						AddField("WebSocket", "Connected", true).
 						AddField("API", "Reachable", true).
 						WithColor(commands.UtilityMenuAccent).
-						WithFooterText("PulseKeep v5.9.1 · Utility").
+						WithFooterText("PulseKeep v6.0.0 · Utility").
 						WithTimestamp(time.Now()),
 				)); err != nil {
 					log.Printf("failed to send ping response: %v", err)
@@ -265,7 +266,7 @@ func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL strin
 				WithDescription(fmt.Sprintf("**%s** is ready across **%d** guilds.", e.User.EffectiveName(), gc)).
 				AddField("Users", fmt.Sprintf("%d", memCache.UserCount.Load()), true).
 				WithColor(0x36d399).
-				WithFooterText("PulseKeep v5.9.1 · Status").
+				WithFooterText("PulseKeep v6.0.0 · Status").
 				WithTimestamp(time.Now()))
 		}),
 	)
@@ -291,7 +292,7 @@ func (b *Bot) Stop(ctx context.Context) {
 		WithTitle("PulseKeep went offline").
 		WithDescription(fmt.Sprintf("Bot process is shutting down. Served **%d** guilds.", b.guildCount)).
 		WithColor(0xfb7185).
-		WithFooterText("PulseKeep v5.9.1 · Status").
+		WithFooterText("PulseKeep v6.0.0 · Status").
 		WithTimestamp(time.Now()))
 	if ctx != nil {
 		b.Client.Close(ctx)
@@ -336,7 +337,7 @@ func statsMessage(startedAt time.Time) discord.MessageCreate {
 			AddField("Latency", "Real-time in /ping", true).
 			AddField("Categories", "Utility · Moderation · Economy · Tickets · Gambling", false).
 			AddField("Get started", "Use `/help` to browse all commands.", false).
-			WithFooterText("PulseKeep v5.9.1 · Stats").
+			WithFooterText("PulseKeep v6.0.0 · Stats").
 			WithTimestamp(time.Now()))
 }
 
@@ -378,7 +379,7 @@ func serverInfoMessage(e *events.ApplicationCommandInteractionCreate) discord.Me
 			AddField("Server ID", guild.ID.String(), false).
 			AddField("Created", createdAt, false).
 			WithThumbnail(iconURL).
-			WithFooterText("PulseKeep v5.9.1 · Utility").
+			WithFooterText("PulseKeep v6.0.0 · Utility").
 			WithTimestamp(time.Now()))
 }
 
@@ -402,7 +403,7 @@ func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 		AddField("User ID", user.ID.String(), false).
 		AddField("Joined Discord", createdAt, true).
 		WithThumbnail(user.EffectiveAvatarURL()).
-		WithFooterText("PulseKeep v5.9.1 · Utility").
+		WithFooterText("PulseKeep v6.0.0 · Utility").
 		WithTimestamp(time.Now())
 
 	if guildID := e.GuildID(); guildID != nil {
@@ -423,7 +424,7 @@ func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 }
 
 func aboutMessage(e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
-	version := "v5.9.1"
+	version := "v6.0.0"
 	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 		discord.NewEmbed().
 			WithTitle("About PulseKeep").
@@ -436,7 +437,7 @@ func aboutMessage(e *events.ApplicationCommandInteractionCreate) discord.Message
 			AddField("Open source", "Yes (MIT)", true).
 			AddField("Links", "[Commands](https://pulsekeep.xyz/commands) · [Status](https://pulsekeep.xyz/status) · [Changelog](https://pulsekeep.xyz/changelog)", false).
 			WithColor(commands.UtilityMenuAccent).
-			WithFooterText("PulseKeep v5.9.1 · About").
+			WithFooterText("PulseKeep v6.0.0 · About").
 			WithTimestamp(time.Now()))
 }
 
@@ -454,7 +455,7 @@ func avatarMessage(e *events.ApplicationCommandInteractionCreate, data discord.S
 			WithDescription(avatarURL).
 			WithColor(commands.UtilityMenuAccent).
 			WithImage(avatarURL).
-			WithFooterText("PulseKeep v5.9.1 · Utility").
+			WithFooterText("PulseKeep v6.0.0 · Utility").
 			WithTimestamp(time.Now()))
 }
 
@@ -477,7 +478,7 @@ func announceMessage(e *events.ApplicationCommandInteractionCreate, data discord
 			WithTitle(title).
 			WithDescription(body).
 			WithColor(commands.CommandMenuAccent).
-			WithFooterText("PulseKeep v5.9.1 · Announcements").
+			WithFooterText("PulseKeep v6.0.0 · Announcements").
 			WithTimestamp(time.Now()))
 	if ping {
 		msg = msg.WithContent("@everyone")
@@ -523,7 +524,7 @@ func handlePurge(e *events.ApplicationCommandInteractionCreate, data discord.Sla
 			WithTitle("Messages purged").
 			WithDescription(fmt.Sprintf("Successfully deleted **%d** messages.", len(ids))).
 			WithColor(commands.ModerationMenuAccent).
-			WithFooterText("PulseKeep v5.9.1 · Moderation").
+			WithFooterText("PulseKeep v6.0.0 · Moderation").
 			WithTimestamp(time.Now()))
 }
 
@@ -557,7 +558,7 @@ func handleKick(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 			WithDescription(fmt.Sprintf("**%s** has been kicked.", user.Tag())).
 			AddField("Reason", reason, false).
 			WithColor(commands.ModerationMenuAccent).
-			WithFooterText("PulseKeep v5.9.1 · Moderation").
+			WithFooterText("PulseKeep v6.0.0 · Moderation").
 			WithTimestamp(time.Now()))
 }
 
@@ -591,7 +592,7 @@ func handleBan(e *events.ApplicationCommandInteractionCreate, data discord.Slash
 			WithDescription(fmt.Sprintf("**%s** has been banned.", user.Tag())).
 			AddField("Reason", reason, false).
 			WithColor(commands.ModerationMenuAccent).
-			WithFooterText("PulseKeep v5.9.1 · Moderation").
+			WithFooterText("PulseKeep v6.0.0 · Moderation").
 			WithTimestamp(time.Now()))
 }
 
@@ -628,7 +629,7 @@ func handlePoll(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 			WithTitle("📊 Poll").
 			WithDescription(desc.String()).
 			WithColor(commands.CommandMenuAccent).
-			WithFooterText(fmt.Sprintf("PulseKeep v5.9.1 · Poll by %s", e.User().EffectiveName())).
+			WithFooterText(fmt.Sprintf("PulseKeep v6.0.0 · Poll by %s", e.User().EffectiveName())).
 			WithTimestamp(time.Now())))
 	if err != nil {
 		log.Printf("failed to send poll: %v", err)
@@ -688,7 +689,7 @@ func handleRole(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 				WithTitle("Role removed").
 				WithDescription(fmt.Sprintf("Removed <@&%s> from **%s**.", role.ID, user.Tag())).
 				WithColor(commands.UtilityMenuAccent).
-				WithFooterText("PulseKeep v5.9.1 · Utility").
+				WithFooterText("PulseKeep v6.0.0 · Utility").
 				WithTimestamp(time.Now()))
 	}
 
@@ -705,7 +706,7 @@ func handleRole(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 			WithTitle("Role added").
 			WithDescription(fmt.Sprintf("Added <@&%s> to **%s**.", role.ID, user.Tag())).
 			WithColor(commands.UtilityMenuAccent).
-			WithFooterText("PulseKeep v5.9.1 · Utility").
+			WithFooterText("PulseKeep v6.0.0 · Utility").
 			WithTimestamp(time.Now()))
 }
 
@@ -738,7 +739,7 @@ func handleUnban(e *events.ApplicationCommandInteractionCreate, data discord.Sla
 			WithTitle("User unbanned").
 			WithDescription(fmt.Sprintf("Successfully unbanned `<@%s>`.", userID)).
 			WithColor(commands.ModerationMenuAccent).
-			WithFooterText("PulseKeep v5.9.1 · Moderation").
+			WithFooterText("PulseKeep v6.0.0 · Moderation").
 			WithTimestamp(time.Now()))
 }
 
@@ -779,7 +780,7 @@ func handleSlowmode(e *events.ApplicationCommandInteractionCreate, data discord.
 			WithTitle("Slowmode updated").
 			WithDescription(msg).
 			WithColor(commands.UtilityMenuAccent).
-			WithFooterText("PulseKeep v5.9.1 · Moderation").
+			WithFooterText("PulseKeep v6.0.0 · Moderation").
 			WithTimestamp(time.Now()))
 }
 
@@ -812,7 +813,7 @@ func handleNick(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 				WithTitle("Nickname reset").
 				WithDescription(fmt.Sprintf("Reset nickname for **%s**.", user.Tag())).
 				WithColor(commands.UtilityMenuAccent).
-				WithFooterText("PulseKeep v5.9.1 · Moderation").
+				WithFooterText("PulseKeep v6.0.0 · Moderation").
 				WithTimestamp(time.Now()))
 	}
 
@@ -821,7 +822,7 @@ func handleNick(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 			WithTitle("Nickname changed").
 			WithDescription(fmt.Sprintf("Changed **%s**'s nickname to **%s**.", user.Tag(), nickname)).
 			WithColor(commands.UtilityMenuAccent).
-			WithFooterText("PulseKeep v5.9.1 · Moderation").
+			WithFooterText("PulseKeep v6.0.0 · Moderation").
 			WithTimestamp(time.Now()))
 }
 
@@ -861,7 +862,7 @@ func handleTimeout(e *events.ApplicationCommandInteractionCreate, data discord.S
 			WithTitle("Member timed out").
 			WithDescription(fmt.Sprintf("**%s** has been timed out for **%d minutes**.", user.Tag(), duration)).
 			WithColor(commands.UtilityMenuAccent).
-			WithFooterText("PulseKeep v5.9.1 · Moderation").
+			WithFooterText("PulseKeep v6.0.0 · Moderation").
 			WithTimestamp(time.Now()))
 }
 
@@ -947,7 +948,7 @@ func handleLock(e *events.ApplicationCommandInteractionCreate) discord.MessageCr
 			WithTitle("🔒 Channel locked").
 			WithDescription(fmt.Sprintf("<#%s> has been locked.", channelID)).
 			WithColor(commands.UtilityMenuAccent).
-			WithFooterText("PulseKeep v5.9.1 · Moderation").
+			WithFooterText("PulseKeep v6.0.0 · Moderation").
 			WithTimestamp(time.Now()))
 }
 
@@ -1011,7 +1012,7 @@ func handleUnlock(e *events.ApplicationCommandInteractionCreate) discord.Message
 			WithTitle("🔓 Channel unlocked").
 			WithDescription(fmt.Sprintf("<#%s> has been unlocked.", channelID)).
 			WithColor(commands.UtilityMenuAccent).
-			WithFooterText("PulseKeep v5.9.1 · Moderation").
+			WithFooterText("PulseKeep v6.0.0 · Moderation").
 			WithTimestamp(time.Now()))
 }
 
@@ -1104,23 +1105,23 @@ func handleTicketClose(e *events.ComponentInteractionCreate) {
 
 func startStatusRotation(ctx context.Context, client *bot.Client, memCache *cache.Cache) {
 	statuses := []struct {
-		text string
+		text func(gc, uc int64) string
 		kind string
 	}{
-		{"/help to browse commands", "playing"},
-		{"over %d servers", "watching"},
-		{"PulseKeep Economy", "playing"},
-		{"/daily | /work | /slots", "playing"},
-		{"/gamble | /fish | /mine", "playing"},
-		{"%d servers · %d users", "watching"},
-		{"/purge | /kick | /ban", "playing"},
-		{"/slowmode | /lock | /timeout", "playing"},
-		{"member activity", "watching"},
-		{"/poll | /role | /announce", "playing"},
-		{"PulseKeep v5.9.1", "competing"},
-		{"support tickets", "listening"},
-		{"/shop | /rich | /weekly", "playing"},
-		{"automod", "watching"},
+		{func(_, _ int64) string { return "/help to browse commands" }, "playing"},
+		{func(gc, _ int64) string { return fmt.Sprintf("over %d servers", gc) }, "watching"},
+		{func(_, _ int64) string { return "PulseKeep Economy" }, "playing"},
+		{func(_, _ int64) string { return "/daily | /work | /slots" }, "playing"},
+		{func(_, _ int64) string { return "/gamble | /fish | /mine" }, "playing"},
+		{func(gc, uc int64) string { return fmt.Sprintf("%d servers · %d users", gc, uc) }, "watching"},
+		{func(_, _ int64) string { return "/purge | /kick | /ban" }, "playing"},
+		{func(_, _ int64) string { return "/slowmode | /lock | /timeout" }, "playing"},
+		{func(_, _ int64) string { return "member activity" }, "watching"},
+		{func(_, _ int64) string { return "/poll | /role | /announce" }, "playing"},
+		{func(_, _ int64) string { return "PulseKeep v6.0.0" }, "competing"},
+		{func(_, _ int64) string { return "support tickets" }, "listening"},
+		{func(_, _ int64) string { return "/shop | /rich | /weekly" }, "playing"},
+		{func(_, _ int64) string { return "automod" }, "watching"},
 	}
 
 	ticker := time.NewTicker(2 * time.Minute)
@@ -1136,7 +1137,7 @@ func startStatusRotation(ctx context.Context, client *bot.Client, memCache *cach
 			guildCount = memCache.GuildCount.Load()
 			userCount = memCache.UserCount.Load()
 		}
-		text := fmt.Sprintf(s.text, guildCount, userCount)
+		text := s.text(guildCount, userCount)
 
 		var opts []gateway.PresenceOpt
 		switch s.kind {

@@ -67,12 +67,16 @@ type Record struct {
 	FishTotal   int
 	MineMined   int
 	MineTotal   int
-	GambleWins  int
-	GambleTotal int
-	LotteryWins  int
-	WeeklyStreak int
-	LastWeekly   time.Time
-	Inventory    map[string]*InventoryEntry
+	GambleWins      int
+	GambleTotal     int
+	BlackjackWins   int
+	BlackjackLosses int
+	LotteryWins     int
+	WeeklyStreak      int
+	LastWeekly        time.Time
+	XpBoostExpires    time.Time
+	TreasureMapActive bool
+	Inventory         map[string]*InventoryEntry
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
@@ -135,6 +139,7 @@ var ShopItems = []ShopItem{
 	{ID: "iron_pickaxe", Name: "Iron Pickaxe", Description: "Unlocks the /mine command", Price: 2000},
 	{ID: "lottery_ticket", Name: "Lottery Ticket", Description: "Entry for the server lottery draw", Price: 500},
 	{ID: "health_potion", Name: "Health Potion", Description: "Restores 625 Pulses when used (25% refund of purchase price)", Price: 2500},
+	{ID: "treasure_map", Name: "Treasure Map", Description: "Doubles your next /fish or /mine payout", Price: 7000},
 }
 
 type BuyResult struct {
@@ -274,14 +279,16 @@ func (s *Store) load() {
 	}
 
 	ctx := context.Background()
-	rows, err := s.db.QueryContext(ctx, `
+		rows, err := s.db.QueryContext(ctx, `
 		SELECT user_id, name, balance, total_earned, total_spent,
 		       daily_streak, last_daily, last_work, last_rob,
 		       last_fish, last_mine, last_gamble, last_interest,
 		       flip_wins, flip_losses, slot_wins, slot_losses,
 		       rob_wins, rob_losses, fish_caught, fish_total,
 		       mine_mined, mine_total, gamble_wins, gamble_total,
+		       blackjack_wins, blackjack_losses,
 		       lottery_wins, weekly_streak, last_weekly,
+		       xp_boost_expires, treasure_map_active,
 		       created_at, updated_at
 		FROM user_economy`)
 	if err != nil {
@@ -290,16 +297,19 @@ func (s *Store) load() {
 	}
 	defer rows.Close()
 
-	for rows.Next() {
+		for rows.Next() {
 		var (
-			userIDStr, name                                             string
-			balance, earned, spent, dailyStreak, weeklyStreak           int
-			flipWins, flipLosses, slotWins, slotLosses                  int
-			robWins, robLosses, fishCaught, fishTotal                   int
-			mineMined, mineTotal, gambleWins, gambleTotal, lotteryWins  int
-			lastDaily, lastWork, lastRob                                *time.Time
-			lastFish, lastMine, lastGamble, lastInterest, lastWeekly    *time.Time
-			createdAt, updatedAt                                        time.Time
+			userIDStr, name                                                     string
+			balance, earned, spent, dailyStreak, weeklyStreak                   int
+			flipWins, flipLosses, slotWins, slotLosses                          int
+			robWins, robLosses, fishCaught, fishTotal                           int
+			mineMined, mineTotal, gambleWins, gambleTotal                       int
+			blackjackWins, blackjackLosses, lotteryWins                         int
+			lastDaily, lastWork, lastRob                                        *time.Time
+			lastFish, lastMine, lastGamble, lastInterest, lastWeekly            *time.Time
+			xpBoostExpires                                                      *time.Time
+			treasureMapActive                                                   bool
+			createdAt, updatedAt                                                time.Time
 		)
 		err := rows.Scan(&userIDStr, &name, &balance, &earned, &spent,
 			&dailyStreak,
@@ -308,7 +318,9 @@ func (s *Store) load() {
 			&flipWins, &flipLosses, &slotWins, &slotLosses,
 			&robWins, &robLosses, &fishCaught, &fishTotal,
 			&mineMined, &mineTotal, &gambleWins, &gambleTotal,
-			&lotteryWins, &weeklyStreak, &lastWeekly, &createdAt, &updatedAt)
+			&blackjackWins, &blackjackLosses,
+			&lotteryWins, &weeklyStreak, &lastWeekly,
+			&xpBoostExpires, &treasureMapActive, &createdAt, &updatedAt)
 		if err != nil {
 			log.Printf("Failed to scan economy record: %v", err)
 			continue
@@ -321,29 +333,32 @@ func (s *Store) load() {
 		}
 
 		record := &Record{
-			UserID:       userID,
-			Name:         name,
-			Balance:      balance,
-			Earned:       earned,
-			Spent:        spent,
-			DailyStreak:  dailyStreak,
-			WeeklyStreak: weeklyStreak,
-			FlipWins:     flipWins,
-			FlipLosses:   flipLosses,
-			SlotWins:     slotWins,
-			SlotLosses:   slotLosses,
-			RobWins:      robWins,
-			RobLosses:    robLosses,
-			FishCaught:   fishCaught,
-			FishTotal:    fishTotal,
-			MineMined:    mineMined,
-			MineTotal:    mineTotal,
-			GambleWins:   gambleWins,
-			GambleTotal:  gambleTotal,
-			LotteryWins:  lotteryWins,
-			Inventory:    make(map[string]*InventoryEntry),
-			CreatedAt:    createdAt,
-			UpdatedAt:    updatedAt,
+			UserID:            userID,
+			Name:              name,
+			Balance:           balance,
+			Earned:            earned,
+			Spent:             spent,
+			DailyStreak:       dailyStreak,
+			WeeklyStreak:      weeklyStreak,
+			FlipWins:          flipWins,
+			FlipLosses:        flipLosses,
+			SlotWins:          slotWins,
+			SlotLosses:        slotLosses,
+			RobWins:           robWins,
+			RobLosses:         robLosses,
+			FishCaught:        fishCaught,
+			FishTotal:         fishTotal,
+			MineMined:         mineMined,
+			MineTotal:         mineTotal,
+			GambleWins:        gambleWins,
+			GambleTotal:       gambleTotal,
+			BlackjackWins:     blackjackWins,
+			BlackjackLosses:   blackjackLosses,
+			LotteryWins:       lotteryWins,
+			TreasureMapActive: treasureMapActive,
+			Inventory:         make(map[string]*InventoryEntry),
+			CreatedAt:         createdAt,
+			UpdatedAt:         updatedAt,
 		}
 		if lastDaily != nil {
 			record.LastDaily = *lastDaily
@@ -368,6 +383,9 @@ func (s *Store) load() {
 		}
 		if lastWeekly != nil {
 			record.LastWeekly = *lastWeekly
+		}
+		if xpBoostExpires != nil {
+			record.XpBoostExpires = *xpBoostExpires
 		}
 		s.records[userID] = record
 	}
@@ -424,10 +442,13 @@ func (s *Store) save(record *Record) {
 			flip_wins, flip_losses, slot_wins, slot_losses,
 			rob_wins, rob_losses, fish_caught, fish_total,
 			mine_mined, mine_total, gamble_wins, gamble_total,
+			blackjack_wins, blackjack_losses,
 			lottery_wins, weekly_streak, last_weekly,
+			xp_boost_expires, treasure_map_active,
 			created_at, updated_at
 		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,
-		          $14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30)
+		          $14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,
+		          $30,$31,$32,$33,$34,$35,$36)
 		ON CONFLICT (user_id) DO UPDATE SET
 			name = EXCLUDED.name,
 			balance = EXCLUDED.balance,
@@ -453,9 +474,13 @@ func (s *Store) save(record *Record) {
 			mine_total = EXCLUDED.mine_total,
 			gamble_wins = EXCLUDED.gamble_wins,
 			gamble_total = EXCLUDED.gamble_total,
+			blackjack_wins = EXCLUDED.blackjack_wins,
+			blackjack_losses = EXCLUDED.blackjack_losses,
 			lottery_wins = EXCLUDED.lottery_wins,
 			weekly_streak = EXCLUDED.weekly_streak,
 			last_weekly = EXCLUDED.last_weekly,
+			xp_boost_expires = EXCLUDED.xp_boost_expires,
+			treasure_map_active = EXCLUDED.treasure_map_active,
 			updated_at = EXCLUDED.updated_at
 	`, record.UserID.String(), record.Name, record.Balance, record.Earned, record.Spent,
 		record.DailyStreak,
@@ -465,7 +490,9 @@ func (s *Store) save(record *Record) {
 		record.FlipWins, record.FlipLosses, record.SlotWins, record.SlotLosses,
 		record.RobWins, record.RobLosses, record.FishCaught, record.FishTotal,
 		record.MineMined, record.MineTotal, record.GambleWins, record.GambleTotal,
+		record.BlackjackWins, record.BlackjackLosses,
 		record.LotteryWins, record.WeeklyStreak, nullTime(record.LastWeekly),
+		nullTime(record.XpBoostExpires), record.TreasureMapActive,
 		record.CreatedAt, record.UpdatedAt)
 	if err != nil {
 		log.Printf("Failed to save economy record for user %s: %v", record.UserID, err)
@@ -558,6 +585,13 @@ func (s *Store) Work(userID snowflake.ID, name string, now time.Time) WorkResult
 	reward := 90 + rand.Intn(161)
 	job := jobs[rand.Intn(len(jobs))]
 
+	// XP Boost — double work earnings
+	if !record.XpBoostExpires.IsZero() && now.Before(record.XpBoostExpires) {
+		reward *= 2
+	} else {
+		record.XpBoostExpires = time.Time{} // clear expired boost
+	}
+
 	record.Balance += reward
 	record.Earned += reward
 	record.LastWork = now
@@ -624,12 +658,35 @@ func (s *Store) Coinflip(userID snowflake.ID, name string, side string, wager in
 		side = "heads"
 	}
 
+	// check for Lucky Pickaxe — +15% win chance
+	hasPickaxe := false
+	if record.Inventory != nil {
+		if _, ok := record.Inventory["lucky_pickaxe"]; ok {
+			hasPickaxe = true
+		}
+	}
+
 	result := "heads"
-	if rand.Intn(2) == 1 {
-		result = "tails"
+	if hasPickaxe {
+		if rand.Intn(20) >= 13 { // 65% tails instead of 50%
+			result = "tails"
+		}
+	} else {
+		if rand.Intn(2) == 1 {
+			result = "tails"
+		}
 	}
 
 	won := side == result
+
+	// consume lucky pickaxe on use
+	if hasPickaxe {
+		entry := record.Inventory["lucky_pickaxe"]
+		entry.Quantity--
+		if entry.Quantity <= 0 {
+			delete(record.Inventory, "lucky_pickaxe")
+		}
+	}
 	if won {
 		record.Balance += wager
 		record.Earned += wager
@@ -860,10 +917,28 @@ func (s *Store) Slots(userID snowflake.ID, name string, wager int, now time.Time
 	}
 
 	symbols := []string{"🍒", "🍋", "🍊", "🍇", "💎", "7️⃣", "⭐"}
-	reels := [3]string{
-		symbols[rand.Intn(len(symbols))],
-		symbols[rand.Intn(len(symbols))],
-		symbols[rand.Intn(len(symbols))],
+
+	// check for Lucky Clover — shifts each reel +1 position
+	hasClover := false
+	if record.Inventory != nil {
+		if _, ok := record.Inventory["lucky_clover"]; ok {
+			hasClover = true
+		}
+	}
+
+	reels := [3]string{}
+	if hasClover {
+		reels = [3]string{
+			symbols[(rand.Intn(len(symbols))+1)%len(symbols)],
+			symbols[(rand.Intn(len(symbols))+1)%len(symbols)],
+			symbols[(rand.Intn(len(symbols))+1)%len(symbols)],
+		}
+	} else {
+		reels = [3]string{
+			symbols[rand.Intn(len(symbols))],
+			symbols[rand.Intn(len(symbols))],
+			symbols[rand.Intn(len(symbols))],
+		}
 	}
 
 	var multiplier int
@@ -900,6 +975,16 @@ func (s *Store) Slots(userID snowflake.ID, name string, wager int, now time.Time
 		record.Spent += wager
 		record.SlotLosses++
 	}
+
+	// consume lucky clover on use
+	if hasClover {
+		entry := record.Inventory["lucky_clover"]
+		entry.Quantity--
+		if entry.Quantity <= 0 {
+			delete(record.Inventory, "lucky_clover")
+		}
+	}
+
 	record.UpdatedAt = now
 	s.save(record)
 
@@ -951,6 +1036,11 @@ func (s *Store) Fish(userID snowflake.ID, name string, now time.Time) FishResult
 	reward := fish.MinPay + rand.Intn(fish.MaxPay-fish.MinPay+1)
 
 	if reward > 0 {
+		// Treasure Map — double payout, then consume
+		if record.TreasureMapActive {
+			reward *= 2
+			record.TreasureMapActive = false
+		}
 		record.Balance += reward
 		record.Earned += reward
 		record.FishCaught++
@@ -1007,6 +1097,11 @@ func (s *Store) Mine(userID snowflake.ID, name string, now time.Time) MineResult
 	reward := ore.MinPay + rand.Intn(ore.MaxPay-ore.MinPay+1)
 
 	if reward > 0 {
+		// Treasure Map — double payout, then consume
+		if record.TreasureMapActive {
+			reward *= 2
+			record.TreasureMapActive = false
+		}
 		record.Balance += reward
 		record.Earned += reward
 		record.MineMined++
@@ -1177,6 +1272,48 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 			Used:        true,
 			Description: fmt.Sprintf("You drink the potion and recover **%d Pulses** (25%% refund).", heal),
 		}, nil
+	case "xp_boost":
+		record.XpBoostExpires = now.Add(1 * time.Hour)
+		s.save(record)
+		return UseItemResult{
+			Record:      record.copy(),
+			ItemID:      itemID,
+			ItemName:    "XP Boost",
+			Used:        true,
+			Description: "You activate the XP Boost! Your next `/work` earnings will be doubled for the next hour.",
+		}, nil
+	case "golden_watch":
+		if !record.LastDaily.IsZero() {
+			record.LastDaily = record.LastDaily.Add(-4 * time.Hour)
+		}
+		s.save(record)
+		return UseItemResult{
+			Record:      record.copy(),
+			ItemID:      itemID,
+			ItemName:    "Golden Watch",
+			Used:        true,
+			Description: "You wind the Golden Watch! Your `/daily` cooldown has been reduced by 4 hours.",
+		}, nil
+	case "treasure_map":
+		record.TreasureMapActive = true
+		s.save(record)
+		return UseItemResult{
+			Record:      record.copy(),
+			ItemID:      itemID,
+			ItemName:    "Treasure Map",
+			Used:        true,
+			Description: "You unfurl the Treasure Map! Your next `/fish` or `/mine` payout will be **doubled**.",
+		}, nil
+	case "lottery_ticket":
+		s.LotteryBuyTicket(userID, now)
+		s.save(record)
+		return UseItemResult{
+			Record:      record.copy(),
+			ItemID:      itemID,
+			ItemName:    "Lottery Ticket",
+			Used:        true,
+			Description: "You enter the weekly lottery draw! You will be automatically entered into the next drawing. Use `/lottery` to check the status.",
+		}, nil
 	default:
 		// restore the item since it can't be used
 		if entry.Quantity <= 0 {
@@ -1244,6 +1381,166 @@ func (s *Store) Weekly(userID snowflake.ID, name string, now time.Time) WeeklyRe
 		Streak:        record.WeeklyStreak,
 		NextAvailable: now.Add(WeeklyCooldown),
 	}
+}
+
+type LotteryStatus struct {
+	TotalEntries  int
+	Jackpot       int
+	LastWinnerID  string
+	LastDrawTime  time.Time
+	AutoDraw      bool
+	WeekStart     time.Time
+}
+
+func (s *Store) LotteryStatus(now time.Time) LotteryStatus {
+	weekStart := weekStartTime(now)
+
+	var totalEntries int
+	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false`, weekStart).Scan(&totalEntries)
+
+	jackpot := totalEntries * 400 // 500 * 0.8 = 400 per entry (20% house cut)
+
+	var lastWinnerID string
+	var lastDrawTime time.Time
+	_ = s.db.QueryRow(`SELECT COALESCE(last_winner_id,''), COALESCE(last_draw_time, 'epoch'::timestamptz) FROM lottery_config WHERE guild_id = 'global'`).Scan(&lastWinnerID, &lastDrawTime)
+
+	autoDraw := true
+	_ = s.db.QueryRow(`SELECT auto_draw FROM lottery_config WHERE guild_id = 'global'`).Scan(&autoDraw)
+
+	return LotteryStatus{
+		TotalEntries: totalEntries,
+		Jackpot:      jackpot,
+		LastWinnerID: lastWinnerID,
+		LastDrawTime: lastDrawTime,
+		AutoDraw:     autoDraw,
+		WeekStart:    weekStart,
+	}
+}
+
+func (s *Store) LotteryBuyTicket(userID snowflake.ID, now time.Time) {
+	weekStart := weekStartTime(now)
+	_, _ = s.db.Exec(`INSERT INTO lottery_entries (user_id, week_start) VALUES ($1, $2) ON CONFLICT DO NOTHING`, userID.String(), weekStart)
+}
+
+func (s *Store) LotteryClaim(userID snowflake.ID, name string, now time.Time) (UseItemResult, error) {
+	weekStart := weekStartTime(now)
+
+	// Check if draw already happened this week
+	var lastDrawTime time.Time
+	_ = s.db.QueryRow(`SELECT COALESCE(last_draw_time, 'epoch'::timestamptz) FROM lottery_config WHERE guild_id = 'global'`).Scan(&lastDrawTime)
+
+	// If draw hasn't happened yet this week, check if auto_draw is on
+	var autoDraw bool
+	_ = s.db.QueryRow(`SELECT COALESCE(auto_draw, true) FROM lottery_config WHERE guild_id = 'global'`).Scan(&autoDraw)
+
+	if lastDrawTime.Before(weekStart) {
+		if autoDraw {
+			// run the draw
+			s.lotteryRunDraw(weekStart, now)
+		} else {
+			return UseItemResult{}, errors.New("the weekly draw has not started yet. wait for the auto-draw or ask an admin to trigger one")
+		}
+	}
+
+	// Now check if this user won
+	var entryID int
+	err := s.db.QueryRow(`SELECT id FROM lottery_entries WHERE week_start = $1 AND user_id = $2 AND claimed = false`, weekStart, userID.String()).Scan(&entryID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return UseItemResult{}, errors.New("you did not win the lottery this week. better luck next time!")
+		}
+		return UseItemResult{}, errors.New("could not check lottery status")
+	}
+
+	// Claim the prize
+	var jackpot int
+	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false`, weekStart).Scan(&jackpot)
+	totalEntries := jackpot
+	jackpot = totalEntries * 400
+
+	var winnerID string
+	_ = s.db.QueryRow(`SELECT COALESCE(last_winner_id, '') FROM lottery_config WHERE guild_id = 'global'`).Scan(&winnerID)
+
+	s.mu.Lock()
+	record := s.ensureRecord(userID, name)
+	record.Balance += jackpot
+	record.Earned += jackpot
+	record.LotteryWins++
+	record.UpdatedAt = now
+	s.save(record)
+	s.mu.Unlock()
+
+	_, _ = s.db.Exec(`UPDATE lottery_entries SET claimed = true WHERE id = $1`, entryID)
+	_, _ = s.db.Exec(`UPDATE lottery_config SET last_winner_id = $1 WHERE guild_id = 'global'`, userID.String())
+
+	return UseItemResult{
+		Record:      record.copy(),
+		ItemID:      "lottery_ticket",
+		ItemName:    "Lottery Ticket",
+		Used:        true,
+		Description: fmt.Sprintf("You won the weekly lottery! **%d Pulses** have been added to your balance.", jackpot),
+	}, nil
+}
+
+func (s *Store) LotteryToggleAutoDraw(enable bool) error {
+	_, err := s.db.Exec(`
+		INSERT INTO lottery_config (guild_id, auto_draw)
+		VALUES ('global', $1)
+		ON CONFLICT (guild_id) DO UPDATE SET auto_draw = $1
+	`, enable)
+	return err
+}
+
+func weekStartTime(now time.Time) time.Time {
+	// Calculate start of current week (Monday 00:00 UTC)
+	daysSinceMonday := int(now.Weekday()) - 1
+	if daysSinceMonday < 0 {
+		daysSinceMonday = 6
+	}
+	start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	start = start.AddDate(0, 0, -daysSinceMonday)
+	return start
+}
+
+func (s *Store) lotteryRunDraw(weekStart time.Time, now time.Time) {
+	var totalEntries int
+	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false`, weekStart).Scan(&totalEntries)
+	if totalEntries == 0 {
+		return
+	}
+
+	// Pick random entry
+	var userIDStr string
+	_ = s.db.QueryRow(`SELECT user_id FROM lottery_entries WHERE week_start = $1 AND claimed = false OFFSET floor(random() * $2) LIMIT 1`, weekStart, totalEntries).Scan(&userIDStr)
+
+	_, _ = s.db.Exec(`UPDATE lottery_config SET last_draw_time = $1, last_winner_id = $2 WHERE guild_id = 'global'`, now, userIDStr)
+}
+
+// StartLotteryAutoDraw starts a goroutine that checks weekly for auto-draw
+func (s *Store) StartLotteryAutoDraw(ctx context.Context) {
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				var autoDraw bool
+				_ = s.db.QueryRow(`SELECT COALESCE(auto_draw, true) FROM lottery_config WHERE guild_id = 'global'`).Scan(&autoDraw)
+				if !autoDraw {
+					continue
+				}
+				now := time.Now()
+				weekStart := weekStartTime(now)
+				var lastDrawTime time.Time
+				_ = s.db.QueryRow(`SELECT COALESCE(last_draw_time, 'epoch'::timestamptz) FROM lottery_config WHERE guild_id = 'global'`).Scan(&lastDrawTime)
+				if lastDrawTime.Before(weekStart) {
+					s.lotteryRunDraw(weekStart, now)
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
 }
 
 func (s *Store) GiftItem(senderID snowflake.ID, senderName string, receiverID snowflake.ID, receiverName string, itemID string, now time.Time) (GiftResult, error) {

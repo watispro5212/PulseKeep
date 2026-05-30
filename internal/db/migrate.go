@@ -48,6 +48,23 @@ func (db *Database) Migrate() {
 			quantity INTEGER NOT NULL DEFAULT 1,
 			UNIQUE(user_id, item_id)
 		)`,
+		`ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS xp_boost_expires TIMESTAMPTZ`,
+		`ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS treasure_map_active BOOLEAN NOT NULL DEFAULT false`,
+		`ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS blackjack_wins INTEGER NOT NULL DEFAULT 0`,
+		`ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS blackjack_losses INTEGER NOT NULL DEFAULT 0`,
+		`CREATE TABLE IF NOT EXISTS lottery_entries (
+			id SERIAL PRIMARY KEY,
+			user_id TEXT NOT NULL REFERENCES user_economy(user_id),
+			entry_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+			week_start TIMESTAMPTZ NOT NULL,
+			claimed BOOLEAN NOT NULL DEFAULT false
+		)`,
+		`CREATE TABLE IF NOT EXISTS lottery_config (
+			guild_id TEXT PRIMARY KEY,
+			auto_draw BOOLEAN NOT NULL DEFAULT true,
+			last_draw_time TIMESTAMPTZ,
+			last_winner_id TEXT
+		)`,
 		`CREATE TABLE IF NOT EXISTS guild_config (
 			guild_id TEXT PRIMARY KEY,
 			automod_enabled BOOLEAN NOT NULL DEFAULT true,
