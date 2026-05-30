@@ -33,6 +33,7 @@ type Bot struct {
 	cfgStore        *automod.ConfigStore
 	webhookURL      string
 	guildCount      int64
+	economyStore    *economy.Store
 }
 
 func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL string) *Bot {
@@ -44,11 +45,12 @@ func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL strin
 	var statusCancel context.CancelFunc
 
 	b := &Bot{
-		cache:      memCache,
-		db:         database,
-		automod:    am,
-		cfgStore:   cfgStore,
-		webhookURL: webhookURL,
+		cache:        memCache,
+		db:           database,
+		automod:      am,
+		cfgStore:     cfgStore,
+		webhookURL:   webhookURL,
+		economyStore: economyStore,
 	}
 
 	client, err := disgo.New(token,
@@ -285,11 +287,18 @@ func (b *Bot) GetConfigStore() *automod.ConfigStore {
 	return b.cfgStore
 }
 
+func (b *Bot) GetEconomyStore() *economy.Store {
+	return b.economyStore
+}
+
 func (b *Bot) Start(ctx context.Context) error {
 	return b.Client.OpenGateway(ctx)
 }
 
 func (b *Bot) Stop(ctx context.Context) {
+	if b.economyStore != nil {
+		b.economyStore.FlushAll()
+	}
 	b.sendWebhook(discord.NewEmbed().
 		WithTitle("PulseKeep went offline").
 		WithDescription(fmt.Sprintf("Bot process is shutting down. Served **%d** guilds.", b.guildCount)).

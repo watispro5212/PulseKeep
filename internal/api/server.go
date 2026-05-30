@@ -72,14 +72,18 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		goVersion := runtime.Version()
 
 		c.JSON(http.StatusOK, gin.H{
-		"status":      "ok",
-		"database":    dbStatus,
-		"uptime":      formatDuration(time.Since(startedAt)),
-		"bot_uptime":  formatUptime(memCache),
-		"go_version":  goVersion,
-		"servers":     getGuildCount(memCache),
-		"users":       getUserCount(memCache),
-		"commands":    getCommandsRun(memCache),
+		"status":       "ok",
+		"version":      "v6.0.0",
+		"database":     dbStatus,
+		"uptime":       formatDuration(time.Since(startedAt)),
+		"bot_uptime":   formatUptime(memCache),
+		"go_version":   goVersion,
+		"servers":      getGuildCount(memCache),
+		"users":        getUserCount(memCache),
+		"commands":     getCommandsRun(memCache),
+		"memory_mb":    getMemoryMB(),
+		"goroutines":   runtime.NumGoroutine(),
+		"cpu_cores":    runtime.NumCPU(),
 	})
 	})
 
@@ -87,15 +91,23 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		servers := getGuildCount(memCache)
 		users := getUserCount(memCache)
 		cmds := getCommandsRun(memCache)
+		goVersion := runtime.Version()
+		botUptime := formatUptime(memCache)
+		if botUptime == "N/A" {
+			botUptime = "offline"
+		}
 
 		c.JSON(http.StatusOK, gin.H{
-"bot": "PulseKeep v6.0.0",
+			"version":      "v6.0.0",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
 			"commands_run": cmds,
 			"uptime":       formatDuration(time.Since(startedAt)),
-			"go_version":   runtime.Version(),
+			"bot_uptime":   botUptime,
+			"go_version":   goVersion,
+			"memory_mb":    getMemoryMB(),
+			"goroutines":   runtime.NumGoroutine(),
 			"features": []string{
 				"moderation",
 				"tickets",
@@ -388,6 +400,12 @@ func getCommandsRun(memCache *cache.Cache) int64 {
 		return 0
 	}
 	return memCache.CommandsRun.Load()
+}
+
+func getMemoryMB() float64 {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	return float64(m.Alloc) / 1024 / 1024
 }
 
 func formatUptime(memCache *cache.Cache) string {

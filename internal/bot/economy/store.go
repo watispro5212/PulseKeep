@@ -41,6 +41,7 @@ type Store struct {
 	mu      sync.RWMutex
 	records map[snowflake.ID]*Record
 	db      *sql.DB
+	done    chan struct{}
 }
 
 type Record struct {
@@ -498,19 +499,25 @@ func (s *Store) save(record *Record) {
 		log.Printf("Failed to save economy record for user %s: %v", record.UserID, err)
 	}
 
-	_, err = s.db.ExecContext(ctx, `DELETE FROM user_inventory WHERE user_id = $1`, record.UserID.String())
-	if err != nil {
-		log.Printf("Failed to clear inventory for user %s: %v", record.UserID, err)
-		return
-	}
 	for _, entry := range record.Inventory {
 		_, err = s.db.ExecContext(ctx, `
 			INSERT INTO user_inventory (user_id, item_id, item_name, quantity)
 			VALUES ($1, $2, $3, $4)
+			ON CONFLICT (user_id, item_id) DO UPDATE SET
+				item_name = EXCLUDED.item_name,
+				quantity = EXCLUDED.quantity
 		`, record.UserID.String(), entry.ItemID, entry.ItemName, entry.Quantity)
 		if err != nil {
 			log.Printf("Failed to save inventory item %s for user %s: %v", entry.ItemID, record.UserID, err)
 		}
+	}
+}
+
+func (s *Store) FlushAll() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, record := range s.records {
+		s.save(record)
 	}
 }
 

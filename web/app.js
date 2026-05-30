@@ -5,10 +5,14 @@ const statEls = {
     users: document.getElementById('stat-users'),
     commands: document.getElementById('stat-commands'),
     uptime: document.getElementById('stat-uptime'),
+    botUptime: document.getElementById('stat-bot-uptime'),
     apiSpeed: document.getElementById('api-speed'),
     database: document.getElementById('stat-database'),
     version: document.getElementById('stat-version'),
     runtime: document.getElementById('stat-runtime'),
+    memory: document.getElementById('stat-memory'),
+    goroutines: document.getElementById('stat-goroutines'),
+    cpu: document.getElementById('stat-cpu'),
 };
 
 function setStatus(state, message) {
@@ -21,13 +25,8 @@ function setStatus(state, message) {
         dot.className = 'pulse-dot';
         if (state) dot.classList.add(state);
     }
-    // Preserve status-badge class (used on status page), add/remove state class
     badge.classList.remove('online', 'offline', 'degraded');
     if (state) badge.classList.add(state);
-    if (state === 'online') {
-        const icon = badge.querySelector('i');
-        if (icon) icon.className = 'fa-solid fa-circle-check';
-    }
 }
 
 function animateCounter(element, target) {
@@ -49,14 +48,13 @@ function animateCounter(element, target) {
 }
 
 function setFallback() {
-    if (statEls.servers) statEls.servers.textContent = '--';
-    if (statEls.users) statEls.users.textContent = '--';
-    if (statEls.commands) statEls.commands.textContent = '--';
-    if (statEls.uptime) statEls.uptime.textContent = '--';
-    if (statEls.apiSpeed) statEls.apiSpeed.textContent = '-- ms';
+    Object.values(statEls).forEach(el => {
+        if (el) el.textContent = '--';
+    });
     if (statEls.database) statEls.database.textContent = 'Unknown';
-    if (statEls.version) statEls.version.textContent = '--';
     if (statEls.runtime) statEls.runtime.textContent = 'Offline';
+    if (statEls.apiSpeed) statEls.apiSpeed.textContent = '-- ms';
+    if (statEls.memory) statEls.memory.textContent = '-- MB';
 }
 
 async function timedFetch(path, options = {}) {
@@ -82,7 +80,10 @@ async function fetchHealth() {
         const data = await response.json();
         if (statEls.apiSpeed) statEls.apiSpeed.textContent = `${duration} ms`;
         if (statEls.database) statEls.database.textContent = data.database === 'ok' ? 'Healthy' : data.database || 'Unknown';
-        if (statEls.runtime) statEls.runtime.textContent = data.uptime || 'Online';
+        if (statEls.runtime) statEls.runtime.textContent = data.go_version || 'Online';
+        if (statEls.memory) statEls.memory.textContent = data.memory_mb ? `${Math.round(data.memory_mb)} MB` : '-- MB';
+        if (statEls.goroutines) statEls.goroutines.textContent = data.goroutines != null ? data.goroutines.toLocaleString() : '--';
+        if (statEls.cpu) statEls.cpu.textContent = data.cpu_cores != null ? String(data.cpu_cores) : '--';
         return data;
     } catch (error) {
         if (statEls.apiSpeed) statEls.apiSpeed.textContent = '-- ms';
@@ -107,7 +108,11 @@ async function fetchStats() {
         animateCounter(statEls.users, data.users);
         animateCounter(statEls.commands, data.commands_run);
         if (statEls.uptime) statEls.uptime.textContent = data.uptime || '--';
-        if (statEls.version) statEls.version.textContent = (data.bot || '').replace(/^PulseKeep\s*/i, '') || 'v5.9.1';
+        if (statEls.botUptime) statEls.botUptime.textContent = data.bot_uptime || '--';
+        if (statEls.version) statEls.version.textContent = data.version || 'v6.0.0';
+        if (statEls.memory && data.memory_mb) statEls.memory.textContent = `${Math.round(data.memory_mb)} MB`;
+        if (statEls.goroutines && data.goroutines != null) statEls.goroutines.textContent = data.goroutines.toLocaleString();
+        if (statEls.cpu && data.cpu_cores != null) statEls.cpu.textContent = String(data.cpu_cores);
 
         const healthOk = await fetchHealth().catch(() => null);
 

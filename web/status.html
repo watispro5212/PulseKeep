@@ -79,7 +79,7 @@
                     </article>
                     <article class="metric-card scroll-reveal">
                         <div class="metric-icon"><i class="fa-solid fa-bolt"></i></div>
-                        <span class="stat-label">Commands run</span>
+                        <span class="stat-label">Commands</span>
                         <strong class="stat-value" id="stat-commands">--</strong>
                     </article>
                     <article class="metric-card scroll-reveal">
@@ -88,8 +88,13 @@
                         <strong class="stat-value" id="stat-uptime">--</strong>
                     </article>
                     <article class="metric-card scroll-reveal">
+                        <div class="metric-icon"><i class="fa-solid fa-robot"></i></div>
+                        <span class="stat-label">Bot uptime</span>
+                        <strong class="stat-value" id="stat-bot-uptime">--</strong>
+                    </article>
+                    <article class="metric-card scroll-reveal">
                         <div class="metric-icon"><i class="fa-solid fa-gauge-high"></i></div>
-                        <span class="stat-label">API response</span>
+                        <span class="stat-label">Response</span>
                         <strong class="stat-value" id="api-speed">-- ms</strong>
                     </article>
                     <article class="metric-card scroll-reveal">
@@ -103,9 +108,24 @@
                         <strong class="stat-value" id="stat-version">--</strong>
                     </article>
                     <article class="metric-card scroll-reveal">
+                        <div class="metric-icon"><i class="fa-solid fa-microchip"></i></div>
+                        <span class="stat-label">Memory</span>
+                        <strong class="stat-value" id="stat-memory">-- MB</strong>
+                    </article>
+                    <article class="metric-card scroll-reveal">
+                        <div class="metric-icon"><i class="fa-solid fa-tasks"></i></div>
+                        <span class="stat-label">Goroutines</span>
+                        <strong class="stat-value" id="stat-goroutines">--</strong>
+                    </article>
+                    <article class="metric-card scroll-reveal">
                         <div class="metric-icon"><i class="fa-solid fa-cloud"></i></div>
                         <span class="stat-label">Runtime</span>
                         <strong class="stat-value" id="stat-runtime" style="color: var(--green);">Checking...</strong>
+                    </article>
+                    <article class="metric-card scroll-reveal">
+                        <div class="metric-icon"><i class="fa-solid fa-cubes"></i></div>
+                        <span class="stat-label">CPU cores</span>
+                        <strong class="stat-value" id="stat-cpu">--</strong>
                     </article>
                 </div>
             </div>
@@ -133,4 +153,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-
