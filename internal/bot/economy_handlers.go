@@ -3,6 +3,7 @@ package bot
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -574,7 +575,7 @@ func gambleMessage(store *economy.Store, e *events.ApplicationCommandInteraction
 			WithColor(color).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Record", fmt.Sprintf("%dW / %dL", result.Record.GambleWins, result.Record.GambleTotal-result.Record.GambleWins), true).
-			AddField("Tip", "Roll 60+ to win! 85+ = 2x, 95+ = 4x, 100 = 10x!", false).
+			AddField("Tip", "Roll 40+ to win! 85+ = 2x, 95+ = 4x, 100 = 10x!", false).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
 			WithFooterText(fmt.Sprintf("PulseKeep v6.0.0 · Gambling · %s", outcome)))
 }
@@ -637,31 +638,39 @@ func blackjackMessage(store *economy.Store, e *events.ApplicationCommandInteract
 		}
 	}
 
-	result, err := store.Blackjack(e.User().ID, e.User().EffectiveName(), wager, difficulty, time.Now())
+	result, err := store.BlackjackStart(e.User().ID, e.User().EffectiveName(), wager, difficulty, time.Now())
 	if err != nil {
 		return economyCommandError(err)
 	}
 
+	if result.GameOver {
+		return finalBlackjackMessage(e, result.Player, result.Dealer, result.Wager, result.Won, result.Payout, result.Push, result.Natural, result.Record.Balance, result.Record.BlackjackWins, result.Record.BlackjackLosses, difficulty)
+	}
+
+	return ongoingBlackjackMessage(e, result.Player, result.Dealer, result.Wager, result.Record.Balance, difficulty)
+}
+
+func finalBlackjackMessage(e *events.ApplicationCommandInteractionCreate, player, dealer economy.BlackjackHand, wager int, won bool, payout int, push bool, natural bool, balance, wins, losses int, difficulty economy.BlackjackDifficulty) discord.MessageCreate {
 	title := "♠️ Blackjack — Lost"
 	color := commands.ModerationMenuAccent
 	outcome := "lost"
-	payoutStr := fmt.Sprintf("lost **%s Pulses**", formatPulses(result.Wager))
+	payoutStr := fmt.Sprintf("lost **%s Pulses**", formatPulses(wager))
 
-	if result.Push {
+	if push {
 		title = "♠️ Blackjack — Push"
 		color = commands.UtilityMenuAccent
 		outcome = "pushed"
 		payoutStr = "it's a tie! Your wager is returned."
-	} else if result.Natural {
+	} else if natural {
 		title = "♠️ Blackjack — Natural 21! 🎉"
 		color = commands.EconomyMenuAccent
 		outcome = "won"
-		payoutStr = fmt.Sprintf("won **%s Pulses** (3:2)", formatPulses(result.Payout))
-	} else if result.Won {
+		payoutStr = fmt.Sprintf("won **%s Pulses** (3:2)", formatPulses(payout))
+	} else if won {
 		title = "♠️ Blackjack — Won!"
 		color = commands.EconomyMenuAccent
 		outcome = "won"
-		payoutStr = fmt.Sprintf("won **%s Pulses**", formatPulses(result.Payout))
+		payoutStr = fmt.Sprintf("won **%s Pulses**", formatPulses(payout))
 	}
 
 	difficultyName := "Normal"
@@ -678,13 +687,121 @@ func blackjackMessage(store *economy.Store, e *events.ApplicationCommandInteract
 		AddEmbeds(discord.NewEmbed().
 			WithTitle(title).
 			WithDescription(fmt.Sprintf("%s %s playing against **%s** CPU!", e.User().String(), payoutStr, difficultyName)).
-			AddField("Your hand", fmt.Sprintf("`%s` = **%d**", result.Player.CardStr, result.Player.Value), true).
+			AddField("Your hand", fmt.Sprintf("`%s` = **%d**", player.CardStr, player.Value), true).
+			AddField("Dealer hand", fmt.Sprintf("`%s` = **%d**", dealer.CardStr, dealer.Value), true).
+			AddField("New balance", formatPulses(balance), true).
+			AddField("Record", fmt.Sprintf("%dW / %dL", wins, losses), true).
+			WithColor(color).
+			WithThumbnail(e.User().EffectiveAvatarURL()).
+			WithFooterText(fmt.Sprintf("PulseKeep v6.0.0 · Blackjack · %s", outcome)))
+}
+
+func ongoingBlackjackMessage(e *events.ApplicationCommandInteractionCreate, player, dealer economy.BlackjackHand, wager int, balance int, difficulty economy.BlackjackDifficulty) discord.MessageCreate {
+	difficultyName := "Normal"
+	switch difficulty {
+	case economy.BlackjackEasy:
+		difficultyName = "Easy"
+	case economy.BlackjackHard:
+		difficultyName = "Hard"
+	case economy.BlackjackExpert:
+		difficultyName = "Expert"
+	}
+
+	return discord.NewMessageCreate().
+		AddEmbeds(discord.NewEmbed().
+			WithTitle("♠️ Blackjack — In Progress").
+			WithDescription(fmt.Sprintf("%s is playing against **%s** CPU! Hit or stand?", e.User().String(), difficultyName)).
+			AddField("Your hand", fmt.Sprintf("`%s` = **%d**", player.CardStr, player.Value), true).
+			AddField("Dealer showing", fmt.Sprintf("`%s`", dealer.CardStr), true).
+			AddField("Wager", formatPulses(wager), true).
+			AddField("Balance", formatPulses(balance), true).
+			WithColor(commands.EconomyMenuAccent).
+			WithThumbnail(e.User().EffectiveAvatarURL()).
+			WithFooterText("PulseKeep v6.0.0 · Blackjack · Choose an action below")).
+		AddActionRow(
+			discord.NewPrimaryButton("Hit", economy.BlackjackHitCustomID),
+			discord.NewDangerButton("Stand", economy.BlackjackStandCustomID),
+		)
+}
+
+func handleBlackjackButton(store *economy.Store, e *events.ComponentInteractionCreate) {
+	customID := e.Data.CustomID()
+	userID := e.User().ID
+
+	var result economy.BlackjackTurnResult
+	var err error
+
+	switch customID {
+	case economy.BlackjackHitCustomID:
+		result, err = store.BlackjackHit(userID, time.Now())
+	case economy.BlackjackStandCustomID:
+		result, err = store.BlackjackStand(userID, time.Now())
+	}
+
+	if err != nil {
+		if err2 := e.UpdateMessage(discord.NewMessageUpdate().WithContent("Error: " + err.Error())); err2 != nil {
+			log.Printf("failed to update blackjack message: %v", err2)
+		}
+		return
+	}
+
+	if result.GameOver {
+		title := "♠️ Blackjack — Lost"
+		color := commands.ModerationMenuAccent
+		outcome := "lost"
+		payoutStr := fmt.Sprintf("lost **%s Pulses**", formatPulses(result.Wager))
+
+		if result.Push {
+			title = "♠️ Blackjack — Push"
+			color = commands.UtilityMenuAccent
+			outcome = "pushed"
+			payoutStr = "it's a tie! Your wager is returned."
+		} else if result.Won {
+			title = "♠️ Blackjack — Won!"
+			color = commands.EconomyMenuAccent
+			outcome = "won"
+			payoutStr = fmt.Sprintf("won **%s Pulses**", formatPulses(result.Payout))
+		}
+
+		embed := discord.NewEmbed().
+			WithTitle(title).
+			WithDescription(fmt.Sprintf("You %s!", payoutStr)).
+			AddField("Your hand", fmt.Sprintf("`%s` = **%d**", result.Player.CardStr, result.Player.Value), true)
+		if result.Player.Bust {
+			embed = embed.AddField("Result", "**Bust!** You went over 21.", true)
+		}
+		embed = embed.
 			AddField("Dealer hand", fmt.Sprintf("`%s` = **%d**", result.Dealer.CardStr, result.Dealer.Value), true).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Record", fmt.Sprintf("%dW / %dL", result.Record.BlackjackWins, result.Record.BlackjackLosses), true).
 			WithColor(color).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
-			WithFooterText(fmt.Sprintf("PulseKeep v6.0.0 · Blackjack · %s", outcome)))
+			WithFooterText(fmt.Sprintf("PulseKeep v6.0.0 · Blackjack · %s", outcome))
+
+		if err := e.UpdateMessage(discord.NewMessageUpdate().WithEmbeds(embed).WithComponents()); err != nil {
+			log.Printf("failed to update blackjack message: %v", err)
+		}
+	} else {
+		embed := discord.NewEmbed().
+			WithTitle("♠️ Blackjack — In Progress").
+			WithDescription("Hit or stand?").
+			AddField("Your hand", fmt.Sprintf("`%s` = **%d**", result.Player.CardStr, result.Player.Value), true).
+			AddField("Dealer showing", fmt.Sprintf("`%s`", result.Dealer.CardStr), true).
+			AddField("Wager", formatPulses(result.Wager), true).
+			AddField("Balance", formatPulses(result.Record.Balance), true).
+			WithColor(commands.EconomyMenuAccent).
+			WithThumbnail(e.User().EffectiveAvatarURL()).
+			WithFooterText("PulseKeep v6.0.0 · Blackjack · Choose an action below")
+
+		if err := e.UpdateMessage(discord.NewMessageUpdate().
+			WithEmbeds(embed).
+			AddActionRow(
+				discord.NewPrimaryButton("Hit", economy.BlackjackHitCustomID),
+				discord.NewDangerButton("Stand", economy.BlackjackStandCustomID),
+			)); err != nil {
+			log.Printf("failed to update blackjack message: %v", err)
+		}
+	}
 }
 
 func lotteryMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {

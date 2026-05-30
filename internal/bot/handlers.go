@@ -243,6 +243,8 @@ func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL strin
 				handleTicketOpen(e)
 			case commands.TicketCloseButtonID:
 				handleTicketClose(e)
+			case economy.BlackjackHitCustomID, economy.BlackjackStandCustomID:
+				handleBlackjackButton(economyStore, e)
 			}
 		}),
 		bot.WithEventListenerFunc(func(e *events.Ready) {
@@ -470,6 +472,14 @@ func announceMessage(e *events.ApplicationCommandInteractionCreate, data discord
 		body = "No announcement message was provided."
 	}
 
+	if ping && (e.Member().Permissions&discord.PermissionMentionEveryone) == 0 {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Missing permission").
+				WithDescription("You need **Mention Everyone** permission to ping @everyone.").
+				WithColor(commands.ModerationMenuAccent))
+	}
+
 	user := e.User()
 	msg := discord.NewMessageCreate().
 		AddEmbeds(discord.NewEmbed().
@@ -539,6 +549,10 @@ func handleKick(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 		return discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a member to kick.")
 	}
 
+	if user.ID == e.User().ID {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("You cannot kick yourself.")
+	}
+
 	reason := data.String("reason")
 	if reason == "" {
 		reason = "No reason provided"
@@ -571,6 +585,10 @@ func handleBan(e *events.ApplicationCommandInteractionCreate, data discord.Slash
 	user, ok := data.OptUser("user")
 	if !ok {
 		return discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a member to ban.")
+	}
+
+	if user.ID == e.User().ID {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("You cannot ban yourself.")
 	}
 
 	reason := data.String("reason")

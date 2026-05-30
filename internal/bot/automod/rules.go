@@ -10,6 +10,7 @@ import (
 )
 
 var urlRegex = regexp.MustCompile(`https?://[^\s]+`)
+var mentionRegex = regexp.MustCompile(`<@!?\d+>|<@&\d+>|@everyone|@here`)
 
 type spamTracker struct {
 	mu     sync.Mutex
@@ -117,10 +118,7 @@ func (e *Engine) checkSpam(guildID, userID string, cfg *GuildConfig) RuleResult 
 
 	if len(recent) > cfg.SpamMaxMessages {
 		action := parseAction(cfg.SpamAction)
-		if action == ActionWarn {
-			action = ActionTimeout
-		}
-		return RuleResult{Action: action, Reason: "Spam detected", DeleteMsg: true}
+		return RuleResult{Action: action, Reason: "Spam detected", DeleteMsg: action == ActionDelete || action == ActionTimeout}
 	}
 
 	return RuleResult{}
@@ -140,13 +138,7 @@ func parseAction(s string) ActionType {
 }
 
 func countMentions(s string) int {
-	count := 0
-	for i := 0; i < len(s); i++ {
-		if s[i] == '@' {
-			count++
-		}
-	}
-	return count
+	return len(mentionRegex.FindAllString(s, -1))
 }
 
 func checkBannedWords(content, bannedStr string) string {
@@ -159,7 +151,11 @@ func checkBannedWords(content, bannedStr string) string {
 		if word == "" {
 			continue
 		}
-		if strings.Contains(lower, strings.ToLower(word)) {
+		re, err := regexp.Compile(`\b` + regexp.QuoteMeta(strings.ToLower(word)) + `\b`)
+		if err != nil {
+			continue
+		}
+		if re.MatchString(lower) {
 			return word
 		}
 	}

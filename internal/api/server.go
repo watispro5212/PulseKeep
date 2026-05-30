@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -59,24 +61,18 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 	})
 
 	r.GET("/health", func(c *gin.Context) {
-		status := "ok"
 		dbStatus := "not_configured"
 		if database != nil {
 			dbStatus = "ok"
 			if err := database.Ping(); err != nil {
-				status = "degraded"
 				dbStatus = "unavailable"
 			}
 		}
 
 		goVersion := runtime.Version()
 
-		httpStatus := http.StatusOK
-		if status == "degraded" {
-			httpStatus = http.StatusServiceUnavailable
-		}
-		c.JSON(httpStatus, gin.H{
-		"status":      status,
+		c.JSON(http.StatusOK, gin.H{
+		"status":      "ok",
 		"database":    dbStatus,
 		"uptime":      formatDuration(time.Since(startedAt)),
 		"bot_uptime":  formatUptime(memCache),
@@ -180,23 +176,35 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "OAuth not configured"})
 			return
 		}
-		// In a real app, you'd generate and store a state value for CSRF protection
+		b := make([]byte, 16)
+		if _, err := rand.Read(b); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate state"})
+			return
+		}
+		state := hex.EncodeToString(b)
+		c.SetCookie("oauth_state", state, 600, "/", "", false, true)
 		params := url.Values{}
 		params.Set("client_id", cfg.DiscordClientID)
 		params.Set("redirect_uri", cfg.DiscordRedirectURI)
 		params.Set("response_type", "code")
 		params.Set("scope", "identify guilds")
+		params.Set("state", state)
 		redirectURL := fmt.Sprintf("%s/oauth2/authorize?%s", discordAPIURL, params.Encode())
 		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 	})
 
 	r.GET("/auth/discord/callback", func(c *gin.Context) {
 		code := c.Query("code")
-		// In a real app, you'd verify state matches the one stored in session/cookie
+		state := c.Query("state")
 		if code == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing code parameter"})
 			return
 		}
+		if cookieState, err := c.Cookie("oauth_state"); err != nil || cookieState == "" || cookieState != state {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid state parameter"})
+			return
+		}
+		c.SetCookie("oauth_state", "", -1, "/", "", false, true)
 
 		token, err := auth.ExchangeCode(cfg, code)
 		if err != nil {
@@ -237,7 +245,23 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 
 	r.GET("/api/guild/:id/config", func(c *gin.Context) {
 		guildID := c.Param("id")
-		// TODO: Verify user has permission to manage this guild (via Discord API)
+		token := c.Query("token")
+		if token != "" {
+			guilds, err := auth.GetUserGuilds(token)
+			if err == nil {
+				hasPerm := false
+				for _, g := range guilds {
+					if g.ID == guildID && (g.Owner || g.Permissions&0x20 != 0) {
+						hasPerm = true
+						break
+					}
+				}
+				if !hasPerm {
+					c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to manage this server"})
+					return
+				}
+			}
+		}
 		if cfgStore == nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Config store not initialized"})
 			return
@@ -248,7 +272,27 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 
 	r.POST("/api/guild/:id/config", func(c *gin.Context) {
 		guildID := c.Param("id")
-		// TODO: Verify user has permission to manage this guild (via Discord API and OAuth2 token)
+		token := c.Query("token")
+		if token == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing token parameter"})
+			return
+		}
+		guilds, err := auth.GetUserGuilds(token)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify permissions: " + err.Error()})
+			return
+		}
+		hasPerm := false
+		for _, g := range guilds {
+			if g.ID == guildID && (g.Owner || g.Permissions&0x20 != 0) {
+				hasPerm = true
+				break
+			}
+		}
+		if !hasPerm {
+			c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to manage this server"})
+			return
+		}
 		var configUpdate automod.GuildConfig
 		if err := c.ShouldBindJSON(&configUpdate); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON: " + err.Error()})

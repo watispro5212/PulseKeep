@@ -1,7 +1,9 @@
 package economy
 
 import (
+	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/disgoorg/snowflake/v2"
@@ -14,24 +16,309 @@ const (
 	BlackjackNormal BlackjackDifficulty = 17
 	BlackjackHard   BlackjackDifficulty = 19
 	BlackjackExpert BlackjackDifficulty = 20
+
+	BlackjackHitCustomID   = "pulsekeep:bj:hit"
+	BlackjackStandCustomID = "pulsekeep:bj:stand"
 )
 
+const blackjackTimeout = 90 * time.Second
+
 type BlackjackHand struct {
-	Cards    []int
-	Value    int
-	Bust     bool
-	CardStr  string
+	Cards   []int
+	Value   int
+	Bust    bool
+	CardStr string
 }
 
-type BlackjackResult struct {
+type PendingBJ struct {
+	mu         sync.Mutex
+	UserID     snowflake.ID
+	Name       string
+	Player     []int
+	Dealer     []int
+	Wager      int
+	Difficulty BlackjackDifficulty
+	StartedAt  time.Time
+}
+
+type BlackjackStartResult struct {
+	Record Record
+	Player BlackjackHand
+	Dealer BlackjackHand
+	Wager  int
+	Won    bool
+	Payout int
+	Push   bool
+	Natural bool
+	GameOver bool
+}
+
+type BlackjackTurnResult struct {
 	Record  Record
+	Player  BlackjackHand
+	Dealer  BlackjackHand
 	Wager   int
 	Won     bool
 	Payout  int
-	Player  BlackjackHand
-	Dealer  BlackjackHand
-	Natural bool
 	Push    bool
+	GameOver bool
+}
+
+var (
+	bjGamesMu sync.RWMutex
+	bjGames   = make(map[snowflake.ID]*PendingBJ)
+)
+
+func init() {
+	go bjCleanupLoop()
+}
+
+func bjCleanupLoop() {
+	for {
+		time.Sleep(30 * time.Second)
+		bjGamesMu.Lock()
+		now := time.Now()
+		for id, g := range bjGames {
+			g.mu.Lock()
+			if now.Sub(g.StartedAt) > blackjackTimeout {
+				g.mu.Unlock()
+				delete(bjGames, id)
+			} else {
+				g.mu.Unlock()
+			}
+		}
+		bjGamesMu.Unlock()
+	}
+}
+
+func (s *Store) BlackjackStart(userID snowflake.ID, name string, wager int, difficulty BlackjackDifficulty, now time.Time) (BlackjackStartResult, error) {
+	if wager <= 0 {
+		return BlackjackStartResult{}, ErrInvalidAmount
+	}
+
+	s.mu.Lock()
+	record := s.ensureRecord(userID, name)
+	if record.Balance < wager {
+		s.mu.Unlock()
+		return BlackjackStartResult{}, ErrInsufficientFund
+	}
+
+	// Check for existing pending game
+	bjGamesMu.RLock()
+	existing := bjGames[userID]
+	bjGamesMu.RUnlock()
+	if existing != nil {
+		s.mu.Unlock()
+		return BlackjackStartResult{}, fmt.Errorf("you already have an active blackjack game")
+	}
+
+	record.Balance -= wager
+	record.Spent += wager
+	record.UpdatedAt = now
+	s.save(record)
+	s.mu.Unlock()
+
+	pCards := []int{drawCard(), drawCard()}
+	dCards := []int{drawCard(), drawCard()}
+	pVal := handValue(pCards)
+	dVal := handValue(dCards)
+
+	// Check for naturals
+	if pVal == 21 && dVal == 21 {
+		record.Balance += wager
+		s.mu.Lock()
+		s.save(record)
+		s.mu.Unlock()
+		return BlackjackStartResult{
+			Record:   record.copy(),
+			Player:   BlackjackHand{Cards: pCards, Value: pVal, CardStr: cardsStr(pCards)},
+			Dealer:   BlackjackHand{Cards: dCards, Value: dVal, CardStr: cardsStr(dCards)},
+			Wager:    wager,
+			Push:     true,
+			GameOver: true,
+		}, nil
+	}
+
+	if pVal == 21 {
+		payout := wager * 3 / 2
+		record.Balance += payout
+		record.Earned += payout
+		record.BlackjackWins++
+		s.mu.Lock()
+		s.save(record)
+		s.mu.Unlock()
+		return BlackjackStartResult{
+			Record:   record.copy(),
+			Player:   BlackjackHand{Cards: pCards, Value: pVal, CardStr: cardsStr(pCards)},
+			Dealer:   BlackjackHand{Cards: dCards, Value: dVal, CardStr: cardsStr(dCards)},
+			Wager:    wager,
+			Won:      true,
+			Payout:   payout,
+			Natural:  true,
+			GameOver: true,
+		}, nil
+	}
+
+	if dVal == 21 {
+		record.BlackjackLosses++
+		s.mu.Lock()
+		s.save(record)
+		s.mu.Unlock()
+		return BlackjackStartResult{
+			Record:   record.copy(),
+			Player:   BlackjackHand{Cards: pCards, Value: pVal, CardStr: cardsStr(pCards)},
+			Dealer:   BlackjackHand{Cards: dCards, Value: dVal, CardStr: cardsStr(dCards)},
+			Wager:    wager,
+			Payout:   -wager,
+			GameOver: true,
+		}, nil
+	}
+
+	// Store pending game
+	pending := &PendingBJ{
+		UserID:     userID,
+		Name:       name,
+		Player:     pCards,
+		Dealer:     dCards,
+		Wager:      wager,
+		Difficulty: difficulty,
+		StartedAt:  now,
+	}
+
+	bjGamesMu.Lock()
+	bjGames[userID] = pending
+	bjGamesMu.Unlock()
+
+	return BlackjackStartResult{
+		Record:   record.copy(),
+		Player:   BlackjackHand{Cards: pCards, Value: pVal, CardStr: cardsStr(pCards)},
+		Dealer:   BlackjackHand{Cards: dCards[:1], Value: handValue(dCards[:1]), CardStr: cardsStr(dCards[:1]) + " ??"},
+		Wager:    wager,
+		GameOver: false,
+	}, nil
+}
+
+func (s *Store) BlackjackHit(userID snowflake.ID, now time.Time) (BlackjackTurnResult, error) {
+	bjGamesMu.Lock()
+	pending := bjGames[userID]
+	if pending == nil {
+		bjGamesMu.Unlock()
+		return BlackjackTurnResult{}, fmt.Errorf("you don't have an active blackjack game")
+	}
+	delete(bjGames, userID)
+	bjGamesMu.Unlock()
+
+	pending.mu.Lock()
+	defer pending.mu.Unlock()
+
+	pending.Player = append(pending.Player, drawCard())
+	pVal := handValue(pending.Player)
+
+	if pVal > 21 {
+		// Bust
+		s.mu.Lock()
+		record := s.ensureRecord(userID, pending.Name)
+		record.BlackjackLosses++
+		record.UpdatedAt = now
+		s.save(record)
+		s.mu.Unlock()
+
+		return BlackjackTurnResult{
+			Record:   record.copy(),
+			Player:   BlackjackHand{Cards: pending.Player, Value: pVal, Bust: true, CardStr: cardsStr(pending.Player)},
+			Dealer:   BlackjackHand{Cards: pending.Dealer, Value: handValue(pending.Dealer), CardStr: cardsStr(pending.Dealer)},
+			Wager:    pending.Wager,
+			Payout:   -pending.Wager,
+			GameOver: true,
+		}, nil
+	}
+
+	// Store back for next move
+	bjGamesMu.Lock()
+	bjGames[userID] = pending
+	bjGamesMu.Unlock()
+
+	return BlackjackTurnResult{
+		Record:   s.getRecord(userID),
+		Player:   BlackjackHand{Cards: pending.Player, Value: pVal, CardStr: cardsStr(pending.Player)},
+		Dealer:   BlackjackHand{Cards: pending.Dealer[:1], Value: handValue(pending.Dealer[:1]), CardStr: cardsStr(pending.Dealer[:1]) + " ??"},
+		Wager:    pending.Wager,
+		GameOver: false,
+	}, nil
+}
+
+func (s *Store) BlackjackStand(userID snowflake.ID, now time.Time) (BlackjackTurnResult, error) {
+	bjGamesMu.Lock()
+	pending := bjGames[userID]
+	if pending == nil {
+		bjGamesMu.Unlock()
+		return BlackjackTurnResult{}, fmt.Errorf("you don't have an active blackjack game")
+	}
+	delete(bjGames, userID)
+	bjGamesMu.Unlock()
+
+	pending.mu.Lock()
+	defer pending.mu.Unlock()
+
+	// Dealer plays
+	standVal := int(pending.Difficulty)
+	for handValue(pending.Dealer) < standVal {
+		pending.Dealer = append(pending.Dealer, drawCard())
+	}
+
+	pVal := handValue(pending.Player)
+	dVal := handValue(pending.Dealer)
+
+	s.mu.Lock()
+	record := s.ensureRecord(userID, pending.Name)
+	var payout int
+	won := false
+	push := false
+
+	if dVal > 21 {
+		payout = pending.Wager
+		won = true
+		record.Balance += payout
+		record.Earned += payout
+		record.BlackjackWins++
+	} else if pVal > dVal {
+		payout = pending.Wager
+		won = true
+		record.Balance += payout
+		record.Earned += payout
+		record.BlackjackWins++
+	} else if pVal == dVal {
+		payout = pending.Wager
+		record.Balance += payout
+		push = true
+	} else {
+		payout = -pending.Wager
+		record.BlackjackLosses++
+	}
+	record.UpdatedAt = now
+	s.save(record)
+	s.mu.Unlock()
+
+	return BlackjackTurnResult{
+		Record:   record.copy(),
+		Player:   BlackjackHand{Cards: pending.Player, Value: pVal, CardStr: cardsStr(pending.Player)},
+		Dealer:   BlackjackHand{Cards: pending.Dealer, Value: dVal, CardStr: cardsStr(pending.Dealer)},
+		Wager:    pending.Wager,
+		Won:      won,
+		Payout:   payout,
+		Push:     push,
+		GameOver: true,
+	}, nil
+}
+
+func (s *Store) getRecord(userID snowflake.ID) Record {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	record := s.records[userID]
+	if record != nil {
+		return *record
+	}
+	return Record{}
 }
 
 func drawCard() int {
@@ -85,85 +372,4 @@ func cardsStr(cards []int) string {
 		s += cardStr(c)
 	}
 	return s
-}
-
-func (s *Store) Blackjack(userID snowflake.ID, name string, wager int, difficulty BlackjackDifficulty, now time.Time) (BlackjackResult, error) {
-	if wager <= 0 {
-		return BlackjackResult{}, ErrInvalidAmount
-	}
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	record := s.ensureRecord(userID, name)
-	if record.Balance < wager {
-		return BlackjackResult{}, ErrInsufficientFund
-	}
-
-	playerCards := []int{drawCard(), drawCard()}
-	playerValue := handValue(playerCards)
-
-	dealerCards := []int{drawCard(), drawCard()}
-	dealerValue := handValue(dealerCards)
-
-	won := false
-	push := false
-	natural := false
-	netPayout := 0
-
-	// check for natural 21s
-	if playerValue == 21 && dealerValue == 21 {
-		push = true
-	} else if playerValue == 21 {
-		won = true
-		natural = true
-	} else if dealerValue == 21 {
-		// dealer natural, player loses
-		netPayout = -wager
-	} else {
-		standValue := int(difficulty)
-		for dealerValue < standValue {
-			dealerCards = append(dealerCards, drawCard())
-			dealerValue = handValue(dealerCards)
-		}
-
-		if dealerValue > 21 {
-			won = true
-			netPayout = wager
-		} else if playerValue > dealerValue {
-			won = true
-			netPayout = wager
-		} else if playerValue == dealerValue {
-			push = true
-		} else {
-			netPayout = -wager
-		}
-	}
-
-	if natural {
-		netPayout = wager * 3 / 2
-	}
-
-	if netPayout > 0 {
-		record.Balance += netPayout
-		record.Earned += netPayout
-		record.BlackjackWins++
-	} else if netPayout < 0 {
-		record.Balance += netPayout
-		record.Spent += -netPayout
-		record.BlackjackLosses++
-	}
-	record.UpdatedAt = now
-	s.save(record)
-
-	return BlackjackResult{
-		Record:  record.copy(),
-		Wager:   wager,
-		Won:     won,
-		Payout:  netPayout,
-		Player:  BlackjackHand{Cards: playerCards, Value: playerValue, CardStr: cardsStr(playerCards)},
-		Dealer:  BlackjackHand{Cards: dealerCards, Value: dealerValue, CardStr: cardsStr(dealerCards)},
-		Natural: natural,
-		Push:    push,
-	}, nil
 }

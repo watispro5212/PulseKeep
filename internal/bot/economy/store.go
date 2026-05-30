@@ -667,19 +667,21 @@ func (s *Store) Coinflip(userID snowflake.ID, name string, side string, wager in
 	}
 
 	result := "heads"
-	if hasPickaxe {
-		if rand.Intn(20) >= 13 { // 65% tails instead of 50%
-			result = "tails"
-		}
-	} else {
+	if rand.Intn(2) == 1 {
+		result = "tails"
+	}
+	won := side == result
+
+	// Lucky Pickaxe: on loss, reroll once (effective ~57.5% win rate)
+	if !won && hasPickaxe {
+		result = "heads"
 		if rand.Intn(2) == 1 {
 			result = "tails"
 		}
+		won = side == result
 	}
 
-	won := side == result
-
-	// consume lucky pickaxe on use
+	// consume lucky pickaxe if used
 	if hasPickaxe {
 		entry := record.Inventory["lucky_pickaxe"]
 		entry.Quantity--
@@ -778,8 +780,6 @@ func (s *Store) Rob(userID snowflake.ID, name string, targetID snowflake.ID, tar
 		}
 		record.Balance -= fine
 		record.Spent += fine
-		target.Balance += fine
-		target.Earned += fine
 		record.RobLosses++
 		record.LastRob = now
 		record.UpdatedAt = now
@@ -820,8 +820,6 @@ func (s *Store) Rob(userID snowflake.ID, name string, targetID snowflake.ID, tar
 		}
 		record.Balance -= fine
 		record.Spent += fine
-		target.Balance += fine
-		target.Earned += fine
 		record.RobLosses++
 	}
 
@@ -888,8 +886,8 @@ func (s *Store) Buy(userID snowflake.ID, name string, itemID string, now time.Ti
 }
 
 func (s *Store) Inventory(userID snowflake.ID, name string) []InventoryEntry {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	record := s.ensureRecord(userID, name)
 	if record.Inventory == nil {
@@ -1153,7 +1151,7 @@ func (s *Store) Gamble(userID snowflake.ID, name string, wager int, now time.Tim
 	case roll >= 85:
 		won = true
 		multiplier = 2
-	case roll >= 60:
+	case roll >= 40:
 		won = true
 		multiplier = 1
 	default:
@@ -1219,7 +1217,6 @@ func (s *Store) Sell(userID snowflake.ID, name string, itemID string, now time.T
 	}
 
 	record.Balance += refund
-	record.Earned += refund
 	record.UpdatedAt = now
 	s.save(record)
 
@@ -1243,15 +1240,14 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 	if !ok {
 		return UseItemResult{}, ErrNotOwned
 	}
-
-	entry.Quantity--
-	if entry.Quantity <= 0 {
-		delete(record.Inventory, itemID)
-	}
 	record.UpdatedAt = now
 
 	switch itemID {
 	case "shield_token":
+		entry.Quantity--
+		if entry.Quantity <= 0 {
+			delete(record.Inventory, itemID)
+		}
 		s.save(record)
 		return UseItemResult{
 			Record:      record.copy(),
@@ -1261,6 +1257,10 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 			Description: "You activate the Shield Token. You are now protected from the next robbery attempt!",
 		}, nil
 	case "health_potion":
+		entry.Quantity--
+		if entry.Quantity <= 0 {
+			delete(record.Inventory, itemID)
+		}
 		heal := 625
 		record.Balance += heal
 		record.Earned += heal
@@ -1273,6 +1273,10 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 			Description: fmt.Sprintf("You drink the potion and recover **%d Pulses** (25%% refund).", heal),
 		}, nil
 	case "xp_boost":
+		entry.Quantity--
+		if entry.Quantity <= 0 {
+			delete(record.Inventory, itemID)
+		}
 		record.XpBoostExpires = now.Add(1 * time.Hour)
 		s.save(record)
 		return UseItemResult{
@@ -1283,8 +1287,16 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 			Description: "You activate the XP Boost! Your next `/work` earnings will be doubled for the next hour.",
 		}, nil
 	case "golden_watch":
-		if !record.LastDaily.IsZero() {
-			record.LastDaily = record.LastDaily.Add(-4 * time.Hour)
+		if record.LastDaily.IsZero() {
+			return UseItemResult{}, ErrCannotUse
+		}
+		entry.Quantity--
+		if entry.Quantity <= 0 {
+			delete(record.Inventory, itemID)
+		}
+		adjusted := record.LastDaily.Add(-4 * time.Hour)
+		if adjusted.After(time.Time{}) {
+			record.LastDaily = adjusted
 		}
 		s.save(record)
 		return UseItemResult{
@@ -1295,6 +1307,10 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 			Description: "You wind the Golden Watch! Your `/daily` cooldown has been reduced by 4 hours.",
 		}, nil
 	case "treasure_map":
+		entry.Quantity--
+		if entry.Quantity <= 0 {
+			delete(record.Inventory, itemID)
+		}
 		record.TreasureMapActive = true
 		s.save(record)
 		return UseItemResult{
@@ -1305,6 +1321,10 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 			Description: "You unfurl the Treasure Map! Your next `/fish` or `/mine` payout will be **doubled**.",
 		}, nil
 	case "lottery_ticket":
+		entry.Quantity--
+		if entry.Quantity <= 0 {
+			delete(record.Inventory, itemID)
+		}
 		s.LotteryBuyTicket(userID, now)
 		s.save(record)
 		return UseItemResult{
@@ -1315,13 +1335,6 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 			Description: "You enter the weekly lottery draw! You will be automatically entered into the next drawing. Use `/lottery` to check the status.",
 		}, nil
 	default:
-		// restore the item since it can't be used
-		if entry.Quantity <= 0 {
-			record.Inventory[itemID] = entry
-			entry.Quantity++
-		} else {
-			entry.Quantity++
-		}
 		return UseItemResult{}, ErrCannotUse
 	}
 }
