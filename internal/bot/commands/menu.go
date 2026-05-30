@@ -13,9 +13,10 @@ const (
 	TicketCloseButtonID = "pulsekeep:tickets:close"
 	CommandMenuAccent    = 0x4f8cff
 	ModerationMenuAccent = 0xfb7185
-	UtilityMenuAccent    = 0x38d5c8
-	EconomyMenuAccent    = 0xf5bd4f
-	TicketMenuAccent     = 0x36d399
+	UtilityMenuAccent    = 0x4f8cff
+	EconomyMenuAccent    = 0x36d399
+	EconomyWarningAccent = 0xf5bd4f
+	TicketMenuAccent     = 0x38d5c8
 	PulseKeepVersion     = "v6.0.0"
 )
 
@@ -145,7 +146,7 @@ func TicketPanelMessage(ephemeral bool) discord.MessageCreate {
 			WithColor(TicketMenuAccent).
 			AddField("Best for", "Setup help, deploy problems, moderation appeals, billing questions, and bug reports.", false).
 			AddField("Before opening", "Share the affected server, the command or feature involved, and any error text you saw.", false).
-			WithFooterText("PulseKeep v6.0.0 · Support Tickets")).
+			WithFooterText("PulseKeep " + PulseKeepVersion + " · Support Tickets")).
 		AddActionRow(discord.NewSuccessButton("Open Ticket", TicketPanelButtonID))
 }
 
@@ -163,7 +164,7 @@ func menuEmbed(selectedCategoryID string) discord.Embed {
 		WithTitle(fmt.Sprintf("PulseKeep Commands - %s", category.Label)).
 		WithDescription(category.Description).
 		WithColor(category.Color).
-		WithFooterText("PulseKeep v6.0.0 · Use the menu below")
+		WithFooterText("PulseKeep " + PulseKeepVersion + " · Use the menu below")
 
 	for _, command := range category.Commands {
 		embed = embed.AddField(command.Name, fmt.Sprintf("%s\n`%s`", command.Description, command.Usage), false)
@@ -183,7 +184,7 @@ func overviewEmbed() discord.Embed {
 		WithDescription(strings.TrimSpace(summary.String())).
 		WithColor(CommandMenuAccent).
 		AddField("How to use it", "Pick a category from the dropdown or press Open Ticket for support. Staff-only actions still rely on Discord permissions.", false).
-		WithFooterText("PulseKeep v6.0.0 · Command browser")
+		WithFooterText("PulseKeep " + PulseKeepVersion + " · Command browser")
 }
 
 func categorySelect(selectedCategoryID string) discord.StringSelectMenuComponent {

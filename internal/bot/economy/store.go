@@ -75,9 +75,10 @@ type Record struct {
 	LotteryWins     int
 	WeeklyStreak      int
 	LastWeekly        time.Time
-	XpBoostExpires    time.Time
-	TreasureMapActive bool
-	Inventory         map[string]*InventoryEntry
+	XpBoostExpires     time.Time
+	TreasureMapActive  bool
+	GambleBoostActive  bool
+	Inventory          map[string]*InventoryEntry
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
@@ -128,19 +129,22 @@ type ShopItem struct {
 	Name        string
 	Description string
 	Price       int
+	Usable      bool
+	Sellable    bool
+	OneTimeUse  bool
 }
 
 var ShopItems = []ShopItem{
-	{ID: "lucky_pickaxe", Name: "Lucky Pickaxe", Description: "+15% coinflip win chance", Price: 5000},
-	{ID: "xp_boost", Name: "XP Boost", Description: "2x work earnings for 1 hour", Price: 3000},
-	{ID: "golden_watch", Name: "Golden Watch", Description: "Reduces daily cooldown by 4 hours", Price: 8000},
-	{ID: "shield_token", Name: "Shield Token", Description: "Protects you from one robbery (consumed on use)", Price: 6000},
-	{ID: "lucky_clover", Name: "Lucky Clover", Description: "+1 slot reel position", Price: 4000},
-	{ID: "fishing_rod", Name: "Fishing Rod", Description: "Unlocks the /fish command", Price: 1500},
-	{ID: "iron_pickaxe", Name: "Iron Pickaxe", Description: "Unlocks the /mine command", Price: 2000},
-	{ID: "lottery_ticket", Name: "Lottery Ticket", Description: "Entry for the server lottery draw", Price: 500},
-	{ID: "health_potion", Name: "Health Potion", Description: "Restores 625 Pulses when used (25% refund of purchase price)", Price: 2500},
-	{ID: "treasure_map", Name: "Treasure Map", Description: "Doubles your next /fish or /mine payout", Price: 7000},
+	{ID: "lucky_pickaxe", Name: "Lucky Pickaxe", Description: "+15% coinflip win chance", Price: 5000, Sellable: true},
+	{ID: "xp_boost", Name: "XP Boost", Description: "Doubles work earnings for 30 minutes", Price: 10000, Usable: true, Sellable: false},
+	{ID: "golden_watch", Name: "Golden Watch", Description: "Reduces daily cooldown by 4 hours", Price: 8000, Usable: true, Sellable: true},
+	{ID: "shield_token", Name: "Shield Token", Description: "Protects you from one robbery (consumed on use)", Price: 6000, Usable: true, Sellable: true},
+	{ID: "lucky_clover", Name: "Lucky Clover", Description: "Boosts your next gamble win chance by 10%", Price: 5000, Usable: true, Sellable: true},
+	{ID: "fishing_rod", Name: "Fishing Rod", Description: "Unlocks the /fish command", Price: 1500, Sellable: true},
+	{ID: "iron_pickaxe", Name: "Iron Pickaxe", Description: "Unlocks the /mine command", Price: 2000, Sellable: true},
+	{ID: "lottery_ticket", Name: "Lottery Ticket", Description: "Entry for the server lottery draw", Price: 500, Usable: true, Sellable: true},
+	{ID: "health_potion", Name: "Health Potion", Description: "Restores 625 Pulses when used (25% refund of purchase price)", Price: 2500, Usable: true, Sellable: true},
+	{ID: "treasure_map", Name: "Treasure Map", Description: "Reveals a hidden treasure worth 2500–7500 Pulses", Price: 3000, Usable: true, Sellable: false, OneTimeUse: true},
 }
 
 type BuyResult struct {
@@ -232,6 +236,7 @@ type GambleResult struct {
 	Roll          int
 	Wager         int
 	Won           bool
+	Push          bool
 	Multiplier    int
 	NextAvailable time.Time
 	OnCooldown    bool
@@ -289,7 +294,7 @@ func (s *Store) load() {
 		       mine_mined, mine_total, gamble_wins, gamble_total,
 		       blackjack_wins, blackjack_losses,
 		       lottery_wins, weekly_streak, last_weekly,
-		       xp_boost_expires, treasure_map_active,
+		       xp_boost_expires, treasure_map_active, gamble_boost_active,
 		       created_at, updated_at
 		FROM user_economy`)
 	if err != nil {
@@ -310,6 +315,7 @@ func (s *Store) load() {
 			lastFish, lastMine, lastGamble, lastInterest, lastWeekly            *time.Time
 			xpBoostExpires                                                      *time.Time
 			treasureMapActive                                                   bool
+			gambleBoostActive                                                   bool
 			createdAt, updatedAt                                                time.Time
 		)
 		err := rows.Scan(&userIDStr, &name, &balance, &earned, &spent,
@@ -321,7 +327,7 @@ func (s *Store) load() {
 			&mineMined, &mineTotal, &gambleWins, &gambleTotal,
 			&blackjackWins, &blackjackLosses,
 			&lotteryWins, &weeklyStreak, &lastWeekly,
-			&xpBoostExpires, &treasureMapActive, &createdAt, &updatedAt)
+			&xpBoostExpires, &treasureMapActive, &gambleBoostActive, &createdAt, &updatedAt)
 		if err != nil {
 			log.Printf("Failed to scan economy record: %v", err)
 			continue
@@ -356,8 +362,9 @@ func (s *Store) load() {
 			BlackjackWins:     blackjackWins,
 			BlackjackLosses:   blackjackLosses,
 			LotteryWins:       lotteryWins,
-			TreasureMapActive: treasureMapActive,
-			Inventory:         make(map[string]*InventoryEntry),
+			TreasureMapActive:  treasureMapActive,
+			GambleBoostActive:  gambleBoostActive,
+			Inventory:          make(map[string]*InventoryEntry),
 			CreatedAt:         createdAt,
 			UpdatedAt:         updatedAt,
 		}
@@ -445,11 +452,11 @@ func (s *Store) save(record *Record) {
 			mine_mined, mine_total, gamble_wins, gamble_total,
 			blackjack_wins, blackjack_losses,
 			lottery_wins, weekly_streak, last_weekly,
-			xp_boost_expires, treasure_map_active,
+			xp_boost_expires, treasure_map_active, gamble_boost_active,
 			created_at, updated_at
 		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,
 		          $14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,
-		          $30,$31,$32,$33,$34,$35,$36)
+		          $30,$31,$32,$33,$34,$35,$36,$37)
 		ON CONFLICT (user_id) DO UPDATE SET
 			name = EXCLUDED.name,
 			balance = EXCLUDED.balance,
@@ -482,6 +489,7 @@ func (s *Store) save(record *Record) {
 			last_weekly = EXCLUDED.last_weekly,
 			xp_boost_expires = EXCLUDED.xp_boost_expires,
 			treasure_map_active = EXCLUDED.treasure_map_active,
+			gamble_boost_active = EXCLUDED.gamble_boost_active,
 			updated_at = EXCLUDED.updated_at
 	`, record.UserID.String(), record.Name, record.Balance, record.Earned, record.Spent,
 		record.DailyStreak,
@@ -493,7 +501,7 @@ func (s *Store) save(record *Record) {
 		record.MineMined, record.MineTotal, record.GambleWins, record.GambleTotal,
 		record.BlackjackWins, record.BlackjackLosses,
 		record.LotteryWins, record.WeeklyStreak, nullTime(record.LastWeekly),
-		nullTime(record.XpBoostExpires), record.TreasureMapActive,
+		nullTime(record.XpBoostExpires), record.TreasureMapActive, record.GambleBoostActive,
 		record.CreatedAt, record.UpdatedAt)
 	if err != nil {
 		log.Printf("Failed to save economy record for user %s: %v", record.UserID, err)
@@ -588,6 +596,22 @@ func (s *Store) Work(userID snowflake.ID, name string, now time.Time) WorkResult
 		"organized the command center",
 		"cleaned up deploy notes",
 		"tested the economy sandbox",
+		"coded a new PulseKeep feature",
+		"debugged a tricky race condition",
+		"optimized slow database queries",
+		"wrote unit tests for the economy",
+		"refactored legacy command handlers",
+		"updated the slash command registry",
+		"monitored server performance metrics",
+		"responded to community feedback",
+		"balanced gambling win rates",
+		"designed new fish and ore types",
+		"rewrote the ticket dispatch system",
+		"audited permission checks across guilds",
+		"improved embed formatting across the board",
+		"reviewed and merged open pull requests",
+		"ran a security audit on command inputs",
+		"drafted the PulseKeep changelog update",
 	}
 	reward := 90 + rand.Intn(161)
 	job := jobs[rand.Intn(len(jobs))]
@@ -800,7 +824,7 @@ func (s *Store) Rob(userID snowflake.ID, name string, targetID snowflake.ID, tar
 		}, nil
 	}
 
-	success := rand.Intn(100) < 40
+	success := rand.Intn(100) < 45
 	var stolen int
 	var fine int
 
@@ -923,27 +947,10 @@ func (s *Store) Slots(userID snowflake.ID, name string, wager int, now time.Time
 
 	symbols := []string{"🍒", "🍋", "🍊", "🍇", "💎", "7️⃣", "⭐"}
 
-	// check for Lucky Clover — shifts each reel +1 position
-	hasClover := false
-	if record.Inventory != nil {
-		if _, ok := record.Inventory["lucky_clover"]; ok {
-			hasClover = true
-		}
-	}
-
-	reels := [3]string{}
-	if hasClover {
-		reels = [3]string{
-			symbols[(rand.Intn(len(symbols))+1)%len(symbols)],
-			symbols[(rand.Intn(len(symbols))+1)%len(symbols)],
-			symbols[(rand.Intn(len(symbols))+1)%len(symbols)],
-		}
-	} else {
-		reels = [3]string{
-			symbols[rand.Intn(len(symbols))],
-			symbols[rand.Intn(len(symbols))],
-			symbols[rand.Intn(len(symbols))],
-		}
+	reels := [3]string{
+		symbols[rand.Intn(len(symbols))],
+		symbols[rand.Intn(len(symbols))],
+		symbols[rand.Intn(len(symbols))],
 	}
 
 	var multiplier int
@@ -968,6 +975,11 @@ func (s *Store) Slots(userID snowflake.ID, name string, wager int, now time.Time
 	} else if reels[0] == reels[1] || reels[1] == reels[2] || reels[0] == reels[2] {
 		won = true
 		multiplier = 1
+	} else if rand.Intn(100) < 10 {
+		// Small chance to nudge into a pair
+		reels[2] = reels[1]
+		won = true
+		multiplier = 1
 	}
 
 	if won {
@@ -979,15 +991,6 @@ func (s *Store) Slots(userID snowflake.ID, name string, wager int, now time.Time
 		record.Balance -= wager
 		record.Spent += wager
 		record.SlotLosses++
-	}
-
-	// consume lucky clover on use
-	if hasClover {
-		entry := record.Inventory["lucky_clover"]
-		entry.Quantity--
-		if entry.Quantity <= 0 {
-			delete(record.Inventory, "lucky_clover")
-		}
 	}
 
 	record.UpdatedAt = now
@@ -1037,6 +1040,10 @@ func (s *Store) Fish(userID snowflake.ID, name string, now time.Time) FishResult
 	}
 
 	idx := rand.Intn(len(FishTable))
+	// 15% chance to reroll if junk — slightly better rare rates
+	if idx >= 10 && rand.Intn(100) < 15 {
+		idx = rand.Intn(len(FishTable) - 3)
+	}
 	fish := FishTable[idx]
 	reward := fish.MinPay + rand.Intn(fish.MaxPay-fish.MinPay+1)
 
@@ -1098,6 +1105,10 @@ func (s *Store) Mine(userID snowflake.ID, name string, now time.Time) MineResult
 	}
 
 	idx := rand.Intn(len(OreTable))
+	// 15% chance to reroll if junk — slightly better rare rates
+	if idx >= 10 && rand.Intn(100) < 15 {
+		idx = rand.Intn(len(OreTable) - 3)
+	}
 	ore := OreTable[idx]
 	reward := ore.MinPay + rand.Intn(ore.MaxPay-ore.MinPay+1)
 
@@ -1146,7 +1157,14 @@ func (s *Store) Gamble(userID snowflake.ID, name string, wager int, now time.Tim
 
 	roll := 1 + rand.Intn(100)
 	var won bool
+	var push bool
 	multiplier := 0
+
+	// Lucky Clover — boost win chance by 10%
+	hasCloverBoost := record.GambleBoostActive
+	if hasCloverBoost {
+		record.GambleBoostActive = false
+	}
 
 	switch {
 	case roll == 100:
@@ -1158,11 +1176,34 @@ func (s *Store) Gamble(userID snowflake.ID, name string, wager int, now time.Tim
 	case roll >= 85:
 		won = true
 		multiplier = 2
-	case roll >= 40:
+	case roll >= 46:
 		won = true
 		multiplier = 1
+	case roll >= 36:
+		push = true
+		multiplier = 0
 	default:
-		won = false
+		// lose on ≤35 — Lucky Clover gives a second chance
+		if hasCloverBoost {
+			roll = 1 + rand.Intn(100)
+			switch {
+			case roll == 100:
+				won = true
+				multiplier = 10
+			case roll >= 95:
+				won = true
+				multiplier = 4
+			case roll >= 85:
+				won = true
+				multiplier = 2
+			case roll >= 46:
+				won = true
+				multiplier = 1
+			case roll >= 36:
+				push = true
+				multiplier = 0
+			}
+		}
 	}
 
 	if won {
@@ -1170,6 +1211,8 @@ func (s *Store) Gamble(userID snowflake.ID, name string, wager int, now time.Tim
 		record.Balance += payout
 		record.Earned += payout
 		record.GambleWins++
+	} else if push {
+		// wager returned, nothing changes
 	} else {
 		record.Balance -= wager
 		record.Spent += wager
@@ -1184,6 +1227,7 @@ func (s *Store) Gamble(userID snowflake.ID, name string, wager int, now time.Tim
 		Roll:          roll,
 		Wager:         wager,
 		Won:           won,
+		Push:          push,
 		Multiplier:    multiplier,
 		NextAvailable: now.Add(GambleCooldown),
 	}, nil
@@ -1205,11 +1249,17 @@ func (s *Store) Sell(userID snowflake.ID, name string, itemID string, now time.T
 
 	// find the shop item price
 	var shopPrice int
+	var sellable bool
 	for _, shopItem := range ShopItems {
 		if shopItem.ID == itemID {
 			shopPrice = shopItem.Price
+			sellable = shopItem.Sellable
 			break
 		}
+	}
+
+	if !sellable {
+		return SellResult{}, ErrCannotUse
 	}
 
 	refund := shopPrice * 60 / 100
@@ -1284,14 +1334,14 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 		if entry.Quantity <= 0 {
 			delete(record.Inventory, itemID)
 		}
-		record.XpBoostExpires = now.Add(1 * time.Hour)
+		record.XpBoostExpires = now.Add(30 * time.Minute)
 		s.save(record)
 		return UseItemResult{
 			Record:      record.copy(),
 			ItemID:      itemID,
 			ItemName:    "XP Boost",
 			Used:        true,
-			Description: "You activate the XP Boost! Your next `/work` earnings will be doubled for the next hour.",
+			Description: "You activate the XP Boost! Your work earnings are doubled for the next 30 minutes.",
 		}, nil
 	case "golden_watch":
 		if record.LastDaily.IsZero() {
@@ -1318,14 +1368,30 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 		if entry.Quantity <= 0 {
 			delete(record.Inventory, itemID)
 		}
-		record.TreasureMapActive = true
+		treasure := 2500 + rand.Intn(5001)
+		record.Balance += treasure
+		record.Earned += treasure
 		s.save(record)
 		return UseItemResult{
 			Record:      record.copy(),
 			ItemID:      itemID,
 			ItemName:    "Treasure Map",
 			Used:        true,
-			Description: "You unfurl the Treasure Map! Your next `/fish` or `/mine` payout will be **doubled**.",
+			Description: fmt.Sprintf("You follow the Treasure Map and uncover **%d Pulses** buried underground!", treasure),
+		}, nil
+	case "lucky_clover":
+		entry.Quantity--
+		if entry.Quantity <= 0 {
+			delete(record.Inventory, itemID)
+		}
+		record.GambleBoostActive = true
+		s.save(record)
+		return UseItemResult{
+			Record:      record.copy(),
+			ItemID:      itemID,
+			ItemName:    "Lucky Clover",
+			Used:        true,
+			Description: "You clutch the Lucky Clover! Your next `/gamble` loss will be rerolled.",
 		}, nil
 	case "lottery_ticket":
 		entry.Quantity--
@@ -1637,7 +1703,16 @@ func (s *Store) ensureRecord(userID snowflake.ID, name string) *Record {
 }
 
 func (r Record) NetWorth() int {
-	return r.Balance
+	val := r.Balance
+	for _, entry := range r.Inventory {
+		for _, shopItem := range ShopItems {
+			if shopItem.ID == entry.ItemID {
+				val += shopItem.Price * entry.Quantity
+				break
+			}
+		}
+	}
+	return val
 }
 
 func (r Record) FlipTotal() int {

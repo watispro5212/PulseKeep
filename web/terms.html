@@ -32,6 +32,7 @@
     <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
   </div>
   <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-close"><button id="mobile-nav-close-btn" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button></div>
     <a href="/">Home</a>
     <a href="/commands.html">Commands</a>
     <a href="/dashboard.html">Dashboard</a>
@@ -43,39 +44,53 @@
 
 <main>
   <section class="hero-small section-band">
+    <div class="hero-gradient"></div>
     <div class="container">
-      <span class="hero-eyebrow"><i class="fa-solid fa-file-lines" style="font-size:0.7rem"></i> Last updated May 30, 2026</span>
+      <span class="hero-eyebrow"><i class="fa-solid fa-file-lines"></i> Last updated May 30, 2026</span>
       <h1 class="hero-title">Terms of Service</h1>
     </div>
   </section>
 
-  <section class="container content-section legal-content">
-    <h2>1. Acceptance</h2>
-    <p>By inviting PulseKeep to your Discord server or using any of its features, you agree to these terms. If you do not agree, do not use the bot.</p>
+  <section class="legal-main">
+    <div class="legal-card">
+      <p class="legal-date">Effective: May 30, 2026</p>
+      <div class="legal-toc">
+        <a href="#section-1">Acceptance</a>
+        <a href="#section-2">Service Availability</a>
+        <a href="#section-3">Acceptable Use</a>
+        <a href="#section-4">Economy and Virtual Currency</a>
+        <a href="#section-5">Limitation of Liability</a>
+        <a href="#section-6">Changes to Terms</a>
+        <a href="#section-7">Contact</a>
+      </div>
 
-    <h2>2. Service Availability</h2>
-    <p>PulseKeep is provided as-is with no uptime guarantee. While we aim for high availability, downtime may occur due to maintenance, hosting platform issues, or unforeseen bugs.</p>
+      <h2 id="section-1">1. Acceptance</h2>
+      <p>By inviting PulseKeep to your Discord server or using any of its features, you agree to these terms. If you do not agree, do not use the bot.</p>
 
-    <h2>3. Acceptable Use</h2>
-    <p>You agree not to:</p>
-    <ul>
-      <li>Use PulseKeep for any unlawful purpose or in violation of Discord's Terms of Service</li>
-      <li>Attempt to bypass, exploit, or abuse any bot feature, including economy commands, moderation tools, or permission checks</li>
-      <li>Use automation or scripts to interact with PulseKeep outside of normal Discord usage patterns</li>
-      <li>Harass, spam, or otherwise disrupt other users through bot features</li>
-    </ul>
+      <h2 id="section-2">2. Service Availability</h2>
+      <p>PulseKeep is provided as-is with no uptime guarantee. While we aim for high availability, downtime may occur due to maintenance, hosting platform issues, or unforeseen bugs.</p>
 
-    <h2>4. Economy and Virtual Currency</h2>
-    <p>The PulseKeep economy uses virtual Pulses that have no real-world monetary value. All economy features are for entertainment purposes only. Pulse balances may be reset or adjusted at any time. No refunds or transfers of virtual currency will be provided.</p>
+      <h2 id="section-3">3. Acceptable Use</h2>
+      <p>You agree not to:</p>
+      <ul>
+        <li>Use PulseKeep for any unlawful purpose or in violation of Discord's Terms of Service</li>
+        <li>Attempt to bypass, exploit, or abuse any bot feature, including economy commands, moderation tools, or permission checks</li>
+        <li>Use automation or scripts to interact with PulseKeep outside of normal Discord usage patterns</li>
+        <li>Harass, spam, or otherwise disrupt other users through bot features</li>
+      </ul>
 
-    <h2>5. Limitation of Liability</h2>
-    <p>PulseKeep and its developers are not liable for any damages arising from the use or inability to use the bot, including data loss, server disruption, or economic loss from virtual currency manipulation or bugs.</p>
+      <h2 id="section-4">4. Economy and Virtual Currency</h2>
+      <p>The PulseKeep economy uses virtual Pulses that have no real-world monetary value. All economy features are for entertainment purposes only. Pulse balances may be reset or adjusted at any time. No refunds or transfers of virtual currency will be provided.</p>
 
-    <h2>6. Changes to Terms</h2>
-    <p>These terms may be updated at any time. Continued use after changes constitutes acceptance of the new terms. Users will be notified of material changes via the PulseKeep changelog or support server.</p>
+      <h2 id="section-5">5. Limitation of Liability</h2>
+      <p>PulseKeep and its developers are not liable for any damages arising from the use or inability to use the bot, including data loss, server disruption, or economic loss from virtual currency manipulation or bugs.</p>
 
-    <h2>7. Contact</h2>
-    <p>For questions about these terms, join the PulseKeep support Discord server or contact the developer directly.</p>
+      <h2 id="section-6">6. Changes to Terms</h2>
+      <p>These terms may be updated at any time. Continued use after changes constitutes acceptance of the new terms. Users will be notified of material changes via the PulseKeep changelog or support server.</p>
+
+      <h2 id="section-7">7. Contact</h2>
+      <p>For questions about these terms, join the PulseKeep support Discord server or contact the developer directly.</p>
+    </div>
   </section>
 </main>
 

@@ -909,7 +909,7 @@ func handleSlowmode(e *events.ApplicationCommandInteractionCreate, data discord.
 		discord.NewEmbed().
 			WithTitle("Slowmode updated").
 			WithDescription(msg).
-			WithColor(commands.UtilityMenuAccent).
+			WithColor(commands.ModerationMenuAccent).
 			WithFooterText("PulseKeep " + Version + " · Moderation").
 			WithTimestamp(time.Now()))
 }
@@ -942,7 +942,7 @@ func handleNick(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 			discord.NewEmbed().
 				WithTitle("Nickname reset").
 				WithDescription(fmt.Sprintf("Reset nickname for **%s**.", user.Tag())).
-				WithColor(commands.UtilityMenuAccent).
+				WithColor(commands.ModerationMenuAccent).
 				WithFooterText("PulseKeep " + Version + " · Moderation").
 				WithTimestamp(time.Now()))
 	}
@@ -951,7 +951,7 @@ func handleNick(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 		discord.NewEmbed().
 			WithTitle("Nickname changed").
 			WithDescription(fmt.Sprintf("Changed **%s**'s nickname to **%s**.", user.Tag(), nickname)).
-			WithColor(commands.UtilityMenuAccent).
+			WithColor(commands.ModerationMenuAccent).
 			WithFooterText("PulseKeep " + Version + " · Moderation").
 			WithTimestamp(time.Now()))
 }
@@ -991,7 +991,7 @@ func handleTimeout(e *events.ApplicationCommandInteractionCreate, data discord.S
 		discord.NewEmbed().
 			WithTitle("Member timed out").
 			WithDescription(fmt.Sprintf("**%s** has been timed out for **%d minutes**.", user.Tag(), duration)).
-			WithColor(commands.UtilityMenuAccent).
+			WithColor(commands.ModerationMenuAccent).
 			WithFooterText("PulseKeep " + Version + " · Moderation").
 			WithTimestamp(time.Now()))
 }
@@ -1077,7 +1077,7 @@ func handleLock(e *events.ApplicationCommandInteractionCreate) discord.MessageCr
 		discord.NewEmbed().
 			WithTitle("\U0001F512 Channel locked").
 			WithDescription(fmt.Sprintf("<#%s> has been locked.", channelID)).
-			WithColor(commands.UtilityMenuAccent).
+			WithColor(commands.ModerationMenuAccent).
 			WithFooterText("PulseKeep " + Version + " · Moderation").
 			WithTimestamp(time.Now()))
 }
@@ -1141,7 +1141,7 @@ func handleUnlock(e *events.ApplicationCommandInteractionCreate) discord.Message
 		discord.NewEmbed().
 			WithTitle("\U0001F513 Channel unlocked").
 			WithDescription(fmt.Sprintf("<#%s> has been unlocked.", channelID)).
-			WithColor(commands.UtilityMenuAccent).
+			WithColor(commands.ModerationMenuAccent).
 			WithFooterText("PulseKeep " + Version + " · Moderation").
 			WithTimestamp(time.Now()))
 }

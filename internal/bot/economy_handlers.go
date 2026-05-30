@@ -74,11 +74,25 @@ func balanceMessage(store *economy.Store, e *events.ApplicationCommandInteractio
 	record := store.Balance(user.ID, user.EffectiveName())
 	return discord.NewMessageCreate().
 		WithEphemeral(true).
-		AddEmbeds(economyEmbed("Pulse Balance", fmt.Sprintf("%s has **%s Pulses**.", user.String(), formatPulses(record.Balance))).
+		AddEmbeds(economyEmbed("Pulse Balance", fmt.Sprintf("💰 %s has **%s Pulses** in their wallet.", user.String(), formatPulses(record.Balance))).
 			AddField("Lifetime earned", formatPulses(record.Earned), true).
 			AddField("Lifetime spent", formatPulses(record.Spent), true).
 			AddField("Daily streak", fmt.Sprintf("%d day(s)", record.DailyStreak), true).
+			AddField("Commands", fmt.Sprintf("/pay, /profile, /shop, /daily, /work"), true).
 			WithThumbnail(user.EffectiveAvatarURL()))
+}
+
+func profileItemValue(items []economy.InventoryEntry) int {
+	total := 0
+	for _, item := range items {
+		for _, shopItem := range economy.ShopItems {
+			if shopItem.ID == item.ItemID {
+				total += shopItem.Price * item.Quantity
+				break
+			}
+		}
+	}
+	return total
 }
 
 func profileMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
@@ -88,12 +102,15 @@ func profileMessage(store *economy.Store, e *events.ApplicationCommandInteractio
 	}
 
 	record := store.Balance(user.ID, user.EffectiveName())
+	items := store.Inventory(user.ID, user.EffectiveName())
+	itemVal := profileItemValue(items)
+	netWorth := record.Balance + itemVal
 	return discord.NewMessageCreate().
 		WithEphemeral(true).
-		AddEmbeds(economyEmbed("Economy Profile", fmt.Sprintf("Economy snapshot for %s.", user.String())).
+		AddEmbeds(economyEmbed("Economy Profile", fmt.Sprintf("📊 Full economy breakdown for **%s**.", user.String())).
 			AddField("Wallet", formatPulses(record.Balance), true).
-			AddField("Earned", formatPulses(record.Earned), true).
-			AddField("Spent", formatPulses(record.Spent), true).
+			AddField("Net worth", fmt.Sprintf("%s (items: %s)", formatPulses(netWorth), formatPulses(itemVal)), true).
+			AddField("Earned / Spent", fmt.Sprintf("%s / %s", formatPulses(record.Earned), formatPulses(record.Spent)), true).
 			AddField("Daily streak", fmt.Sprintf("%d day(s)", record.DailyStreak), true).
 			AddField("Coinflip", fmt.Sprintf("%dW / %dL", record.FlipWins, record.FlipLosses), true).
 			AddField("Gambling", fmt.Sprintf("%dW / %dL", record.GambleWins, record.GambleTotal-record.GambleWins), true).
@@ -103,14 +120,37 @@ func profileMessage(store *economy.Store, e *events.ApplicationCommandInteractio
 			WithThumbnail(user.EffectiveAvatarURL()))
 }
 
+func dailyStreakMessage(streak int) string {
+	switch streak {
+	case 7:
+		return "🔥 **7-day streak!** You're on fire! Keep it going!"
+	case 14:
+		return "⭐ **14-day streak!** You're unstoppable! Two weeks strong!"
+	case 21:
+		return "💪 **21-day streak!** Three weeks of dedication!"
+	case 30:
+		return "🏆 **30-day streak!** A full month! Legendary dedication!"
+	case 50:
+		return "👑 **50-day streak!** Half a century! Absolutely royal!"
+	case 100:
+		return "💯 **100-day streak!** PulseKeep royalty! You're a legend!"
+	}
+	return ""
+}
+
 func dailyMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
 	result := store.Daily(e.User().ID, e.User().EffectiveName(), time.Now())
 	if result.OnCooldown {
 		return cooldownMessage("Daily reward already claimed", result.NextAvailable)
 	}
 
+	desc := fmt.Sprintf("☀️ %s claimed their daily reward of **%s Pulses**!", e.User().String(), formatPulses(result.Reward))
+	if milestone := dailyStreakMessage(result.Streak); milestone != "" {
+		desc += "\n\n" + milestone
+	}
+
 	return discord.NewMessageCreate().
-		AddEmbeds(economyEmbed("Daily Reward Claimed", fmt.Sprintf("%s claimed **%s Pulses**.", e.User().String(), formatPulses(result.Reward))).
+		AddEmbeds(economyEmbed("Daily Reward Claimed", desc).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Streak", fmt.Sprintf("%d day(s)", result.Streak), true).
 			AddField("Next claim", discordTimestamp(result.NextAvailable), true).
@@ -125,9 +165,9 @@ func workMessage(store *economy.Store, e *events.ApplicationCommandInteractionCr
 
 	return discord.NewMessageCreate().
 		AddEmbeds(economyEmbed("Shift Complete", fmt.Sprintf("%s %s and earned **%s Pulses**.", e.User().String(), result.Job, formatPulses(result.Reward))).
+			AddField("Pulses earned", formatPulses(result.Reward), true).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Next shift", discordTimestamp(result.NextAvailable), true).
-			AddField("Tip", "Use `/profile` to view your economy stats.", false).
 			WithThumbnail(e.User().EffectiveAvatarURL()))
 }
 
@@ -144,7 +184,7 @@ func payMessage(store *economy.Store, e *events.ApplicationCommandInteractionCre
 	}
 
 	return discord.NewMessageCreate().
-		AddEmbeds(economyEmbed("Payment Sent", fmt.Sprintf("%s sent **%s Pulses** to %s.", e.User().String(), formatPulses(result.Amount), recipient.String())).
+		AddEmbeds(economyEmbed("Payment Sent", fmt.Sprintf("💸 %s sent **%s Pulses** to %s.", e.User().String(), formatPulses(result.Amount), recipient.String())).
 			AddField("Your balance", formatPulses(result.Sender.Balance), true).
 			AddField("Recipient balance", formatPulses(result.Receiver.Balance), true).
 			WithThumbnail(recipient.EffectiveAvatarURL()))
@@ -174,7 +214,7 @@ func coinflipMessage(store *economy.Store, e *events.ApplicationCommandInteracti
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Record", fmt.Sprintf("%dW / %dL", result.Record.FlipWins, result.Record.FlipLosses), true).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
-			WithFooterText("PulseKeep v6.0.0 · Coinflip uses virtual Pulses only."))
+			WithFooterText("PulseKeep " + Version + " · Economy · Coinflip"))
 }
 
 func richMessage(store *economy.Store) discord.MessageCreate {
@@ -279,7 +319,7 @@ func robMessage(store *economy.Store, e *events.ApplicationCommandInteractionCre
 			AddField("Your balance", formatPulses(result.Record.Balance), true).
 			AddField("Next robbery", discordTimestamp(result.NextAvailable), true).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
-			WithFooterText("PulseKeep v6.0.0 · Better luck next time."))
+			WithFooterText("PulseKeep " + Version + " · Economy · Robbery"))
 }
 
 func shopMessage(store *economy.Store) discord.MessageCreate {
@@ -294,7 +334,7 @@ func shopMessage(store *economy.Store) discord.MessageCreate {
 		WithTitle("PulseKeep Shop").
 		WithColor(commands.EconomyMenuAccent).
 		WithDescription("Use `/buy item:<id>` to purchase an item.\nUse `/inventory` to view your items.").
-		WithFooterText("PulseKeep v6.0.0 · Economy").
+		WithFooterText("PulseKeep " + Version + " · Economy · Shop").
 		WithTimestamp(time.Now())
 
 	for _, item := range items {
@@ -330,7 +370,7 @@ func inventoryMessage(store *economy.Store, e *events.ApplicationCommandInteract
 	if len(items) == 0 {
 		return discord.NewMessageCreate().
 			WithEphemeral(true).
-			AddEmbeds(economyEmbed("Inventory", "You don't own any items yet. Use `/shop` to browse what's available."))
+			AddEmbeds(economyEmbed("🎒 Inventory", "You don't own any items yet. Use `/shop` to browse what's available."))
 	}
 
 	var rows strings.Builder
@@ -371,7 +411,7 @@ func slotsMessage(store *economy.Store, e *events.ApplicationCommandInteractionC
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Record", fmt.Sprintf("%dW / %dL", result.Record.SlotWins, result.Record.SlotLosses), true).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
-			WithFooterText("PulseKeep v6.0.0 · Slots"))
+			WithFooterText("PulseKeep " + Version + " · Economy · Slots"))
 }
 
 func economyCommandError(err error) discord.MessageCreate {
@@ -401,7 +441,7 @@ func economyError(title string, description string) discord.MessageCreate {
 		AddEmbeds(discord.NewEmbed().
 			WithTitle(title).
 			WithDescription(description).
-			WithFooterText("PulseKeep v6.0.0").
+			WithFooterText("PulseKeep " + Version + " · Economy Error").
 			WithColor(commands.ModerationMenuAccent).
 			WithTimestamp(time.Now()))
 }
@@ -412,8 +452,8 @@ func cooldownMessage(title string, nextAvailable time.Time) discord.MessageCreat
 		AddEmbeds(discord.NewEmbed().
 			WithTitle(title).
 			WithDescription(fmt.Sprintf("Try again %s.", discordTimestamp(nextAvailable))).
-			WithFooterText("PulseKeep v6.0.0 · Economy").
-			WithColor(commands.EconomyMenuAccent).
+			WithFooterText("PulseKeep " + Version + " · Economy").
+			WithColor(commands.EconomyWarningAccent).
 			AddField("Remaining", formatBotDuration(time.Until(nextAvailable)), true).
 			WithTimestamp(time.Now()))
 }
@@ -423,7 +463,7 @@ func economyEmbed(title string, description string) discord.Embed {
 		WithTitle(title).
 		WithDescription(description).
 		WithColor(commands.EconomyMenuAccent).
-		WithFooterText("PulseKeep v6.0.0 · Economy").
+		WithFooterText("PulseKeep " + Version + " · Economy").
 		WithTimestamp(time.Now())
 }
 
@@ -489,7 +529,7 @@ func fishMessage(store *economy.Store, e *events.ApplicationCommandInteractionCr
 			AddField("Fish caught", fmt.Sprintf("%d", result.Record.FishCaught), true).
 			AddField("Cast again", discordTimestamp(result.NextAvailable), true).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
-			WithFooterText("PulseKeep v6.0.0 · Fishing"))
+			WithFooterText("PulseKeep " + Version + " · Economy · Fishing"))
 }
 
 func mineMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
@@ -540,7 +580,7 @@ func mineMessage(store *economy.Store, e *events.ApplicationCommandInteractionCr
 			AddField("Ores mined", fmt.Sprintf("%d", result.Record.MineMined), true).
 			AddField("Mine again", discordTimestamp(result.NextAvailable), true).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
-			WithFooterText("PulseKeep v6.0.0 · Mining"))
+			WithFooterText("PulseKeep " + Version + " · Economy · Mining"))
 }
 
 func gambleMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
@@ -560,7 +600,12 @@ func gambleMessage(store *economy.Store, e *events.ApplicationCommandInteraction
 	outcome := "lost"
 	payoutStr := fmt.Sprintf("lost **%s Pulses**", formatPulses(result.Wager))
 
-	if result.Won {
+	if result.Push {
+		title = "Pulse Gamble — Push"
+		color = commands.EconomyWarningAccent
+		outcome = "pushed"
+		payoutStr = "pushed! Your wager is returned."
+	} else if result.Won {
 		payout := result.Wager * result.Multiplier
 		title = "Pulse Gamble — Won!"
 		color = commands.EconomyMenuAccent
@@ -575,9 +620,9 @@ func gambleMessage(store *economy.Store, e *events.ApplicationCommandInteraction
 			WithColor(color).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Record", fmt.Sprintf("%dW / %dL", result.Record.GambleWins, result.Record.GambleTotal-result.Record.GambleWins), true).
-			AddField("Tip", "Roll 40+ to win! 85+ = 2x, 95+ = 4x, 100 = 10x!", false).
+			AddField("Tip", "Roll 46+ to win! 36–45 = push (refund). 85+ = 2x, 95+ = 4x, 100 = 10x!", false).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
-			WithFooterText(fmt.Sprintf("PulseKeep v6.0.0 · Gambling · %s", outcome)))
+			WithFooterText(fmt.Sprintf("PulseKeep "+Version+" · Economy · Gambling · %s", outcome)))
 }
 
 func sellMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
@@ -693,7 +738,7 @@ func finalBlackjackMessage(e *events.ApplicationCommandInteractionCreate, player
 			AddField("Record", fmt.Sprintf("%dW / %dL", wins, losses), true).
 			WithColor(color).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
-			WithFooterText(fmt.Sprintf("PulseKeep v6.0.0 · Blackjack · %s", outcome)))
+			WithFooterText(fmt.Sprintf("PulseKeep "+Version+" · Economy · Blackjack · %s", outcome)))
 }
 
 func ongoingBlackjackMessage(e *events.ApplicationCommandInteractionCreate, player, dealer economy.BlackjackHand, wager int, balance int, difficulty economy.BlackjackDifficulty) discord.MessageCreate {
@@ -717,7 +762,7 @@ func ongoingBlackjackMessage(e *events.ApplicationCommandInteractionCreate, play
 			AddField("Balance", formatPulses(balance), true).
 			WithColor(commands.EconomyMenuAccent).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
-			WithFooterText("PulseKeep v6.0.0 · Blackjack · Choose an action below")).
+			WithFooterText("PulseKeep " + Version + " · Economy · Blackjack · Choose an action below")).
 		AddActionRow(
 			discord.NewPrimaryButton("Hit", economy.BlackjackHitCustomID),
 			discord.NewDangerButton("Stand", economy.BlackjackStandCustomID),
@@ -776,7 +821,7 @@ func handleBlackjackButton(store *economy.Store, e *events.ComponentInteractionC
 			AddField("Record", fmt.Sprintf("%dW / %dL", result.Record.BlackjackWins, result.Record.BlackjackLosses), true).
 			WithColor(color).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
-			WithFooterText(fmt.Sprintf("PulseKeep v6.0.0 · Blackjack · %s", outcome))
+			WithFooterText(fmt.Sprintf("PulseKeep "+Version+" · Economy · Blackjack · %s", outcome))
 
 		if err := e.UpdateMessage(discord.NewMessageUpdate().WithEmbeds(embed).WithComponents()); err != nil {
 			log.Printf("failed to update blackjack message: %v", err)
@@ -791,7 +836,7 @@ func handleBlackjackButton(store *economy.Store, e *events.ComponentInteractionC
 			AddField("Balance", formatPulses(result.Record.Balance), true).
 			WithColor(commands.EconomyMenuAccent).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
-			WithFooterText("PulseKeep v6.0.0 · Blackjack · Choose an action below")
+			WithFooterText("PulseKeep " + Version + " · Economy · Blackjack · Choose an action below")
 
 		if err := e.UpdateMessage(discord.NewMessageUpdate().
 			WithEmbeds(embed).

@@ -1,0 +1,2 @@
+# Proxy auth routes to Fly.io backend
+/auth/* https://pulsekeep.fly.dev/auth/:splat 200

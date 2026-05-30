@@ -12,27 +12,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="/style.css">
-<style>
-.command-bar{display:flex;flex-direction:column;gap:16px;margin-bottom:28px}
-.command-bar-top{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.command-bar-top .command-count{color:var(--muted);font-size:0.82rem;font-weight:600;white-space:nowrap}
-.command-filters{display:flex;gap:6px;flex-wrap:wrap}
-.filter-btn{padding:6px 14px;border:1px solid var(--border);border-radius:100px;background:rgba(255,255,255,0.03);color:var(--muted);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
-.filter-btn:hover{border-color:var(--border-hover);color:var(--text)}
-.filter-btn.active{border-color:var(--primary);background:rgba(79,140,255,0.12);color:var(--primary)}
-.search-wrap{position:relative;flex:1;min-width:200px}
-.search-wrap input{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);color:var(--text);font-size:0.9rem;transition:border-color .2s}
-.search-wrap input:focus{border-color:var(--primary);outline:none}
-.search-wrap .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.85rem;pointer-events:none}
-.search-wrap .search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;display:none;padding:4px}
-.search-wrap .search-clear.visible{display:block}
-.command-group .cmd-item{display:flex;align-items:baseline;gap:10px;padding:10px 14px;border:1px solid transparent;border-radius:var(--radius-sm);transition:all .15s}
-.command-group .cmd-item:hover{border-color:var(--border);background:rgba(255,255,255,0.02)}
-.command-group .cmd-item.highlight{border-color:var(--primary-glow);background:rgba(79,140,255,0.05)}
-.command-group .cmd-name{font-family:var(--mono);font-size:0.88rem;font-weight:700;color:var(--text);white-space:nowrap}
-.command-group .cmd-desc{color:var(--muted);font-size:0.82rem;line-height:1.4}
-.command-group .cmd-cat-tag{font-size:0.65rem;color:var(--muted);background:rgba(255,255,255,0.04);padding:2px 6px;border-radius:4px;white-space:nowrap;display:none}
-</style>
 </head>
 <body>
 <header class="header">
@@ -53,6 +32,7 @@
     <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
   </div>
   <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-close"><button id="mobile-nav-close-btn" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button></div>
     <a href="/">Home</a>
     <a href="/commands.html">Commands</a>
     <a href="/dashboard.html">Dashboard</a>
@@ -64,6 +44,7 @@
 
 <main>
   <section class="hero-small section-band">
+    <div class="hero-gradient"></div>
     <div class="container">
       <span class="hero-eyebrow"><i class="fa-solid fa-terminal"></i> Full reference — 42 slash commands</span>
       <h1 class="hero-title">Commands</h1>
@@ -72,7 +53,7 @@
   </section>
 
   <section class="container content-section">
-    <div class="command-bar">
+    <div class="command-bar glass" style="padding:20px;margin-bottom:28px">
       <div class="command-bar-top">
         <div class="search-wrap">
           <i class="fa-solid fa-search search-icon"></i>
@@ -177,7 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeFilters = new Set();
   let searchQuery = '';
 
-  /* Build filter buttons */
   const allBtn = document.createElement('button');
   allBtn.className = 'filter-btn active';
   allBtn.textContent = 'All';
@@ -233,7 +213,6 @@ document.addEventListener('DOMContentLoaded', () => {
     noResults.style.display = totalVisible === 0 ? '' : 'none';
   }
 
-  /* Filter button clicks */
   filtersEl.addEventListener('click', e => {
     const btn = e.target.closest('.filter-btn');
     if (!btn) return;
@@ -250,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
     render();
   });
 
-  /* Search */
   searchInput.addEventListener('input', () => {
     searchQuery = searchInput.value;
     searchClear.classList.toggle('visible', searchQuery.length > 0);
@@ -264,7 +242,6 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.focus();
   });
 
-  /* Keyboard shortcut: / to focus search */
   document.addEventListener('keydown', e => {
     if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
       e.preventDefault();

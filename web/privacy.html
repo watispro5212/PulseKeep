@@ -32,6 +32,7 @@
     <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
   </div>
   <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-close"><button id="mobile-nav-close-btn" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button></div>
     <a href="/">Home</a>
     <a href="/commands.html">Commands</a>
     <a href="/dashboard.html">Dashboard</a>
@@ -43,51 +44,64 @@
 
 <main>
   <section class="hero-small section-band">
+    <div class="hero-gradient"></div>
     <div class="container">
-      <span class="hero-eyebrow"><i class="fa-solid fa-shield" style="font-size:0.7rem"></i> Last updated May 30, 2026</span>
+      <span class="hero-eyebrow"><i class="fa-solid fa-shield"></i> Last updated May 30, 2026</span>
       <h1 class="hero-title">Privacy Policy</h1>
     </div>
   </section>
 
-  <section class="container content-section legal-content">
-    <h2>1. Data Collected</h2>
-    <p>PulseKeep stores the following types of data in its PostgreSQL database:</p>
-    <ul>
-      <li><strong>Guild configuration</strong> — per-server settings such as command prefix, log channel ID, staff role ID, and welcome message preferences.</li>
-      <li><strong>User economy data</strong> — wallet balances, bank balances, earned/spent totals, gambling statistics, and inventory items for users who interact with economy commands.</li>
-      <li><strong>Command usage logs</strong> — command name, user ID, guild ID, channel ID, and timestamp for moderation and operational audit purposes.</li>
-      <li><strong>OAuth session data</strong> — temporary session cookies and OAuth state tokens used during dashboard authentication.</li>
-    </ul>
+  <section class="legal-main">
+    <div class="legal-card">
+      <p class="legal-date">Effective: May 30, 2026</p>
+      <div class="legal-toc">
+        <a href="#section-1">Data Collected</a>
+        <a href="#section-2">Data We Do NOT Collect</a>
+        <a href="#section-3">Why We Store Data</a>
+        <a href="#section-4">Data Retention</a>
+        <a href="#section-5">Third-Party Access</a>
+        <a href="#section-6">Data Deletion Requests</a>
+      </div>
 
-    <h2>2. Data We Do NOT Collect</h2>
-    <ul>
-      <li>Message content (PulseKeep does not read or log message content)</li>
-      <li>Voice data or screen-sharing content</li>
-      <li>IP addresses or network metadata</li>
-      <li>Personally identifying information beyond Discord user IDs</li>
-    </ul>
+      <h2 id="section-1">1. Data Collected</h2>
+      <p>PulseKeep stores the following types of data in its PostgreSQL database:</p>
+      <ul>
+        <li><strong>Guild configuration</strong> — per-server settings such as command prefix, log channel ID, staff role ID, and welcome message preferences.</li>
+        <li><strong>User economy data</strong> — wallet balances, bank balances, earned/spent totals, gambling statistics, and inventory items for users who interact with economy commands.</li>
+        <li><strong>Command usage logs</strong> — command name, user ID, guild ID, channel ID, and timestamp for moderation and operational audit purposes.</li>
+        <li><strong>OAuth session data</strong> — temporary session cookies and OAuth state tokens used during dashboard authentication.</li>
+      </ul>
 
-    <h2>3. Why We Store Data</h2>
-    <p>Data is stored strictly for operational purposes:</p>
-    <ul>
-      <li>Guild configurations enable per-server customization</li>
-      <li>Economy data enables balance persistence, item ownership, and leaderboards</li>
-      <li>Command logs provide server staff with audit trails for moderation actions</li>
-      <li>OAuth sessions enable the web dashboard</li>
-    </ul>
+      <h2 id="section-2">2. Data We Do NOT Collect</h2>
+      <ul>
+        <li>Message content (PulseKeep does not read or log message content)</li>
+        <li>Voice data or screen-sharing content</li>
+        <li>IP addresses or network metadata</li>
+        <li>Personally identifying information beyond Discord user IDs</li>
+      </ul>
 
-    <h2>4. Data Retention</h2>
-    <p>Data is retained until the bot is removed from a guild or a user requests deletion. When PulseKeep leaves a guild, associated guild configuration and command logs are cleaned up. Economy data may be retained in aggregate form for leaderboard integrity.</p>
+      <h2 id="section-3">3. Why We Store Data</h2>
+      <p>Data is stored strictly for operational purposes:</p>
+      <ul>
+        <li>Guild configurations enable per-server customization</li>
+        <li>Economy data enables balance persistence, item ownership, and leaderboards</li>
+        <li>Command logs provide server staff with audit trails for moderation actions</li>
+        <li>OAuth sessions enable the web dashboard</li>
+      </ul>
 
-    <h2>5. Third-Party Access</h2>
-    <p>PulseKeep does not sell or share user data with third parties. The following services are used for hosting:</p>
-    <ul>
-      <li><strong>Fly.io</strong> — application hosting (US region, iad)</li>
-      <li><strong>Neon</strong> — PostgreSQL database hosting</li>
-    </ul>
+      <h2 id="section-4">4. Data Retention</h2>
+      <p>Data is retained until the bot is removed from a guild or a user requests deletion. When PulseKeep leaves a guild, associated guild configuration and command logs are cleaned up. Economy data may be retained in aggregate form for leaderboard integrity.</p>
 
-    <h2>6. Data Deletion Requests</h2>
-    <p>To request deletion of your data, join the <a href="https://discord.gg/" style="color:var(--primary)">PulseKeep support server</a> or contact the developer directly. Deletion requests are processed within 30 days.</p>
+      <h2 id="section-5">5. Third-Party Access</h2>
+      <p>PulseKeep does not sell or share user data with third parties. The following services are used for hosting:</p>
+      <ul>
+        <li><strong>Fly.io</strong> — application hosting (US region, iad)</li>
+        <li><strong>Neon</strong> — PostgreSQL database hosting</li>
+      </ul>
+
+      <h2 id="section-6">6. Data Deletion Requests</h2>
+      <p>To request deletion of your data, join the <a href="https://discord.gg/">PulseKeep support server</a> or contact the developer directly. Deletion requests are processed within 30 days.</p>
+    </div>
   </section>
 </main>
 

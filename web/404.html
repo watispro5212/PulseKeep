@@ -11,12 +11,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="/style.css">
-<style>
-  .error-page { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center }
-  .error-page h1 { font-size:clamp(4rem,12vw,8rem); font-weight:800; background:linear-gradient(135deg,var(--primary),var(--cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin:0 0 0.5rem }
-  .error-page p { color:var(--muted); font-size:1.2rem; margin:0 0 2rem }
-  .error-page .btn { display:inline-flex; align-items:center; gap:8px }
-</style>
 </head>
 <body>
 <header class="header">
@@ -37,6 +31,7 @@
     <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
   </div>
   <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-close"><button id="mobile-nav-close-btn" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button></div>
     <a href="/">Home</a>
     <a href="/commands.html">Commands</a>
     <a href="/dashboard.html">Dashboard</a>
@@ -48,7 +43,10 @@
 
 <main>
   <section class="container error-page">
+    <div class="error-particles"></div>
+    <img src="/assets/logo.png" alt="PulseKeep" class="error-logo">
     <h1>404</h1>
+    <h2>Signal lost</h2>
     <p>This page doesn't exist — the signal was lost.</p>
     <div>
       <a href="/" class="btn btn-primary btn-large"><i class="fa-solid fa-house"></i> Back to home</a>

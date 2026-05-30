@@ -12,51 +12,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="/style.css">
-<style>
-.changelog-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border)}
-.changelog-bar .search-wrap{position:relative;flex:1;min-width:200px}
-.changelog-bar .search-wrap input{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);color:var(--text);font-size:0.9rem;transition:border-color .2s}
-.changelog-bar .search-wrap input:focus{border-color:var(--primary);outline:none}
-.changelog-bar .search-wrap .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.85rem;pointer-events:none}
-.changelog-bar .filter-group{display:flex;gap:6px}
-.changelog-bar .filter-group .filter-btn{padding:6px 14px;border:1px solid var(--border);border-radius:100px;background:rgba(255,255,255,0.03);color:var(--muted);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
-.changelog-bar .filter-group .filter-btn:hover{border-color:var(--border-hover);color:var(--text)}
-.changelog-bar .filter-group .filter-btn.active{border-color:var(--primary);background:rgba(79,140,255,0.12);color:var(--primary)}
-.changelog-list{display:grid;gap:20px;position:relative}
-.changelog-list::before{content:'';position:absolute;left:18px;top:0;bottom:0;width:1px;background:var(--border)}
-.changelog-entry{position:relative;padding-left:52px}
-.changelog-entry::before{content:'';position:absolute;left:11px;top:28px;width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:var(--bg);z-index:1;transition:all .3s}
-.changelog-entry.major::before{border-color:var(--primary);background:rgba(79,140,255,0.1)}
-.changelog-entry.minor::before{border-color:var(--cyan);background:rgba(56,213,200,0.1)}
-.changelog-entry.patch::before{border-color:var(--amber);background:rgba(245,189,79,0.1)}
-.changelog-entry:hover::before{transform:scale(1.2)}
-.changelog-card{border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);backdrop-filter:blur(8px);padding:24px;transition:all .3s}
-.changelog-card:hover{border-color:var(--border-hover)}
-.changelog-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
-.changelog-version-tag{display:inline-flex;align-items:center;gap:8px}
-.changelog-version-tag .version-badge{padding:3px 10px;border-radius:100px;font-size:0.78rem;font-weight:700;font-family:var(--mono);background:rgba(79,140,255,0.12);color:var(--primary);border:1px solid rgba(79,140,255,0.2)}
-.changelog-version-tag .version-badge.major{background:rgba(79,140,255,0.12);color:var(--primary);border-color:rgba(79,140,255,0.2)}
-.changelog-version-tag .version-badge.minor{background:rgba(56,213,200,0.12);color:var(--cyan);border-color:rgba(56,213,200,0.2)}
-.changelog-version-tag .version-badge.patch{background:rgba(245,189,79,0.12);color:var(--amber);border-color:rgba(245,189,79,0.2)}
-.changelog-version-tag .version-label{display:none;font-size:0.7rem;text-transform:uppercase;font-weight:600;letter-spacing:0.04em}
-.changelog-version-tag .version-label.major{color:var(--primary)}
-.changelog-version-tag .version-label.minor{color:var(--cyan)}
-.changelog-version-tag .version-label.patch{color:var(--amber)}
-.changelog-date{color:var(--muted);font-size:0.82rem;font-weight:500;white-space:nowrap}
-.changelog-card h2{font-size:1.05rem;font-weight:700;margin-bottom:12px;line-height:1.3}
-.changelog-card ul{list-style:none;display:grid;gap:6px}
-.changelog-card li{display:flex;align-items:baseline;gap:8px;color:var(--muted);font-size:0.9rem;line-height:1.5}
-.changelog-card li .li-icon{flex-shrink:0;font-size:0.65rem;width:16px;text-align:center}
-.changelog-card li.added .li-icon i{color:var(--green)}
-.changelog-card li.fixed .li-icon i{color:var(--amber)}
-.changelog-card li.changed .li-icon i{color:var(--primary)}
-.changelog-card li.removed .li-icon i{color:var(--rose)}
-.changelog-card li.security .li-icon i{color:var(--rose)}
-.changelog-card li.highlight{background:rgba(79,140,255,0.04);border-radius:var(--radius-sm);padding:4px 8px;margin-left:-8px;margin-right:-8px}
-.changelog-card li strong{color:var(--text);font-weight:600}
-#no-results-changelog{display:none;text-align:center;padding:60px 20px;color:var(--muted)}
-@media(max-width:640px){.changelog-entry{padding-left:40px}.changelog-list::before{left:12px}.changelog-entry::before{left:5px}}
-</style>
 </head>
 <body>
 <header class="header">
@@ -77,6 +32,7 @@
     <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
   </div>
   <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-close"><button id="mobile-nav-close-btn" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button></div>
     <a href="/">Home</a>
     <a href="/commands.html">Commands</a>
     <a href="/dashboard.html">Dashboard</a>
@@ -88,15 +44,16 @@
 
 <main>
   <section class="hero-small section-band">
+    <div class="hero-gradient"></div>
     <div class="container">
-      <span class="hero-eyebrow"><i class="fa-solid fa-clock-rotate-left"></i> 6 releases — Jan to May 2026</span>
+      <span class="hero-eyebrow"><i class="fa-solid fa-clock-rotate-left"></i> 7 releases — Jan to May 2026</span>
       <h1 class="hero-title">Changelog</h1>
       <p class="hero-subtitle">Every PulseKeep release, from the initial prototype to the latest economy audit and website rebuild.</p>
     </div>
   </section>
 
   <section class="container content-section">
-    <div class="changelog-bar">
+    <div class="changelog-bar glass" style="padding:20px;margin-bottom:28px">
       <div class="search-wrap">
         <i class="fa-solid fa-search search-icon"></i>
         <input type="text" id="changelog-search" placeholder="Search releases…" aria-label="Search changelog">
@@ -137,6 +94,26 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const releases = [
+    {
+      version: 'v6.1.0', type: 'minor', date: 'May 30, 2026',
+      title: 'Embeds overhaul, economy odds boost, full website redesign',
+      changes: [
+        { kind: 'changed', text: '<strong>Embeds overhaul</strong> — all 40+ embeds have consistent footers, proper category colors, and better formatting', highlight: true },
+        { kind: 'changed', text: '<strong>Gamble odds improved</strong> — lose on &le;35 (was &le;39), push 36-45 (refund), win 46-100 (2x-10x)', highlight: true },
+        { kind: 'changed', text: '<strong>Blackjack Easy</strong> — dealer stands on 16 (was 14), slightly more dealer busts', highlight: true },
+        { kind: 'changed', text: '<strong>Rob success rate</strong> — 40% to 45%' },
+        { kind: 'added', text: '<strong>Slots</strong> — 10% chance to convert a non-win into a pair match (1x payout)' },
+        { kind: 'changed', text: '<strong>Fish/Mine</strong> — 15% chance to reroll Junk, giving ~2-3% more rare+ catches' },
+        { kind: 'added', text: '<strong>New shop items</strong> — Lucky Clover (reroll one gamble loss), XP Boost (30min double earnings), Treasure Map (instant 2500-7500 Pulses)' },
+        { kind: 'added', text: '<strong>22 job titles</strong> for /work (was 6) with flavor text' },
+        { kind: 'added', text: '<strong>Streak milestones</strong> — daily/weekly messages at 7, 14, 21, 30, 50, 100 days' },
+        { kind: 'added', text: '<strong>Net worth</strong> in /profile showing balance + inventory value' },
+        { kind: 'changed', text: '<strong>Website redesigned</strong> — glassmorphism cards, animated gradient heroes, floating shapes, glow effects, new mobile nav animation', highlight: true },
+        { kind: 'changed', text: '<strong>style.css rewritten</strong> — 420 lines with glass utility, shimmer skeletons, smooth animations' },
+        { kind: 'fixed', text: '<strong>Auth redirect</strong> — /auth/* now proxied through Cloudflare Pages to Fly.io backend, fixing 404 on login' },
+        { kind: 'added', text: '<strong>_redirects file</strong> — proxies /auth/discord and /auth/discord/callback to Fly.io backend' },
+      ]
+    },
     {
       version: 'v6.0.0', type: 'major', date: 'May 30, 2026',
       title: 'Economy audit, frontend rebuild, graceful degradation',

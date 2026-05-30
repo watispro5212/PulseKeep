@@ -12,7 +12,7 @@ import (
 type BlackjackDifficulty int
 
 const (
-	BlackjackEasy   BlackjackDifficulty = 14
+	BlackjackEasy   BlackjackDifficulty = 16
 	BlackjackNormal BlackjackDifficulty = 17
 	BlackjackHard   BlackjackDifficulty = 19
 	BlackjackExpert BlackjackDifficulty = 20
