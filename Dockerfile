@@ -1,6 +1,6 @@
-FROM golang:1.25-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
-RUN apk add --no-cache git ca-certificates build-base
+RUN apk add --no-cache git ca-certificates
 
 WORKDIR /app
 
@@ -9,16 +9,14 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags="-w -s" \
-    -o /app/pulsekeep \
-    ./cmd/pulsekeep
+RUN CGO_ENABLED=0 go build -o /app/pulsekeep ./cmd/pulsekeep
 
-FROM alpine:3.19
+FROM alpine:3.21
 
 RUN apk add --no-cache ca-certificates tzdata
 
 COPY --from=builder /app/pulsekeep /pulsekeep
+COPY web /web
 
 EXPOSE 7860
 ENV PORT=7860
