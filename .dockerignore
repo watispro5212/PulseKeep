@@ -6,6 +6,4 @@ web
 src
 *.md
 Dockerfile
-fly.toml
 wrangler.toml
-server.md

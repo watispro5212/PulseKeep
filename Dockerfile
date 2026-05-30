@@ -15,8 +15,8 @@ RUN go mod download
 # Copy application source code
 COPY . .
 
-# Build statically compiled binary
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+# Build statically compiled binary (single-threaded to fit 256MB RAM)
+RUN GOMAXPROCS=1 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -p=1 \
     -ldflags="-w -s" \
     -o /app/pulsekeep \
     ./cmd/pulsekeep
