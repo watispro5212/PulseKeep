@@ -15,12 +15,14 @@ type Database struct {
 
 func Connect(databaseURL string) *Database {
 	if databaseURL == "" {
+		log.Println("DATABASE_URL is not set; running without database.")
 		return nil
 	}
 
 	conn, err := sql.Open("pgx", databaseURL)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Printf("Failed to open database connection: %v", err)
+		return nil
 	}
 
 	conn.SetMaxOpenConns(10)
@@ -28,10 +30,12 @@ func Connect(databaseURL string) *Database {
 	conn.SetConnMaxLifetime(30 * time.Minute)
 
 	if err := conn.Ping(); err != nil {
-		log.Fatalf("Failed to ping database: %v", err)
+		log.Printf("Failed to ping database (will retry later): %v", err)
+		// Return the connection anyway; health check will report degraded
+		// and subsequent operations will reconnect automatically
 	}
 
-	log.Println("Successfully connected to the database!")
+	log.Println("Database connection established.")
 	database := &Database{Conn: conn}
 	database.Migrate()
 	return database

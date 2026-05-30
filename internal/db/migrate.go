@@ -91,7 +91,7 @@ func (db *Database) Migrate() {
 
 	for _, q := range queries {
 		if _, err := db.Conn.Exec(q); err != nil {
-			log.Fatalf("Migration failed: %v\nQuery: %s", err, q)
+			log.Printf("Migration warning: %v\nQuery: %s", err, q)
 		}
 	}
 	log.Println("Database migrations completed successfully")

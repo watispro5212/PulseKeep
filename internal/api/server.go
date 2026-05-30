@@ -38,6 +38,22 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 	startedAt := time.Now()
 	r := gin.Default()
 
+	// Serve static files from the /web directory
+	r.Static("/assets", "./web/assets")
+	r.LoadHTMLGlob("web/*.html")
+	r.GET("/", func(c *gin.Context) { c.HTML(http.StatusOK, "index.html", nil) })
+	r.GET("/commands.html", func(c *gin.Context) { c.HTML(http.StatusOK, "commands.html", nil) })
+	r.GET("/dashboard.html", func(c *gin.Context) { c.HTML(http.StatusOK, "dashboard.html", nil) })
+	r.GET("/status.html", func(c *gin.Context) { c.HTML(http.StatusOK, "status.html", nil) })
+	r.GET("/team.html", func(c *gin.Context) { c.HTML(http.StatusOK, "team.html", nil) })
+	r.GET("/changelog.html", func(c *gin.Context) { c.HTML(http.StatusOK, "changelog.html", nil) })
+	r.GET("/privacy.html", func(c *gin.Context) { c.HTML(http.StatusOK, "privacy.html", nil) })
+	r.GET("/terms.html", func(c *gin.Context) { c.HTML(http.StatusOK, "terms.html", nil) })
+	r.GET("/style.css", func(c *gin.Context) { c.File("./web/style.css") })
+	r.GET("/app.js", func(c *gin.Context) { c.File("./web/app.js") })
+	r.GET("/robots.txt", func(c *gin.Context) { c.String(http.StatusOK, "User-agent: *\nDisallow:\nSitemap: https://pulsekeep.williamdelilah3.workers.dev/sitemap.xml\n") })
+	r.GET("/sitemap.xml", func(c *gin.Context) { c.File("./web/sitemap.xml") })
+
 	// CORS Middleware to allow Netlify frontend to securely fetch stats from Fly.io backend
 	r.Use(func(c *gin.Context) {
 		origin := c.GetHeader("Origin")

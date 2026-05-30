@@ -1,451 +1,173 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Changelog — PulseKeep</title>
-    <meta name="description" content="PulseKeep release history and version changelog.">
-    <meta name="theme-color" content="#070a14">
-    <meta property="og:title" content="Changelog — PulseKeep">
-    <meta property="og:description" content="PulseKeep release history and version changelog.">
-    <meta property="og:image" content="https://pulsekeep.williamdelilah3.workers.dev/assets/logo.png">
-    <meta property="og:url" content="https://pulsekeep.williamdelilah3.workers.dev/changelog.html">
-    <meta property="og:type" content="website">
-    <link rel="icon" href="assets/logo.png" type="image/png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    <style>
-        .changelog-list {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            margin-top: 8px;
-        }
-        .version-card {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 28px;
-            transition: border-color 0.2s;
-        }
-        .version-card:hover {
-            border-color: rgba(79, 140, 255, 0.25);
-        }
-        .version-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .version-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .version-badge .tag {
-            font-size: 1.1rem;
-            font-weight: 800;
-            padding: 6px 16px;
-            border-radius: 100px;
-            letter-spacing: -0.02em;
-        }
-        .version-badge .tag.latest {
-            background: rgba(79, 140, 255, 0.12);
-            color: var(--primary);
-            border: 1px solid rgba(79, 140, 255, 0.25);
-        }
-        .version-badge .tag.old {
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--muted);
-            border: 1px solid var(--border);
-        }
-        .version-date {
-            font-size: 0.82rem;
-            color: var(--muted);
-            font-weight: 500;
-        }
-        .version-changes {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .version-changes li {
-            position: relative;
-            padding-left: 20px;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: var(--foreground);
-        }
-        .version-changes li::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 10px;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--muted);
-            opacity: 0.4;
-        }
-        .version-changes li.critical::before { background: #fc8181; opacity: 1; }
-        .version-changes li.feature::before { background: var(--primary); opacity: 1; }
-        .version-changes li.fix::before { background: var(--amber); opacity: 1; }
-        .change-tag {
-            display: inline-block;
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-right: 6px;
-            vertical-align: middle;
-        }
-        .change-tag.critical { background: rgba(252,129,129,0.12); color: #fc8181; }
-        .change-tag.feature { background: rgba(79,140,255,0.12); color: var(--primary); }
-        .change-tag.fix { background: rgba(245,189,79,0.12); color: var(--amber); }
-        @media (max-width: 600px) {
-            .version-card { padding: 20px; }
-            .version-badge .tag { font-size: 0.95rem; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Changelog — PulseKeep</title>
+<meta name="description" content="PulseKeep version history and release notes.">
+<meta name="theme-color" content="#070a14">
+<link rel="icon" href="/assets/logo.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <header class="header">
-        <div class="container nav-container">
-            <a href="index.html" class="logo-area" aria-label="PulseKeep home">
-                <img src="assets/logo.png" alt="" class="nav-logo">
-                <span class="logo-text">PulseKeep</span>
-            </a>
-            <nav class="nav-links" aria-label="Primary navigation">
-                <a href="index.html">Home</a>
-                <a href="commands.html">Commands</a>
-                <a href="dashboard.html">Dashboard</a>
-                <a href="status.html">Status</a>
-                <a href="team.html">Team</a>
-                <a href="changelog.html" class="active">Changelog</a>
-            </nav>
-            <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary">
-                <i class="fa-brands fa-discord" aria-hidden="true"></i> Invite
-            </a>
-            <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">
-                <i class="fa-solid fa-bars" aria-hidden="true"></i>
-            </button>
+<header class="header">
+  <div class="container nav-container">
+    <a href="/" class="logo-area" aria-label="PulseKeep home">
+      <img src="/assets/logo.png" alt="" class="nav-logo">
+      <span class="logo-text">PulseKeep</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a href="/">Home</a>
+      <a href="/commands.html">Commands</a>
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/status.html">Status</a>
+      <a href="/team.html">Team</a>
+      <a href="/changelog.html" class="active">Changelog</a>
+    </nav>
+    <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary"><i class="fa-brands fa-discord" aria-hidden="true"></i> Invite</a>
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+    <a href="/">Home</a>
+    <a href="/commands.html">Commands</a>
+    <a href="/dashboard.html">Dashboard</a>
+    <a href="/status.html">Status</a>
+    <a href="/team.html">Team</a>
+    <a href="/changelog.html">Changelog</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero-small section-band">
+    <div class="container">
+      <span class="hero-eyebrow"><i class="fa-solid fa-clock-rotate-left" style="font-size:0.7rem"></i> Version history</span>
+      <h1 class="hero-title">Changelog</h1>
+      <p class="hero-subtitle">Every PulseKeep release, from the latest patch to the very first deploy.</p>
+    </div>
+  </section>
+
+  <section class="container content-section">
+    <div class="changelog-list">
+      <article class="changelog-entry major">
+        <div class="changelog-version"><span>v6.0.0</span></div>
+        <div class="changelog-body">
+          <h2>Economy audit, frontend rebuild, graceful degradation</h2>
+          <span class="changelog-date">May 30, 2026</span>
+          <ul>
+            <li><strong>Gamble EV fixed</strong> — 5% house edge (was losing on rolls &le;40, now losing only on &le;39; 40+ pushes)</li>
+            <li><strong>Rob shield fixed</strong> — fine no longer transfers money to the target; shield now purely blocks the robbery</li>
+            <li><strong>Sell fixed</strong> — refund no longer added to the Earned stat</li>
+            <li><strong>Inventory race fixed</strong> — replaced RLock with full Lock in the Inventory() method</li>
+            <li><strong>Blackjack rewritten</strong> — button-based Hit/Stand interaction with 90-second timeout cleanup</li>
+            <li><strong>Moderation guards</strong> — kick and ban reject self-targeting; announce rejects @everyone without MentionEveryone permission</li>
+            <li><strong>API OAuth</strong> — random state parameter stored in cookie, validated on callback for CSRF protection</li>
+            <li><strong>API guild config</strong> — ManageGuild permission verified via Discord API before read/write</li>
+            <li><strong>Health check</strong> — always returns 200 OK (database status reported in body only)</li>
+            <li><strong>Graceful degradation</strong> — log.Fatalf replaced with log.Printf in database, migration, and bot init; web server stays running in degraded mode</li>
+            <li><strong>FlushAll</strong> — saves all economy data on graceful shutdown</li>
+            <li><strong>Inventory UPSERT</strong> — replaced DELETE+INSERT with ON CONFLICT DO UPDATE to eliminate data-loss window</li>
+            <li><strong>Website completely rebuilt</strong> — all HTML pages rewritten, style.css modernized, status page with live metrics</li>
+            <li><strong>Dockerfile updated</strong> — Go 1.26, Alpine 3.21, COPY web /web</li>
+            <li><strong>fly.toml cleaned</strong> — removed duplicate sections from bad merge</li>
+          </ul>
         </div>
-        <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
-            <a href="index.html">Home</a>
-            <a href="commands.html">Commands</a>
-            <a href="dashboard.html">Dashboard</a>
-            <a href="status.html">Status</a>
-            <a href="team.html">Team</a>
-            <a href="changelog.html" class="active">Changelog</a>
-        </nav>
-    </header>
-
-    <main>
-        <section class="hero-small section-band">
-            <div class="container">
-                <span class="hero-eyebrow"><i class="fa-solid fa-timeline"></i> Release history</span>
-                <h1 class="hero-title">Changelog</h1>
-                <p class="hero-subtitle">Every update, improvement, and fix for PulseKeep — from v5.0 to the latest release.</p>
-            </div>
-        </section>
-
-        <section class="container content-section">
-            <div class="changelog-list">
-
-				<!-- v6.0.0 -->
-				<article class="version-card">
-					<div class="version-header">
-						<div class="version-badge">
-							<span class="tag latest">v6.0.0</span>
-							<span class="version-date">May 29, 2026</span>
-						</div>
-					</div>
-					<ul class="version-changes">
-						<li class="new"><span class="change-tag new">New</span>Rotating status fully rewired — no more raw %d leaking into activity text, uses function closures</li>
-						<li class="new"><span class="change-tag new">New</span>Lucky Pickaxe (5,000 Pulses) — +15% coinflip win chance, consumed on each flip</li>
-						<li class="new"><span class="change-tag new">New</span>XP Boost (3,000 Pulses) — doubles /work earnings for 1 hour when used</li>
-						<li class="new"><span class="change-tag new">New</span>Golden Watch (8,000 Pulses) — reduces /daily cooldown by 4 hours</li>
-						<li class="new"><span class="change-tag new">New</span>Lucky Clover (4,000 Pulses) — shifts slot reel positions by +1 for better odds</li>
-						<li class="new"><span class="change-tag new">New</span>Treasure Map (7,000 Pulses) — doubles next /fish or /mine payout, consumed on use</li>
-						<li class="new"><span class="change-tag new">New</span>/blackjack — single-player against CPU with Easy/Normal/Hard/Expert difficulty tiers</li>
-						<li class="new"><span class="change-tag new">New</span>/lottery — weekly lottery system with auto-draw, toggleable between auto/manual</li>
-						<li class="new"><span class="change-tag new">New</span>/lottery-claim — claim your prize if you won the weekly draw</li>
-						<li class="new"><span class="change-tag new">New</span>Dashboard guild config editing — toggle auto-mod, spam, mention, link, caps protection</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Removed duplicate /leaderboard command — use /rich instead</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>style.css replaced with CDN normalize.css — dashboard no longer 404s on missing stylesheet</li>
-						<li class="critical"><span class="change-tag critical">Critical</span>Deleted empty db/economy.go dead file</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Fixed /kick, /ban, /unban audit log reasons — commands now pass reason to Discord's audit log</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Added 10s timeout to all Discord OAuth HTTP calls — prevents hung requests</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Fixed startStatusRotation goroutine leak on reconnect — old context cancelled before new rotation starts</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Fixed spam tracker memory leak — periodic cleanup of stale tracker entries</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Added missing rows.Err() check after scan loop in automod config.go</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Removed dead State() function from auth/discord.go (unused CSRF helper)</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Fixed app.js fallback version string 'v5.8' → 'v6.0.0'</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Fixed commands.html health potion description — matches actual behavior (625 Pulse restore)</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Fixed TestBuyRejectsUnknownItem string comparison → errors.Is() pattern</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Fixed Bot struct unused statusCtxCancel field</li>
-					</ul>
-				</article>
-
-				<!-- v5.9 -->
-				<article class="version-card">
-					<div class="version-header">
-						<div class="version-badge">
-							<span class="tag">v5.9</span>
-							<span class="version-date">May 26, 2026</span>
-						</div>
-					</div>
-					<ul class="version-changes">
-						<li class="feature"><span class="change-tag feature">Feature</span>Complete auto-mod system with spam detection, mass mention protection, keyword filter, link blocking, and caps lock detection</li>
-						<li class="feature"><span class="change-tag feature">Feature</span>Auto-mod actions: delete, warn, timeout — configurable per rule with log channel support</li>
-						<li class="feature"><span class="change-tag feature">Feature</span>Discord OAuth2 login for the web dashboard — log in to manage your server settings</li>
-						<li class="feature"><span class="change-tag feature">Feature</span>Guild configuration API endpoints for reading and updating auto-mod settings</li>
-						<li class="feature"><span class="change-tag feature">Feature</span>guild_config database table with full migration for per-guild auto-mod persistence</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Auto-mod now checks every message in real-time with in-memory rate limiting</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Rotating status now shows live server/user counts via %d interpolation</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Fixed setStatus() class overwrite bug — status badge now preserves styling on status page</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Fixed mobile navigation on changelog page — added missing id="mobile-nav"</li>
-						<li class="fix"><span class="change-tag fix">Fix</span>Added app.js to 404 and dashboard pages for mobile menu support</li>
-						<li class="feature"><span class="change-tag feature">Polishing</span>Refactored commands.html to use CSS classes — removed 90+ lines of inline styles</li>
-						<li class="feature"><span class="change-tag feature">Polishing</span>Runtime metric on status page now dynamically reads from health API</li>
-						<li class="feature"><span class="change-tag feature">Polishing</span>Added team card icon colors for all 6 team members</li>
-						<li class="feature"><span class="change-tag feature">Polishing</span>Refactored index.html command preview to use CSS classes</li>
-					</ul>
-				</article>
-
-                <!-- v5.8 -->
-                <article class="version-card">
-                    <div class="version-header">
-                        <div class="version-badge">
-                            <span class="tag">v5.8</span>
-                            <span class="version-date">May 26, 2026</span>
-                        </div>
-                    </div>
-                    <ul class="version-changes">
-                        <li class="critical"><span class="change-tag critical">Critical</span>Health Potion now correctly heals 625 Pulses instead of summing all inventory items</li>
-                        <li class="critical"><span class="change-tag critical">Critical</span>Fixed /poll, /role, and /leaderboard commands missing from interactive help menu</li>
-                        <li class="critical"><span class="change-tag critical">Critical</span>Removed duplicate /rich entry from Economy category in help menu</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added @everyone ping option to /announce command</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>API uptime now displays seconds (e.g. "45s" instead of "0m")</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>economyCommandError now handles all error types (item not found, not owned, cannot use, cooldown)</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Store.Sell() now accepts a time parameter and captures pre-decrement quantity in result</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Removed dead code: entire db/economy.go with schema-mismatched, unused economy methods</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Status page now strips "PulseKeep" prefix from version display</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Updated health potion shop description to match actual behavior</li>
-                        <li class="feature"><span class="change-tag feature">Polishing</span>Updated index.html economy command list with /gamble, /fish, /mine, /sell, /use, /gift, /weekly, /rich</li>
-                        <li class="feature"><span class="change-tag feature">Polishing</span>Added Dashboard to footer on all pages for consistent navigation</li>
-                    </ul>
-                </article>
-
-                <!-- v5.7 -->
-                <article class="version-card">
-                    <div class="version-header">
-                        <div class="version-badge">
-                            <span class="tag old">v5.7</span>
-                            <span class="version-date">May 25, 2026</span>
-                        </div>
-                    </div>
-                    <ul class="version-changes">
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /rich command — top 10 wealthiest members with 🥇🥈🥉 rank medals</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /weekly reward command — 7-day cooldown, streak-based payouts (500 base + 100 per week, up to 1,500)</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /gift command — transfer inventory items to other users</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>New Record fields: WeeklyStreak, LastWeekly (persisted in PostgreSQL)</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added Dashboard page with live bot + economy stats, Chart.js doughnut chart, top users table</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>New /api/dashboard endpoint returning servers, users, commands, economy stats, top 5 users</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added Dashboard link to navigation on all pages</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>app.js setStatus() class overwrite bug — status-badge no longer overrides hero-eyebrow styling</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>changelog.html mobile menu button now uses correct class and hamburger icon</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>String-based error comparisons replaced with errors.Is() across economy handlers</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Record.copy() now deep-copies the Inventory map to prevent shared pointer races</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Removed dead code: muGuildJoined semaphore in cache.go, unused startedAt discard</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Version string consistency — all backend references updated from v5.4 to v5.7</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Added /gift, /weekly, /rich to commands.html; renamed /leaderboard to /rich</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Added rows.Err() checks after database scan loops in economy store load()</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Removed dead stat-latency element reference from app.js</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Worker now proxies all /api/* paths to backend, fixing dashboard data loading</li>
-                        <li class="feature"><span class="change-tag feature">Polishing</span>Unified website footer across all pages with consistent navigation links</li>
-                        <li class="feature"><span class="change-tag feature">Polishing</span>Added OG meta tags, favicon, and sitemap.xml for SEO</li>
-                        <li class="feature"><span class="change-tag feature">Polishing</span>Created custom 404.html page with branded error design</li>
-                        <li class="feature"><span class="change-tag feature">Polishing</span>Redesigned changelog page UI with version cards, color-coded badges, and improved layout</li>
-                    </ul>
-                </article>
-
-                <!-- v5.6 -->
-                <article class="version-card">
-                    <div class="version-header">
-                        <div class="version-badge">
-                            <span class="tag old">v5.6</span>
-                            <span class="version-date">May 24, 2026</span>
-                        </div>
-                    </div>
-                    <ul class="version-changes">
-                        <li class="critical"><span class="change-tag critical">Critical</span>Economy data loss on every restart — in-memory store now persists to PostgreSQL on every mutation</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Created user_economy and user_inventory DB migration with all 30+ economy fields</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Economy records now load from database on bot startup and save on every command</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added automatic table creation via migrate.go on database connection</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Maintains full in-memory performance with synchronous PostgreSQL persistence</li>
-                    </ul>
-                </article>
-
-                <!-- v5.5 -->
-                <article class="version-card">
-                    <div class="version-header">
-                        <div class="version-badge">
-                            <span class="tag old">v5.5</span>
-                            <span class="version-date">May 23, 2026</span>
-                        </div>
-                    </div>
-                    <ul class="version-changes">
-                        <li class="critical"><span class="change-tag critical">Critical</span>/leaderboard command now routes to its handler instead of falling through to help menu</li>
-                        <li class="critical"><span class="change-tag critical">Critical</span>/lock no longer wipes all existing channel permission overwrites — preserves role and member overrides</li>
-                        <li class="critical"><span class="change-tag critical">Critical</span>/unlock no longer clears all permission overwrites — only removes @everyone SendMessages deny</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Inconsistent switch-case indentation across all command handlers</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /about command showing PulseKeep version, tech stack, and project links</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /about to interactive help menu and commands reference</li>
-                        <li class="feature"><span class="change-tag feature">Polishing</span>Rewrote server.md with 7-section layout, economy guide, lock/unlock workflow, FAQ, and launch checklists</li>
-                        <li class="feature"><span class="change-tag feature">Polishing</span>Heavily redesigned team page with 6 team cards, 8-item tech stack grid, open source section, and contribution callout</li>
-                        <li class="feature"><span class="change-tag feature">Polishing</span>Updated status page to include rotating top.gg-compliant presence</li>
-                        <li class="feature"><span class="change-tag feature">Polishing</span>Updated commands.html with /about and improved economy descriptions</li>
-                        <li class="feature"><span class="change-tag feature">Infrastructure</span>Migrated frontend hosting from Netlify to Cloudflare Workers with Assets</li>
-                        <li class="feature"><span class="change-tag feature">Infrastructure</span>Created src/worker.js to serve static files and proxy API calls to Fly.io backend (no CORS needed)</li>
-                        <li class="feature"><span class="change-tag feature">Infrastructure</span>Created wrangler.toml for Cloudflare Workers deployment</li>
-                        <li class="feature"><span class="change-tag feature">Infrastructure</span>Replaced netlify.toml with Cloudflare _headers for security and cache headers</li>
-                        <li class="feature"><span class="change-tag feature">Infrastructure</span>Changed API_BASE_URL to empty string (same-origin requests through Worker proxy)</li>
-                        <li class="feature"><span class="change-tag feature">Infrastructure</span>Updated README.md with Cloudflare Workers deploy instructions</li>
-                    </ul>
-                </article>
-
-                <!-- v5.4 -->
-                <article class="version-card">
-                    <div class="version-header">
-                        <div class="version-badge">
-                            <span class="tag old">v5.4</span>
-                            <span class="version-date">May 22, 2026</span>
-                        </div>
-                    </div>
-                    <ul class="version-changes">
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /gamble command (1-100 dice roll, up to 10x payout)</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /fish mini-game with 13 fish types across rarities (requires Fishing Rod)</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /mine mini-game with 13 ore types across rarities (requires Iron Pickaxe)</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /sell command for 60% item refunds</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /use command for consumable items (Shield Token, Health Potion)</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Shield Token now actively protects targets from robbery</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Passive interest system: 0.1% balance growth every 6 hours</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /unban, /slowmode, /nick, /timeout, /lock, /unlock commands</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Updated /profile to show gambling, fishing, mining stats</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Shop now includes Fishing Rod, Iron Pickaxe, Lottery Ticket, Health Potion</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>10 new shop items across economy and gameplay categories</li>
-                    </ul>
-                </article>
-
-                <!-- v5.3 -->
-                <article class="version-card">
-                    <div class="version-header">
-                        <div class="version-badge">
-                            <span class="tag old">v5.3</span>
-                            <span class="version-date">May 21, 2026</span>
-                        </div>
-                    </div>
-                    <ul class="version-changes">
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /poll command with multi-option voting and reactions</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added /role command with automatic add/remove toggle</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Implemented /purge, /kick, /ban moderation commands</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Improved serverinfo, userinfo, avatar embeds with richer data</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Overhauled /announce embed with author avatar and name</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Cleaned up help menu by removing redundant Overview button</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added changelog page to website</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Fixed tickets panel footer message</li>
-                    </ul>
-                </article>
-
-                <!-- v5.2 -->
-                <article class="version-card">
-                    <div class="version-header">
-                        <div class="version-badge">
-                            <span class="tag old">v5.2</span>
-                            <span class="version-date">May 20, 2026</span>
-                        </div>
-                    </div>
-                    <ul class="version-changes">
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added 5 new economy commands: /rob, /shop, /buy, /inventory, /slots</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Shop with 5 purchasable items</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Slots machine with 7 symbols and up to 10x payout</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Real-time bot stats tracking via atomic counters</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>/stats and /health endpoints return live data</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>7 new unit tests for economy features</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Removed support.html from website</li>
-                    </ul>
-                </article>
-
-                <!-- v5.1 -->
-                <article class="version-card">
-                    <div class="version-header">
-                        <div class="version-badge">
-                            <span class="tag old">v5.1</span>
-                            <span class="version-date">May 19, 2026</span>
-                        </div>
-                    </div>
-                    <ul class="version-changes">
-                        <li class="fix"><span class="change-tag fix">Fix</span>Fixed ticket button to create private channels with permission overwrites</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added duplicate ticket detection</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Added Close Ticket button with 5-second channel deletion</li>
-                        <li class="fix"><span class="change-tag fix">Fix</span>Removed /menu command</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Improved /ping, /stats, /help response embeds</li>
-                    </ul>
-                </article>
-
-                <!-- v5.0 -->
-                <article class="version-card">
-                    <div class="version-header">
-                        <div class="version-badge">
-                            <span class="tag old">v5.0</span>
-                            <span class="version-date">May 18, 2026</span>
-                        </div>
-                    </div>
-                    <ul class="version-changes">
-                        <li class="feature"><span class="change-tag feature">Feature</span>Complete rewrite in Go using disgo library</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>PostgreSQL persistence via Neon</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Economy system with balance, daily, work, pay, coinflip, leaderboard</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Interactive help menu with category dropdown</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Ticket panel with open/close flow</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Static website with glassmorphism design</li>
-                        <li class="feature"><span class="change-tag feature">Feature</span>Real-time status page with auto-refresh</li>
-                    </ul>
-                </article>
-
-            </div>
-        </section>
-    </main>
-
-    <footer class="footer">
-        <div class="container footer-container">
-            <div class="footer-brand">
-                <span class="logo-text">PulseKeep</span>
-                <p>Release history and version changelog.</p><br><span style="font-size:0.8rem;color:var(--muted);">&copy; <span id="footer-year"></span> PulseKeep. All rights reserved.</span>
-            </div>
-            <div class="footer-links">
-                <a href="commands.html">Commands</a>
-                <a href="dashboard.html">Dashboard</a>
-                <a href="status.html">Status</a>
-                <a href="team.html">Team</a>
-                <a href="changelog.html">Changelog</a>
-                <a href="privacy.html">Privacy</a>
-                <a href="terms.html">Terms</a>
-            </div>
+      </article>
+      <article class="changelog-entry">
+        <div class="changelog-version"><span>v5.0.0</span></div>
+        <div class="changelog-body">
+          <h2>API server, OAuth, status page, dashboard</h2>
+          <span class="changelog-date">May 2026</span>
+          <ul>
+            <li>Added chi-based API server with health checks and stats endpoints</li>
+            <li>Discord OAuth2 login flow for dashboard</li>
+            <li>Guild configuration read/write via API</li>
+            <li>Status page with live metrics polling</li>
+            <li>Dashboard HTML with guild selector and config form</li>
+          </ul>
         </div>
-    </footer>
+      </article>
+      <article class="changelog-entry">
+        <div class="changelog-version"><span>v4.0.0</span></div>
+        <div class="changelog-body">
+          <h2>Tickets, economy items, lottery</h2>
+          <span class="changelog-date">April 2026</span>
+          <ul>
+            <li>Button-based ticket panel with private channel creation</li>
+            <li>Item shop system with buy/sell/use/gift</li>
+            <li>Weekly lottery with automatic draw and claim</li>
+            <li>Fishing and mining activities</li>
+            <li>Inventory system with item persistence</li>
+          </ul>
+        </div>
+      </article>
+      <article class="changelog-entry">
+        <div class="changelog-version"><span>v3.0.0</span></div>
+        <div class="changelog-body">
+          <h2>Economy system, blackjack, leaderboards</h2>
+          <span class="changelog-date">March 2026</span>
+          <ul>
+            <li>Full economy system with balances, daily rewards, work, and pay</li>
+            <li>Blackjack game with difficulty tiers</li>
+            <li>Slots, coinflip, and gamble commands</li>
+            <li>Robbery system with shield protection</li>
+            <li>Leaderboard (/rich)</li>
+          </ul>
+        </div>
+      </article>
+      <article class="changelog-entry">
+        <div class="changelog-version"><span>v2.0.0</span></div>
+        <div class="changelog-body">
+          <h2>Moderation, logging, command framework</h2>
+          <span class="changelog-date">February 2026</span>
+          <ul>
+            <li>Slash command framework with permission checks</li>
+            <li>Purge, kick, ban, unban, timeout, nick, slowmode</li>
+            <li>Channel lock/unlock, announce, role management</li>
+            <li>Audit logging to designated log channels</li>
+            <li>Serverinfo, userinfo, avatar, poll utility commands</li>
+          </ul>
+        </div>
+      </article>
+      <article class="changelog-entry">
+        <div class="changelog-version"><span>v1.0.0</span></div>
+        <div class="changelog-body">
+          <h2>Initial release</h2>
+          <span class="changelog-date">January 2026</span>
+          <ul>
+            <li>Basic ping, help, about commands</li>
+            <li>PostgreSQL database with migration system</li>
+            <li>Dockerized deployment on Fly.io</li>
+            <li>Static file serving for web pages</li>
+          </ul>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>
 
-    <script src="app.js"></script>
+<footer class="footer">
+  <div class="container footer-container">
+    <div class="footer-brand">
+      <span class="logo-text">PulseKeep</span>
+      <p>Version history and release notes.</p><br>
+      <span style="font-size:0.8rem;color:var(--muted)">&copy; <span id="footer-year"></span> PulseKeep. All rights reserved.</span>
+    </div>
+    <div class="footer-links">
+      <a href="/commands.html">Commands</a>
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/status.html">Status</a>
+      <a href="/team.html">Team</a>
+      <a href="/changelog.html">Changelog</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+    </div>
+  </div>
+</footer>
+
+<script>document.addEventListener('DOMContentLoaded', () => { const y = document.getElementById('footer-year'); if (y) y.textContent = new Date().getFullYear().toString(); });</script>
 </body>
 </html>
-

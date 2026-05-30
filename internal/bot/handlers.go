@@ -275,7 +275,8 @@ func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL strin
 		}),
 	)
 	if err != nil {
-		log.Fatalf("error while building disgo instance: %s", err)
+		log.Printf("error while building disgo instance: %s", err)
+		return nil
 	}
 
 	b.Client = client
