@@ -48,6 +48,7 @@ func (db *Database) Migrate() {
 			quantity INTEGER NOT NULL DEFAULT 1,
 			UNIQUE(user_id, item_id)
 		)`,
+		`ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT ''`,
 		`ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS xp_boost_expires TIMESTAMPTZ`,
 		`ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS treasure_map_active BOOLEAN NOT NULL DEFAULT false`,
 		`ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS blackjack_wins INTEGER NOT NULL DEFAULT 0`,
