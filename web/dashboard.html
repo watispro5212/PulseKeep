@@ -153,7 +153,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const API = window.location.origin;
+  const API = 'https://pulsekeep.fly.dev';
   const footerYear = document.getElementById('footer-year');
   if (footerYear) footerYear.textContent = new Date().getFullYear().toString();
 
@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadGuilds(guilds) {
-    guildCards.innerHTML = '';
+    guildCards.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem;margin-bottom:12px"></i><br>Loading guilds...</div>';
     if (!guilds || !guilds.length) {
       guildCards.innerHTML = '<p style="color:var(--muted)">No guilds found. Make sure PulseKeep is in your server.</p>';
       return;
@@ -236,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentGuildName = guildName;
     configPanelTitle.innerHTML = '<i class="fa-solid fa-wrench"></i> ' + escapeHtml(guildName) + ' configuration';
     configStatus.textContent = 'Loading...';
+    configPanel.style.opacity = '0.5';
     try {
       const r = await fetch(API + '/api/guild/' + guildId + '/config?token=' + encodeURIComponent(token));
       if (!r.ok) throw new Error(await apiError(r));
@@ -253,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setFormValue('config-banned_words', cfg.banned_words || '');
       setFormValue('config-log_channel_id', cfg.log_channel_id || '');
       setFormValue('config-mod_role_id', cfg.mod_role_id || '');
+      configPanel.style.opacity = '1';
       configStatus.textContent = '';
       configForm.dataset.guildId = guildId;
     } catch (e) {
@@ -343,9 +345,16 @@ document.addEventListener('DOMContentLoaded', () => {
       el.className = 'status-error';
       loginDiv.appendChild(el);
     }
-    el.textContent = message;
+    const humanError = authErrorMap[message] || message;
+    el.innerHTML = '<strong>Login failed:</strong> ' + humanError + '<br><small>Make sure DISCORD_REDIRECT_URI on the server matches the Discord Developer Portal. Try again or contact the bot owner.</small>';
     el.style.display = '';
   }
+
+  const authErrorMap = {
+    'invalid_request': 'The OAuth request was invalid. The redirect URL may not match the Discord Developer Portal configuration.',
+    'invalid_scope': 'The requested permissions are invalid.',
+    'access_denied': 'You denied the authorization request.',
+  };
 
   checkAuth();
 });

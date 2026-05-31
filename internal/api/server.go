@@ -214,7 +214,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 			return
 		}
 		state := hex.EncodeToString(b)
-		c.SetCookie("oauth_state", state, 600, "/", "", false, true)
+		c.SetCookie("oauth_state", state, 600, "/", "", true, true)
 		params := url.Values{}
 		params.Set("client_id", cfg.DiscordClientID)
 		params.Set("redirect_uri", cfg.DiscordRedirectURI)
@@ -236,7 +236,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid state parameter"})
 			return
 		}
-		c.SetCookie("oauth_state", "", -1, "/", "", false, true)
+		c.SetCookie("oauth_state", "", -1, "/", "", true, true)
 
 		token, err := auth.ExchangeCode(cfg, code)
 		if err != nil {

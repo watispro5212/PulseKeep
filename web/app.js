@@ -64,6 +64,8 @@
           if (statServers) statServers.textContent = (d.servers || 0).toLocaleString();
           if (statUsers) statUsers.textContent = (d.users || 0).toLocaleString();
           if (statCommands) statCommands.textContent = (d.commands || 0).toLocaleString();
+          const updatedEl = document.getElementById('stats-updated');
+          if (updatedEl) updatedEl.textContent = 'Updated ' + new Date().toLocaleTimeString();
           if (statUptime) statUptime.textContent = d.uptime || '--';
           setStatus(d.database === 'ok' ? 'online' : 'degraded', d.database === 'ok' ? 'Service online' : 'Degraded');
         })
