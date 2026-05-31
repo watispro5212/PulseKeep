@@ -129,6 +129,14 @@ func Register() []discord.ApplicationCommandCreate {
 			Description: "Show how long PulseKeep has been running since last restart",
 		},
 		discord.SlashCommandCreate{
+			Name:        "tip",
+			Description: "Get a random helpful tip about using PulseKeep",
+		},
+		discord.SlashCommandCreate{
+			Name:        "vote",
+			Description: "Get the link to vote for PulseKeep on Top.gg",
+		},
+		discord.SlashCommandCreate{
 			Name:        "balance",
 			Description: "Check a PulseKeep wallet balance and quick economy stats",
 			Options: []discord.ApplicationCommandOption{
@@ -163,10 +171,24 @@ func Register() []discord.ApplicationCommandCreate {
 		discord.SlashCommandCreate{
 			Name:        "daily",
 			Description: "Claim your daily Pulses reward",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionBool{
+					Name:        "public",
+					Description: "Show the reward publicly instead of only to you",
+					Required:    false,
+				},
+			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "work",
 			Description: "Work a shift to earn some Pulses",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionBool{
+					Name:        "public",
+					Description: "Show your earnings publicly instead of only to you",
+					Required:    false,
+				},
+			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "coinflip",
@@ -269,10 +291,24 @@ func Register() []discord.ApplicationCommandCreate {
 		discord.SlashCommandCreate{
 			Name:        "fish",
 			Description: "Cast a line and catch fish to sell for Pulses",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionBool{
+					Name:        "public",
+					Description: "Show the catch publicly instead of only to you",
+					Required:    false,
+				},
+			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "mine",
 			Description: "Mine for valuable ores and minerals",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionBool{
+					Name:        "public",
+					Description: "Show the haul publicly instead of only to you",
+					Required:    false,
+				},
+			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "gamble",
@@ -441,6 +477,13 @@ func Register() []discord.ApplicationCommandCreate {
 		discord.SlashCommandCreate{
 			Name:        "weekly",
 			Description: "Claim your weekly Pulses reward (7-day cooldown)",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionBool{
+					Name:        "public",
+					Description: "Show the reward publicly instead of only to you",
+					Required:    false,
+				},
+			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "blackjack",

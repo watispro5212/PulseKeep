@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"strings"
 	"sync"
@@ -255,6 +256,10 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 		b.respond(e, handleLock(e))
 	case "unlock":
 		b.respond(e, handleUnlock(e))
+	case "tip":
+		b.respond(e, tipMessage())
+	case "vote":
+		b.respond(e, voteMessage())
 	default:
 		b.respond(e, commands.MenuMessage("", true))
 	}
@@ -476,11 +481,26 @@ func statsMessage(startedAt time.Time) discord.MessageCreate {
 			WithDescription("Current runtime snapshot for this bot process.").
 			WithColor(commands.CommandMenuAccent).
 			AddField("Status", "🟢 Online", true).
+			AddField("Version", Version, true).
 			AddField("Uptime", formatBotDuration(time.Since(startedAt)), true).
-			AddField("Latency", "Use /ping", true).
-			AddField("Categories", "Utility · Moderation · Economy · Tickets · Gambling", false).
+			AddField("Language", "Go (disgo v0.19)", true).
+			AddField("Database", "PostgreSQL (Neon)", true).
+			AddField("Commands", "40+ slash commands", true).
+			AddField("Categories", "Utility · Moderation · Economy · Tickets", false).
 			AddField("Get started", "Use `/help` to browse all commands.", false).
 			WithFooterText("PulseKeep " + Version + " · Stats").
+			WithTimestamp(time.Now()))
+}
+
+func voteMessage() discord.MessageCreate {
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Vote for PulseKeep").
+			WithDescription("Support PulseKeep by voting on Top.gg! Each vote helps us grow and reach more communities.").
+			AddField("Top.gg", "https://top.gg/bot/1507498795569512598/vote", false).
+			AddField("Rewards", "Voting helps us rank higher and attract new users. Thank you for your support!", false).
+			WithColor(commands.EconomyMenuAccent).
+			WithFooterText("PulseKeep " + Version + " · Voting").
 			WithTimestamp(time.Now()))
 }
 
@@ -1222,6 +1242,40 @@ func handleUnlock(e *events.ApplicationCommandInteractionCreate) discord.Message
 			WithDescription(fmt.Sprintf("<#%s> has been unlocked.", channelID)).
 			WithColor(commands.ModerationMenuAccent).
 			WithFooterText("PulseKeep " + Version + " · Moderation").
+			WithTimestamp(time.Now()))
+}
+
+func tipMessage() discord.MessageCreate {
+	tips := []string{
+		"Use `/daily` every day to build your streak! Each day adds bonus Pulses up to 750.",
+		"Buy a **Fishing Rod** from `/shop` to unlock the `/fish` command for passive income.",
+		"Buy an **Iron Pickaxe** from `/shop` to unlock the `/mine` command for ore profits.",
+		"Use `/profile` to track your earnings, streaks, and item value.",
+		"The `/daily` streak resets if you miss a day. Stay consistent!",
+		"Buy a **Shield Token** and use it to protect your balance from robbers.",
+		"Roll 46+ in `/gamble` to win! 36-45 is a push (refund). 85+ = 2x, 95+ = 4x, 100 = 10x!",
+		"Use `/weekly` every 7 days for a big Pulses bonus with streak rewards.",
+		"Sell unwanted items with `/sell` for a 60% refund.",
+		"Use `/rich` to see the wealthiest members on the leaderboard.",
+		"Multiple income sources = fastest growth: daily + work + fish/mine + gambling.",
+		"Keep an eye on `/lottery` for the weekly jackpot draw!",
+		"Play `/blackjack` on Easy difficulty for better odds against the dealer.",
+		"Use `/inventory` to see all your items and their estimated total value.",
+		"Run `/work` every 45 minutes for steady income between daily claims.",
+		"The economy has a built-in 0.1% interest applied every 6 hours on your wallet balance.",
+		"Buy a **XP Boost** from `/shop` to double your work earnings for 30 minutes.",
+		"Use `/balance` with `public: true` to show off your Pulse balance in chat.",
+		"Server admins can configure auto-mod rules from the web dashboard.",
+		"Ticket support is available via `/ticketpanel` — users can open private support channels.",
+	}
+	tip := tips[rand.Intn(len(tips))]
+	return discord.NewMessageCreate().
+		WithEphemeral(true).
+		AddEmbeds(discord.NewEmbed().
+			WithTitle("PulseKeep Tip").
+			WithDescription(tip).
+			WithColor(commands.EconomyMenuAccent).
+			WithFooterText("PulseKeep " + Version + " · Tips").
 			WithTimestamp(time.Now()))
 }
 
