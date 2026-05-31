@@ -4,8 +4,5 @@ compatibility_date = "2026-05-26"
 
 assets = { directory = "web" }
 
-[vars]
-API_ORIGIN = "https://pulsekeep.fly.dev"
-
 [placement]
 mode = "smart"

@@ -1,7 +1,7 @@
 'use strict';
 
 (function () {
-  const API_FLY = 'https://pulsekeep.fly.dev';
+  const API = window.location.origin;
 
   document.addEventListener('DOMContentLoaded', function () {
     var yearEl = document.getElementById('footer-year');
@@ -49,7 +49,7 @@
     }
 
     function fetchStats() {
-      fetch(API_FLY + '/health')
+      fetch(API + '/health')
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (d) {
           if (!d) { setStatus('offline', 'Service offline'); return; }

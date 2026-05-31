@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard — PulseKeep</title>
+<title>Dashboard - PulseKeep</title>
 <meta name="description" content="Login with Discord to manage PulseKeep guild configuration.">
 <meta name="theme-color" content="#070a14">
 <link rel="icon" href="/assets/logo.png" type="image/png">
@@ -54,14 +54,14 @@
     <div id="dashboard-auth">
       <div id="dashboard-login" class="dashboard-card">
         <h2><i class="fa-solid fa-lock"></i> Secure login</h2>
-        <p>Authenticate with Discord to access your server dashboard. PulseKeep uses Discord OAuth2 — your credentials are never exposed.</p>
+        <p>Authenticate with Discord to access your server dashboard. PulseKeep uses Discord OAuth2 - your credentials are never exposed.</p>
         <a href="/auth/discord" class="btn btn-primary btn-large"><i class="fa-brands fa-discord"></i> Login with Discord</a>
       </div>
       <div id="dashboard-authenticated" style="display:none">
         <div id="user-info" class="dashboard-card card-row">
           <div id="user-avatar"><img src="" alt="Your avatar"></div>
           <div><strong id="user-name"></strong><br><span style="color:var(--muted);font-size:0.9rem" id="user-id"></span></div>
-          <a href="/auth/discord" class="btn btn-secondary" style="margin-left:auto"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+          <button type="button" id="dashboard-logout" class="btn btn-secondary" style="margin-left:auto"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
         </div>
         <div id="guild-list" class="dashboard-card">
           <h3><i class="fa-solid fa-server"></i> Your guilds</h3>
@@ -150,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const configPanelTitle = document.getElementById('config-panel-title');
   const configForm = document.getElementById('config-form');
   const configStatus = document.getElementById('config-status');
+  const logoutBtn = document.getElementById('dashboard-logout');
 
   function getToken() {
     if (window.location.hash) {
@@ -180,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loadGuilds(d.guilds);
     } catch {
       sessionStorage.removeItem('pk_token');
+      history.replaceState(null, '', '/dashboard.html');
       loginDiv.style.display = '';
       authDiv.style.display = 'none';
     }
@@ -211,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadConfig(guildId, guildName) {
     configPanel.style.display = '';
     configPanelTitle.innerHTML = '<i class="fa-solid fa-wrench"></i> ' + escapeHtml(guildName) + ' configuration';
-    configStatus.textContent = 'Loading…';
+    configStatus.textContent = 'Loading...';
     try {
       const r = await fetch(API + '/api/guild/' + guildId + '/config?token=' + encodeURIComponent(token));
       if (!r.ok) throw new Error('HTTP ' + r.status + (r.status === 403 ? ' (no permission)' : ''));
@@ -226,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
       configStatus.textContent = '';
       configForm.dataset.guildId = guildId;
     } catch (e) {
-      configStatus.innerHTML = '<span style="color:var(--red)">Failed to load configuration: ' + e.message + '</span>';
+      configStatus.innerHTML = '<span style="color:var(--rose)">Failed to load configuration: ' + e.message + '</span>';
     }
   }
 
@@ -241,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const guildId = configForm.dataset.guildId;
     if (!guildId) return;
-    configStatus.textContent = 'Saving…';
+    configStatus.textContent = 'Saving...';
     const data = {
       command_prefix: document.getElementById('config-prefix').value,
       log_channel_id: document.getElementById('config-log_channel').value,
@@ -260,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       configStatus.innerHTML = '<span style="color:var(--green)">Configuration saved successfully.</span>';
     } catch (err) {
-      configStatus.innerHTML = '<span style="color:var(--red)">Failed to save: ' + err.message + '</span>';
+      configStatus.innerHTML = '<span style="color:var(--rose)">Failed to save: ' + err.message + '</span>';
     }
   });
 
@@ -268,6 +270,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const guildId = configForm.dataset.guildId;
     if (guildId) loadConfig(guildId, configPanelTitle.textContent.replace(' configuration', ''));
   });
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      sessionStorage.removeItem('pk_token');
+      history.replaceState(null, '', '/dashboard.html');
+      configPanel.style.display = 'none';
+      guildCards.innerHTML = '';
+      loginDiv.style.display = '';
+      authDiv.style.display = 'none';
+    });
+  }
 
   function escapeHtml(str) {
     const div = document.createElement('div');

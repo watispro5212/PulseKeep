@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Team — PulseKeep</title>
-<meta name="description" content="The team behind PulseKeep and the tech stack powering it.">
+<title>Team - PulseKeep</title>
+<meta name="description" content="PulseKeep ownership, support roles, and the tech stack powering the Discord bot.">
 <meta name="theme-color" content="#070a14">
 <link rel="icon" href="/assets/logo.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,9 +46,9 @@
   <section class="hero-small section-band">
     <div class="hero-gradient"></div>
     <div class="container">
-      <span class="hero-eyebrow"><i class="fa-solid fa-users"></i> The people behind the bot</span>
+      <span class="hero-eyebrow"><i class="fa-solid fa-users"></i> Ownership and support</span>
       <h1 class="hero-title">Team</h1>
-      <p class="hero-subtitle">Built by a small team with a focus on reliability, performance, and clean UX.</p>
+      <p class="hero-subtitle">PulseKeep is owned and maintained by watispro1, with a support structure built for reliable Discord server operations.</p>
     </div>
   </section>
 
@@ -56,39 +56,41 @@
     <div class="team-grid">
       <article class="team-card">
         <div class="team-icon"><i class="fa-solid fa-crown"></i></div>
-        <h3>William Delilah III</h3>
-        <span class="team-role">Founder & Developer</span>
-        <p>Architect and lead developer. Responsible for the Go backend, Discord integration, API, database design, and deployment pipeline.</p>
+        <h3>watispro1</h3>
+        <span class="team-role">Owner & Lead Developer</span>
+        <p>Official owner of PulseKeep. Leads the bot, website, dashboard, Discord integration, database design, command system, and production operations.</p>
         <div class="team-social">
-          <a href="#" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
-          <a href="#" aria-label="Discord"><i class="fa-brands fa-discord"></i></a>
+          <a href="https://github.com/watispro5212/PulseKeep" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+          <a href="/commands.html" aria-label="Commands"><i class="fa-solid fa-terminal"></i></a>
         </div>
       </article>
       <article class="team-card">
-        <div class="team-icon"><i class="fa-solid fa-code"></i></div>
-        <h3>OpenCode</h3>
-        <span class="team-role">AI Pair Programmer</span>
-        <p>Assisted with code generation, refactoring, debugging, and audit review across the entire codebase.</p>
+        <div class="team-icon"><i class="fa-solid fa-headset"></i></div>
+        <h3>Support Team</h3>
+        <span class="team-role">Tickets & Setup Help</span>
+        <p>Handles support tickets, setup questions, command help, dashboard troubleshooting, and permission checks for server owners.</p>
         <div class="team-social">
-          <a href="https://opencode.ai" aria-label="OpenCode"><i class="fa-solid fa-robot"></i></a>
+          <a href="/status.html" aria-label="Status"><i class="fa-solid fa-chart-line"></i></a>
+          <a href="/commands.html" aria-label="Commands"><i class="fa-solid fa-terminal"></i></a>
         </div>
       </article>
       <article class="team-card">
-        <div class="team-icon"><i class="fa-solid fa-cloud"></i></div>
-        <h3>Fly.io</h3>
-        <span class="team-role">Hosting Platform</span>
-        <p>PulseKeep runs on Fly.io in the iad region with a single shared-cpu-1x machine and 256 MB of RAM.</p>
+        <div class="team-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h3>Moderation Staff</h3>
+        <span class="team-role">Community Safety</span>
+        <p>Keeps the support server organized, reviews reports, manages public channels, and escalates serious issues to the owner or administrators.</p>
         <div class="team-social">
-          <a href="https://fly.io" aria-label="Fly.io"><i class="fa-solid fa-up-right-from-square"></i></a>
+          <a href="/terms.html" aria-label="Terms"><i class="fa-solid fa-scale-balanced"></i></a>
+          <a href="/privacy.html" aria-label="Privacy"><i class="fa-solid fa-lock"></i></a>
         </div>
       </article>
       <article class="team-card">
-        <div class="team-icon"><i class="fa-solid fa-database"></i></div>
-        <h3>Neon</h3>
-        <span class="team-role">PostgreSQL Provider</span>
-        <p>Serverless Postgres database hosting for all bot data — guild configs, economy state, command logs, and user inventory.</p>
+        <div class="team-icon"><i class="fa-solid fa-bug"></i></div>
+        <h3>Testers & Bug Hunters</h3>
+        <span class="team-role">Quality Feedback</span>
+        <p>Tests commands, tickets, economy features, status checks, and dashboard flows before changes are promoted for everyone.</p>
         <div class="team-social">
-          <a href="https://neon.tech" aria-label="Neon"><i class="fa-solid fa-up-right-from-square"></i></a>
+          <a href="/changelog.html" aria-label="Changelog"><i class="fa-solid fa-list-check"></i></a>
         </div>
       </article>
     </div>
@@ -100,10 +102,10 @@
       <h2>How PulseKeep is built</h2>
     </div>
     <div class="tech-grid">
-      <article class="tech-card"><i class="fa-brands fa-golang"></i><h3>Go</h3><p>Backend runtime — the entire bot, API server, and database layer are written in Go 1.26.</p></article>
+      <article class="tech-card"><i class="fa-brands fa-golang"></i><h3>Go</h3><p>Backend runtime for the bot, API server, command handlers, tickets, moderation tools, and database layer.</p></article>
       <article class="tech-card"><i class="fa-brands fa-discord"></i><h3>Disgo</h3><p>Discord API library used for slash commands, event handling, components, and gateway interactions.</p></article>
-      <article class="tech-card"><i class="fa-solid fa-road"></i><h3>Chi Router</h3><p>HTTP router for the API server, health checks, OAuth endpoints, and static file serving.</p></article>
-      <article class="tech-card"><i class="fa-solid fa-database"></i><h3>pgx</h3><p>PostgreSQL driver for all database operations — guild config, economy, inventory, and command logging.</p></article>
+      <article class="tech-card"><i class="fa-solid fa-cloud"></i><h3>Cloudflare Worker</h3><p>Public website gateway that serves pages and forwards API, auth, health, and stats requests without exposing the backend origin.</p></article>
+      <article class="tech-card"><i class="fa-solid fa-database"></i><h3>pgx</h3><p>PostgreSQL driver for all database operations - guild config, economy, inventory, and command logging.</p></article>
     </div>
   </section>
 </main>
@@ -112,7 +114,7 @@
   <div class="container footer-container">
     <div class="footer-brand">
       <span class="logo-text">PulseKeep</span>
-      <p>Built by William Delilah III with open-source tooling.</p><br>
+      <p>Owned by watispro1 and built with open-source tooling.</p><br>
       <span style="font-size:0.8rem;color:var(--muted)">&copy; <span id="footer-year"></span> PulseKeep. All rights reserved.</span>
     </div>
     <div class="footer-links">

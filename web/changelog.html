@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Changelog — PulseKeep</title>
+<title>Changelog - PulseKeep</title>
 <meta name="description" content="PulseKeep version history and release notes from v1.0.0 to v6.0.0.">
 <meta name="theme-color" content="#070a14">
 <link rel="icon" href="/assets/logo.png" type="image/png">
@@ -46,7 +46,7 @@
   <section class="hero-small section-band">
     <div class="hero-gradient"></div>
     <div class="container">
-      <span class="hero-eyebrow"><i class="fa-solid fa-clock-rotate-left"></i> 7 releases — Jan to May 2026</span>
+      <span class="hero-eyebrow"><i class="fa-solid fa-clock-rotate-left"></i> 7 releases - Jan to May 2026</span>
       <h1 class="hero-title">Changelog</h1>
       <p class="hero-subtitle">Every PulseKeep release, from the initial prototype to the latest economy audit and website rebuild.</p>
     </div>
@@ -56,7 +56,7 @@
     <div class="changelog-bar glass" style="padding:20px;margin-bottom:28px">
       <div class="search-wrap">
         <i class="fa-solid fa-search search-icon"></i>
-        <input type="text" id="changelog-search" placeholder="Search releases…" aria-label="Search changelog">
+        <input type="text" id="changelog-search" placeholder="Search releases..." aria-label="Search changelog">
       </div>
       <div class="filter-group" id="changelog-filters">
         <button class="filter-btn active" data-filter="all">All</button>
@@ -98,41 +98,41 @@ document.addEventListener('DOMContentLoaded', () => {
       version: 'v6.1.0', type: 'minor', date: 'May 30, 2026',
       title: 'Embeds overhaul, economy odds boost, full website redesign',
       changes: [
-        { kind: 'changed', text: '<strong>Embeds overhaul</strong> — all 40+ embeds have consistent footers, proper category colors, and better formatting', highlight: true },
-        { kind: 'changed', text: '<strong>Gamble odds improved</strong> — lose on &le;35 (was &le;39), push 36-45 (refund), win 46-100 (2x-10x)', highlight: true },
-        { kind: 'changed', text: '<strong>Blackjack Easy</strong> — dealer stands on 16 (was 14), slightly more dealer busts', highlight: true },
-        { kind: 'changed', text: '<strong>Rob success rate</strong> — 40% to 45%' },
-        { kind: 'added', text: '<strong>Slots</strong> — 10% chance to convert a non-win into a pair match (1x payout)' },
-        { kind: 'changed', text: '<strong>Fish/Mine</strong> — 15% chance to reroll Junk, giving ~2-3% more rare+ catches' },
-        { kind: 'added', text: '<strong>New shop items</strong> — Lucky Clover (reroll one gamble loss), XP Boost (30min double earnings), Treasure Map (instant 2500-7500 Pulses)' },
+        { kind: 'changed', text: '<strong>Embeds overhaul</strong> - all 40+ embeds have consistent footers, proper category colors, and better formatting', highlight: true },
+        { kind: 'changed', text: '<strong>Gamble odds improved</strong> - lose on &le;35 (was &le;39), push 36-45 (refund), win 46-100 (2x-10x)', highlight: true },
+        { kind: 'changed', text: '<strong>Blackjack Easy</strong> - dealer stands on 16 (was 14), slightly more dealer busts', highlight: true },
+        { kind: 'changed', text: '<strong>Rob success rate</strong> - 40% to 45%' },
+        { kind: 'added', text: '<strong>Slots</strong> - 10% chance to convert a non-win into a pair match (1x payout)' },
+        { kind: 'changed', text: '<strong>Fish/Mine</strong> - 15% chance to reroll Junk, giving ~2-3% more rare+ catches' },
+        { kind: 'added', text: '<strong>New shop items</strong> - Lucky Clover (reroll one gamble loss), XP Boost (30min double earnings), Treasure Map (instant 2500-7500 Pulses)' },
         { kind: 'added', text: '<strong>22 job titles</strong> for /work (was 6) with flavor text' },
-        { kind: 'added', text: '<strong>Streak milestones</strong> — daily/weekly messages at 7, 14, 21, 30, 50, 100 days' },
+        { kind: 'added', text: '<strong>Streak milestones</strong> - daily/weekly messages at 7, 14, 21, 30, 50, 100 days' },
         { kind: 'added', text: '<strong>Net worth</strong> in /profile showing balance + inventory value' },
-        { kind: 'changed', text: '<strong>Website redesigned</strong> — glassmorphism cards, animated gradient heroes, floating shapes, glow effects, new mobile nav animation', highlight: true },
-        { kind: 'changed', text: '<strong>style.css rewritten</strong> — 420 lines with glass utility, shimmer skeletons, smooth animations' },
-        { kind: 'fixed', text: '<strong>Auth redirect</strong> — /auth/* now proxied through Cloudflare Pages to Fly.io backend, fixing 404 on login' },
-        { kind: 'added', text: '<strong>_redirects file</strong> — proxies /auth/discord and /auth/discord/callback to Fly.io backend' },
+        { kind: 'changed', text: '<strong>Website redesigned</strong> - glassmorphism cards, animated gradient heroes, floating shapes, glow effects, new mobile nav animation', highlight: true },
+        { kind: 'changed', text: '<strong>style.css rewritten</strong> - 420 lines with glass utility, shimmer skeletons, smooth animations' },
+        { kind: 'fixed', text: '<strong>Auth redirect</strong> - /auth/* now routes through the Cloudflare Worker gateway, fixing dashboard login' },
+        { kind: 'added', text: '<strong>Worker gateway</strong> - proxies auth, dashboard API, health, and stats without exposing the backend origin' },
       ]
     },
     {
       version: 'v6.0.0', type: 'major', date: 'May 30, 2026',
       title: 'Economy audit, frontend rebuild, graceful degradation',
       changes: [
-        { kind: 'fixed', text: '<strong>Gamble EV</strong> — 5% house edge (lose on &le;39, push on 40+; was losing on &le;60)', highlight: true },
-        { kind: 'fixed', text: '<strong>Rob shield</strong> — fine no longer transfers money to the target; shield purely blocks the robbery' },
-        { kind: 'fixed', text: '<strong>Sell refund</strong> — refund no longer added to the Earned stat', highlight: true },
-        { kind: 'fixed', text: '<strong>Inventory race</strong> — replaced RLock with full Lock in the Inventory() method' },
-        { kind: 'changed', text: '<strong>Blackjack rewritten</strong> — button-based Hit/Stand interaction with 90-second timeout cleanup goroutine' },
-        { kind: 'added', text: '<strong>Moderation guards</strong> — kick/ban reject self-targeting; announce rejects @everyone without MentionEveryone permission' },
-        { kind: 'added', text: '<strong>API OAuth CSRF protection</strong> — random state parameter stored in cookie, validated on callback' },
-        { kind: 'added', text: '<strong>API guild config permission check</strong> — ManageGuild permission verified via Discord API before read/write' },
-        { kind: 'changed', text: '<strong>Health check</strong> — always returns 200 OK; database status reported in body only (was 503 on DB failure)' },
-        { kind: 'changed', text: '<strong>Graceful degradation</strong> — log.Fatalf replaced with log.Printf in database connection, migration, and bot init; web server stays running' },
-        { kind: 'added', text: '<strong>FlushAll</strong> — saves all economy records on graceful shutdown via SIGTERM' },
-        { kind: 'fixed', text: '<strong>Inventory UPSERT</strong> — replaced DELETE+INSERT with ON CONFLICT DO UPDATE to eliminate data-loss window' },
-        { kind: 'changed', text: '<strong>Website completely rebuilt</strong> — all 11 HTML pages rewritten, style.css modernized, status page with live API polling' },
-        { kind: 'changed', text: '<strong>Dockerfile updated</strong> — Go 1.26, Alpine 3.21, added COPY web /web' },
-        { kind: 'fixed', text: '<strong>fly.toml cleaned</strong> — removed duplicate sections from bad merge (port 8080 vs 7860 conflict)' },
+        { kind: 'fixed', text: '<strong>Gamble EV</strong> - 5% house edge (lose on &le;39, push on 40+; was losing on &le;60)', highlight: true },
+        { kind: 'fixed', text: '<strong>Rob shield</strong> - fine no longer transfers money to the target; shield purely blocks the robbery' },
+        { kind: 'fixed', text: '<strong>Sell refund</strong> - refund no longer added to the Earned stat', highlight: true },
+        { kind: 'fixed', text: '<strong>Inventory race</strong> - replaced RLock with full Lock in the Inventory() method' },
+        { kind: 'changed', text: '<strong>Blackjack rewritten</strong> - button-based Hit/Stand interaction with 90-second timeout cleanup goroutine' },
+        { kind: 'added', text: '<strong>Moderation guards</strong> - kick/ban reject self-targeting; announce rejects @everyone without MentionEveryone permission' },
+        { kind: 'added', text: '<strong>API OAuth CSRF protection</strong> - random state parameter stored in cookie, validated on callback' },
+        { kind: 'added', text: '<strong>API guild config permission check</strong> - ManageGuild permission verified via Discord API before read/write' },
+        { kind: 'changed', text: '<strong>Health check</strong> - always returns 200 OK; database status reported in body only (was 503 on DB failure)' },
+        { kind: 'changed', text: '<strong>Graceful degradation</strong> - log.Fatalf replaced with log.Printf in database connection, migration, and bot init; web server stays running' },
+        { kind: 'added', text: '<strong>FlushAll</strong> - saves all economy records on graceful shutdown via SIGTERM' },
+        { kind: 'fixed', text: '<strong>Inventory UPSERT</strong> - replaced DELETE+INSERT with ON CONFLICT DO UPDATE to eliminate data-loss window' },
+        { kind: 'changed', text: '<strong>Website completely rebuilt</strong> - all 11 HTML pages rewritten, style.css modernized, status page with live API polling' },
+        { kind: 'changed', text: '<strong>Dockerfile updated</strong> - Go 1.26, Alpine 3.21, added COPY web /web' },
+        { kind: 'fixed', text: '<strong>fly.toml cleaned</strong> - removed duplicate sections from bad merge (port 8080 vs 7860 conflict)' },
       ]
     },
     {
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { kind: 'added', text: 'Gin-based API server with /health, /stats, and /api/dashboard endpoints' },
         { kind: 'added', text: 'Discord OAuth2 login flow with state validation for dashboard access' },
         { kind: 'added', text: 'Guild configuration read/write via API with ManageGuild permission check' },
-        { kind: 'added', text: 'Status page with live metrics polling from Fly.io backend' },
+        { kind: 'added', text: 'Status page with live metrics through the Cloudflare Worker gateway' },
         { kind: 'added', text: 'Dashboard HTML with guild selector dropdown and config form' },
         { kind: 'changed', text: 'CORS middleware to allow cross-origin requests from Cloudflare Pages' },
       ]
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { kind: 'added', text: 'Slash command framework with Discord-native permission checks and error messages' },
         { kind: 'added', text: 'Purge, kick, ban, unban, timeout, nick, and slowmode moderation commands' },
         { kind: 'added', text: 'Channel lock/unlock, embedded announce, and role management commands' },
-        { kind: 'added', text: 'Audit logging system — sends formatted logs to a designated log channel' },
+        { kind: 'added', text: 'Audit logging system - sends formatted logs to a designated log channel' },
         { kind: 'added', text: 'Serverinfo, userinfo, avatar, and poll utility commands' },
       ]
     },
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
       changes: [
         { kind: 'added', text: 'Basic ping, help, and about commands for gateway verification' },
         { kind: 'added', text: 'PostgreSQL database layer with automated migration system (Drizzle schema)' },
-        { kind: 'added', text: 'Dockerized deployment pipeline targeting Fly.io with multi-stage build' },
+        { kind: 'added', text: 'Dockerized deployment pipeline targeting production hosting with multi-stage build' },
         { kind: 'added', text: 'Thread-safe in-memory cache for live guild/user/command counters' },
         { kind: 'added', text: 'Graceful shutdown handling for SIGTERM (clean disconnect from Discord gateway)' },
       ]

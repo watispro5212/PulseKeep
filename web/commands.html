@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Commands — PulseKeep</title>
-<meta name="description" content="Full PulseKeep slash command reference: 42 commands across utility, moderation, economy, and tickets.">
+<title>Commands - PulseKeep</title>
+<meta name="description" content="Full PulseKeep slash command reference: 43 slash commands across utility, moderation, economy, and tickets.">
 <meta name="theme-color" content="#070a14">
 <link rel="icon" href="/assets/logo.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,7 +46,7 @@
   <section class="hero-small section-band">
     <div class="hero-gradient"></div>
     <div class="container">
-      <span class="hero-eyebrow"><i class="fa-solid fa-terminal"></i> Full reference — 42 slash commands</span>
+      <span class="hero-eyebrow"><i class="fa-solid fa-terminal"></i> Full reference - 43 slash commands</span>
       <h1 class="hero-title">Commands</h1>
       <p class="hero-subtitle">Every PulseKeep feature is a Discord slash command. Search, filter by category, or browse below.</p>
     </div>
@@ -57,7 +57,7 @@
       <div class="command-bar-top">
         <div class="search-wrap">
           <i class="fa-solid fa-search search-icon"></i>
-          <input type="text" id="command-search-input" placeholder="Search commands… (press /)" aria-label="Search commands">
+          <input type="text" id="command-search-input" placeholder="Search commands... (press /)" aria-label="Search commands">
           <button class="search-clear" id="search-clear" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <span class="command-count" id="command-count"></span>
@@ -95,55 +95,55 @@
 document.addEventListener('DOMContentLoaded', () => {
   const categories = [
     { name: 'Utility', icon: 'fa-bolt', commands: [
-      { name: '/ping', desc: 'Check whether PulseKeep is responding.' },
-      { name: '/help', desc: 'Open the interactive command browser.' },
-      { name: '/about', desc: 'Show PulseKeep version, tech stack, and links.' },
-      { name: '/stats', desc: 'Show operational bot statistics.' },
-      { name: '/uptime', desc: 'Show how long PulseKeep has been running.' },
-      { name: '/serverinfo', desc: 'Show details about the current server.' },
-      { name: '/userinfo', desc: 'Show details about a user, defaulting to yourself.' },
-      { name: '/avatar', desc: 'Display a user avatar at full resolution.' },
-      { name: '/poll', desc: 'Create a multi-option reaction poll.' },
+      { name: '/ping', desc: 'Check whether PulseKeep is responding and show latency.', usage: '/ping', perm: 'Everyone' },
+      { name: '/help', desc: 'Open the interactive command browser inside Discord.', usage: '/help', perm: 'Everyone' },
+      { name: '/about', desc: 'Show PulseKeep version, creator, tech stack, and public links.', usage: '/about', perm: 'Everyone' },
+      { name: '/stats', desc: 'Show operational bot statistics.', usage: '/stats', perm: 'Everyone' },
+      { name: '/uptime', desc: 'Show how long PulseKeep has been running.', usage: '/uptime', perm: 'Everyone' },
+      { name: '/serverinfo', desc: 'Show details about the current server.', usage: '/serverinfo', perm: 'Everyone' },
+      { name: '/userinfo', desc: 'Show details about a user, defaulting to yourself.', usage: '/userinfo user:@member', perm: 'Everyone' },
+      { name: '/avatar', desc: 'Display a user avatar at full resolution.', usage: '/avatar user:@member', perm: 'Everyone' },
+      { name: '/poll', desc: 'Create a multi-option reaction poll.', usage: '/poll question:"Best color?" option1:Red option2:Blue', perm: 'Everyone' },
     ]},
     { name: 'Moderation', icon: 'fa-shield-halved', commands: [
-      { name: '/purge', desc: 'Bulk delete recent messages (1-100).' },
-      { name: '/kick', desc: 'Remove a member with an optional reason.' },
-      { name: '/ban', desc: 'Ban a member with an optional reason.' },
-      { name: '/unban', desc: 'Unban a user by their ID.' },
-      { name: '/timeout', desc: 'Timeout a member for a duration in minutes.' },
-      { name: '/nick', desc: 'Change a member nickname.' },
-      { name: '/slowmode', desc: 'Set slowmode delay in seconds.' },
-      { name: '/lock', desc: 'Lock the current channel for everyone.' },
-      { name: '/unlock', desc: 'Unlock the current channel.' },
-      { name: '/announce', desc: 'Send a clean embedded announcement.' },
-      { name: '/role', desc: 'Toggle a role on a member.' },
+      { name: '/purge', desc: 'Bulk delete recent messages from the current channel.', usage: '/purge amount:25', perm: 'Manage Messages' },
+      { name: '/kick', desc: 'Remove a member with an optional reason.', usage: '/kick user:@member reason:Repeated spam', perm: 'Kick Members' },
+      { name: '/ban', desc: 'Ban a member with an optional reason.', usage: '/ban user:@member reason:Severe rule break', perm: 'Ban Members' },
+      { name: '/unban', desc: 'Unban a user by their Discord user ID.', usage: '/unban user_id:123456789', perm: 'Ban Members' },
+      { name: '/timeout', desc: 'Timeout a member for a duration in minutes.', usage: '/timeout user:@member duration:60', perm: 'Moderate Members' },
+      { name: '/nick', desc: 'Change or reset a member nickname.', usage: '/nick user:@member nickname:NewName', perm: 'Manage Nicknames' },
+      { name: '/slowmode', desc: 'Set slowmode delay in seconds, or 0 to disable.', usage: '/slowmode seconds:5', perm: 'Manage Channels' },
+      { name: '/lock', desc: 'Lock the current channel for @everyone.', usage: '/lock', perm: 'Manage Channels' },
+      { name: '/unlock', desc: 'Unlock the current channel for @everyone.', usage: '/unlock', perm: 'Manage Channels' },
+      { name: '/announce', desc: 'Send a clean embedded announcement with optional @everyone ping.', usage: '/announce title:Update message:Patch notes are live ping:false', perm: 'Manage Messages' },
+      { name: '/role', desc: 'Add or remove a role from a member.', usage: '/role user:@member role:Staff', perm: 'Manage Roles' },
     ]},
     { name: 'Economy', icon: 'fa-coins', commands: [
-      { name: '/balance', desc: 'Check your Pulse balance or another user balance.' },
-      { name: '/profile', desc: 'View wallet, earned/spent totals, streaks, and record.' },
-      { name: '/daily', desc: 'Claim your daily Pulses reward with streak bonus.' },
-      { name: '/work', desc: 'Work a shift to earn Pulses (45m cooldown).' },
-      { name: '/weekly', desc: 'Claim your weekly reward (7-day cooldown).' },
-      { name: '/pay', desc: 'Send Pulses to another member.' },
-      { name: '/rob', desc: 'Attempt to steal Pulses from another member (4h cooldown).' },
-      { name: '/coinflip', desc: 'Wager Pulses on heads or tails — 50/50 odds.' },
-      { name: '/gamble', desc: 'Roll 1-100 and wager Pulses on the outcome. Roll 40+ to push.' },
-      { name: '/blackjack', desc: 'Play blackjack against the CPU with interactive hit/stand buttons.' },
-      { name: '/slots', desc: 'Spin the slot machine — up to 10x payout.' },
-      { name: '/fish', desc: 'Cast a line to catch fish (requires Fishing Rod).' },
-      { name: '/mine', desc: 'Mine for valuable ores (requires Iron Pickaxe).' },
-      { name: '/shop', desc: 'Browse the PulseKeep item shop.' },
-      { name: '/buy', desc: 'Buy an item from the PulseKeep shop.' },
-      { name: '/sell', desc: 'Sell an item for a 60% refund.' },
-      { name: '/use', desc: 'Use a usable item from your inventory.' },
-      { name: '/gift', desc: 'Give an item to another user.' },
-      { name: '/inventory', desc: 'View items you own.' },
-      { name: '/rich', desc: 'Show the richest members in the economy.' },
-      { name: '/lottery', desc: 'Check the weekly lottery jackpot and status.' },
-      { name: '/lottery-claim', desc: 'Claim your prize if you won the weekly draw.' },
+      { name: '/balance', desc: 'Check your Pulse balance or another user balance.', usage: '/balance user:@member', perm: 'Everyone' },
+      { name: '/profile', desc: 'View wallet, earned/spent totals, streaks, records, fishing, and mining stats.', usage: '/profile user:@member', perm: 'Everyone' },
+      { name: '/daily', desc: 'Claim your daily Pulses reward with streak bonus.', usage: '/daily', perm: 'Everyone' },
+      { name: '/work', desc: 'Work a shift to earn Pulses.', usage: '/work', perm: 'Everyone' },
+      { name: '/weekly', desc: 'Claim your weekly reward on a 7-day cooldown.', usage: '/weekly', perm: 'Everyone' },
+      { name: '/pay', desc: 'Send Pulses to another member.', usage: '/pay recipient:@member amount:100', perm: 'Everyone' },
+      { name: '/rob', desc: 'Attempt to steal Pulses from another member.', usage: '/rob user:@member', perm: 'Everyone' },
+      { name: '/coinflip', desc: 'Wager Pulses on heads or tails.', usage: '/coinflip amount:100 side:heads', perm: 'Everyone' },
+      { name: '/gamble', desc: 'Roll 1-100 and wager Pulses on the outcome.', usage: '/gamble amount:100', perm: 'Everyone' },
+      { name: '/blackjack', desc: 'Play blackjack against the CPU with interactive hit/stand buttons.', usage: '/blackjack amount:100 difficulty:normal', perm: 'Everyone' },
+      { name: '/slots', desc: 'Spin the slot machine for possible multipliers.', usage: '/slots amount:100', perm: 'Everyone' },
+      { name: '/fish', desc: 'Catch and sell fish. Requires a Fishing Rod item.', usage: '/fish', perm: 'Everyone' },
+      { name: '/mine', desc: 'Mine and sell valuable ores. Requires an Iron Pickaxe item.', usage: '/mine', perm: 'Everyone' },
+      { name: '/shop', desc: 'Browse the PulseKeep item shop.', usage: '/shop', perm: 'Everyone' },
+      { name: '/buy', desc: 'Buy an item from the PulseKeep shop.', usage: '/buy item:fishing_rod', perm: 'Everyone' },
+      { name: '/sell', desc: 'Sell an item for a 60% refund when sellable.', usage: '/sell item:fishing_rod', perm: 'Everyone' },
+      { name: '/use', desc: 'Use a usable item from your inventory.', usage: '/use item:lottery_ticket', perm: 'Everyone' },
+      { name: '/gift', desc: 'Give an item to another user.', usage: '/gift user:@member item:fishing_rod', perm: 'Everyone' },
+      { name: '/inventory', desc: 'View items you own.', usage: '/inventory', perm: 'Everyone' },
+      { name: '/rich', desc: 'Show the top 10 richest PulseKeep members.', usage: '/rich', perm: 'Everyone' },
+      { name: '/lottery', desc: 'Check the weekly lottery jackpot and status.', usage: '/lottery', perm: 'Everyone' },
+      { name: '/lottery-claim', desc: 'Claim your prize if you won the weekly draw.', usage: '/lottery-claim', perm: 'Everyone' },
     ]},
     { name: 'Tickets', icon: 'fa-ticket', commands: [
-      { name: '/ticketpanel', desc: 'Post the interactive ticket opener panel for support requests.' },
+      { name: '/ticketpanel', desc: 'Post the interactive ticket opener panel for support requests.', usage: '/ticketpanel', perm: 'Manage Messages' },
     ]},
   ];
 
@@ -203,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         html += '<div class="cmd-item' + highlighted + '">';
         html += '<span class="cmd-name">' + highlight(cmd.name, q) + '</span>';
         html += '<span class="cmd-desc">' + highlight(cmd.desc, q) + '</span>';
+        html += '<span class="cmd-meta"><code>' + escapeHtml(cmd.usage || cmd.name) + '</code><small>' + escapeHtml(cmd.perm || 'Everyone') + '</small></span>';
         html += '</div>';
       }
       html += '</div></article>';
