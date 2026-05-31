@@ -51,7 +51,9 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 	r.GET("/terms.html", func(c *gin.Context) { c.HTML(http.StatusOK, "terms.html", nil) })
 	r.GET("/style.css", func(c *gin.Context) { c.File("./web/style.css") })
 	r.GET("/app.js", func(c *gin.Context) { c.File("./web/app.js") })
-	r.GET("/robots.txt", func(c *gin.Context) { c.String(http.StatusOK, "User-agent: *\nDisallow:\nSitemap: https://pulsekeep.williamdelilah3.workers.dev/sitemap.xml\n") })
+	r.GET("/robots.txt", func(c *gin.Context) {
+		c.String(http.StatusOK, "User-agent: *\nDisallow:\nSitemap: https://pulsekeep.williamdelilah3.workers.dev/sitemap.xml\n")
+	})
 	r.GET("/sitemap.xml", func(c *gin.Context) { c.File("./web/sitemap.xml") })
 
 	// CORS Middleware to allow Netlify frontend to securely fetch stats from Fly.io backend
@@ -88,21 +90,21 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		goVersion := runtime.Version()
 
 		avgLat := getAvgLatency(memCache)
-	c.JSON(http.StatusOK, gin.H{
-		"status":         "ok",
-		"version":        "v6.0.0",
-		"database":       dbStatus,
-		"uptime":         formatDuration(time.Since(startedAt)),
-		"bot_uptime":     formatUptime(memCache),
-		"go_version":     goVersion,
-		"servers":        getGuildCount(memCache),
-		"users":          getUserCount(memCache),
-		"commands":       getCommandsRun(memCache),
-		"memory_mb":      getMemoryMB(),
-		"goroutines":     runtime.NumGoroutine(),
-		"cpu_cores":      runtime.NumCPU(),
-		"avg_latency_ms": avgLat,
-	})
+		c.JSON(http.StatusOK, gin.H{
+			"status":         "ok",
+			"version":        "v6.0.0",
+			"database":       dbStatus,
+			"uptime":         formatDuration(time.Since(startedAt)),
+			"bot_uptime":     formatUptime(memCache),
+			"go_version":     goVersion,
+			"servers":        getGuildCount(memCache),
+			"users":          getUserCount(memCache),
+			"commands":       getCommandsRun(memCache),
+			"memory_mb":      getMemoryMB(),
+			"goroutines":     runtime.NumGoroutine(),
+			"cpu_cores":      runtime.NumCPU(),
+			"avg_latency_ms": avgLat,
+		})
 	})
 
 	r.GET("/stats", func(c *gin.Context) {
@@ -176,7 +178,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-"bot": "PulseKeep v6.0.0",
+			"bot":          "PulseKeep v6.0.0",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
@@ -262,12 +264,12 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		}
 		guilds, err := auth.GetUserGuilds(token)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch guilds: " + err.Error()})
+			c.JSON(discordAuthStatus(err), gin.H{"error": "Failed to fetch guilds: " + err.Error()})
 			return
 		}
 		user, err := auth.GetUser(token)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch user: " + err.Error()})
+			c.JSON(discordAuthStatus(err), gin.H{"error": "Failed to fetch user: " + err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"user": user, "guilds": guilds})
@@ -276,21 +278,25 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 	r.GET("/api/guild/:id/config", func(c *gin.Context) {
 		guildID := c.Param("id")
 		token := c.Query("token")
-		if token != "" {
-			guilds, err := auth.GetUserGuilds(token)
-			if err == nil {
-				hasPerm := false
-				for _, g := range guilds {
-					if g.ID == guildID && (g.Owner || g.Permissions&0x20 != 0) {
-						hasPerm = true
-						break
-					}
-				}
-				if !hasPerm {
-					c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to manage this server"})
-					return
-				}
+		if token == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing token parameter"})
+			return
+		}
+		guilds, err := auth.GetUserGuilds(token)
+		if err != nil {
+			c.JSON(discordAuthStatus(err), gin.H{"error": "Failed to verify permissions: " + err.Error()})
+			return
+		}
+		hasPerm := false
+		for _, g := range guilds {
+			if g.ID == guildID && g.HasPermission(0x20) {
+				hasPerm = true
+				break
 			}
+		}
+		if !hasPerm {
+			c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to manage this server"})
+			return
 		}
 		if cfgStore == nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Config store not initialized"})
@@ -309,12 +315,12 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		}
 		guilds, err := auth.GetUserGuilds(token)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify permissions: " + err.Error()})
+			c.JSON(discordAuthStatus(err), gin.H{"error": "Failed to verify permissions: " + err.Error()})
 			return
 		}
 		hasPerm := false
 		for _, g := range guilds {
-			if g.ID == guildID && (g.Owner || g.Permissions&0x20 != 0) {
+			if g.ID == guildID && g.HasPermission(0x20) {
 				hasPerm = true
 				break
 			}
@@ -383,6 +389,17 @@ func isAllowedOrigin(origin string, allowedOrigins string) bool {
 		}
 	}
 	return false
+}
+
+func discordAuthStatus(err error) int {
+	if err == nil {
+		return http.StatusOK
+	}
+	msg := err.Error()
+	if strings.Contains(msg, "401") || strings.Contains(msg, "403") {
+		return http.StatusUnauthorized
+	}
+	return http.StatusBadGateway
 }
 
 func formatDuration(d time.Duration) string {

@@ -55,7 +55,7 @@
       <div id="dashboard-login" class="dashboard-card">
         <h2><i class="fa-solid fa-lock"></i> Secure login</h2>
         <p>Authenticate with Discord to access your server dashboard. PulseKeep uses Discord OAuth2 - your credentials are never exposed.</p>
-        <a href="/auth/discord" class="btn btn-primary btn-large"><i class="fa-brands fa-discord"></i> Login with Discord</a>
+        <a href="https://pulsekeep.fly.dev/auth/discord" class="btn btn-primary btn-large"><i class="fa-brands fa-discord"></i> Login with Discord</a>
       </div>
       <div id="dashboard-authenticated" style="display:none">
         <div id="user-info" class="dashboard-card card-row">
@@ -71,37 +71,54 @@
         <div id="config-panel" style="display:none" class="dashboard-card">
           <h3 id="config-panel-title"><i class="fa-solid fa-wrench"></i> Guild configuration</h3>
           <form id="config-form">
-            <div class="form-group">
-              <label for="config-prefix">Command prefix</label>
-              <input type="text" id="config-prefix" name="command_prefix" maxlength="10" placeholder="/">
+            <div class="form-row">
+              <label class="form-checkbox"><input type="checkbox" id="config-automod_enabled"> Auto-moderation</label>
+              <label class="form-checkbox"><input type="checkbox" id="config-spam_enabled"> Spam guard</label>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="config-spam_max_messages">Spam max messages</label>
+                <input type="number" id="config-spam_max_messages" min="2" max="20">
+              </div>
+              <div class="form-group">
+                <label for="config-spam_window_seconds">Spam window seconds</label>
+                <input type="number" id="config-spam_window_seconds" min="2" max="60">
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="form-checkbox"><input type="checkbox" id="config-mention_enabled"> Mention guard</label>
+              <div class="form-group">
+                <label for="config-mention_max">Mention max</label>
+                <input type="number" id="config-mention_max" min="1" max="50">
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="form-checkbox"><input type="checkbox" id="config-links_enabled"> Link guard</label>
+              <label class="form-checkbox"><input type="checkbox" id="config-caps_enabled"> Caps guard</label>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="config-caps_percent">Caps percent</label>
+                <input type="number" id="config-caps_percent" min="50" max="100">
+              </div>
+              <div class="form-group">
+                <label for="config-caps_min_length">Caps min length</label>
+                <input type="number" id="config-caps_min_length" min="5" max="100">
+              </div>
             </div>
             <div class="form-group">
-              <label for="config-log_channel">Log channel ID</label>
-              <input type="text" id="config-log_channel" name="log_channel_id" placeholder="Discord channel snowflake">
+              <label for="config-banned_words">Banned words</label>
+              <textarea id="config-banned_words" rows="3" placeholder="comma,separated,words"></textarea>
             </div>
-            <div class="form-group">
-              <label for="config-staff_role">Staff role ID</label>
-              <input type="text" id="config-staff_role" name="staff_role_id" placeholder="Discord role snowflake">
-            </div>
-            <div class="form-group">
-              <label for="config-economy_enabled" class="checkbox-label">
-                <input type="checkbox" id="config-economy_enabled" name="economy_enabled">
-                Economy enabled
-              </label>
-            </div>
-            <div class="form-group">
-              <label for="config-auto_mod" class="checkbox-label">
-                <input type="checkbox" id="config-auto_mod" name="auto_mod">
-                Auto-moderation enabled
-              </label>
-            </div>
-            <div class="form-group">
-              <label for="config-welcome_channel">Welcome channel ID</label>
-              <input type="text" id="config-welcome_channel" name="welcome_channel_id" placeholder="Discord channel snowflake">
-            </div>
-            <div class="form-group">
-              <label for="config-welcome_message">Welcome message</label>
-              <textarea id="config-welcome_message" name="welcome_message" rows="3" placeholder="{user} joined {server}"></textarea>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="config-log_channel_id">Log channel ID</label>
+                <input type="text" id="config-log_channel_id" placeholder="Discord channel snowflake">
+              </div>
+              <div class="form-group">
+                <label for="config-mod_role_id">Mod role ID</label>
+                <input type="text" id="config-mod_role_id" placeholder="Discord role snowflake">
+              </div>
             </div>
             <div class="form-actions">
               <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save changes</button>
@@ -151,12 +168,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const configForm = document.getElementById('config-form');
   const configStatus = document.getElementById('config-status');
   const logoutBtn = document.getElementById('dashboard-logout');
+  let currentGuildName = '';
 
   function getToken() {
     if (window.location.hash) {
-      const m = window.location.hash.match(/access_token=([^&]+)/);
-      if (m) {
-        const t = decodeURIComponent(m[1]);
+      const params = new URLSearchParams(window.location.hash.slice(1));
+      const tParam = params.get('access_token');
+      if (params.get('error')) showAuthError(params.get('error'));
+      if (tParam) {
+        const t = tParam;
         window.location.hash = '';
         sessionStorage.setItem('pk_token', t);
         return t;
@@ -175,24 +195,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     try {
       const r = await fetch(API + '/api/guilds?token=' + encodeURIComponent(token));
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (!r.ok) throw new Error(await apiError(r));
       const d = await r.json();
       showUser(d.user);
       loadGuilds(d.guilds);
-    } catch {
+    } catch (err) {
       sessionStorage.removeItem('pk_token');
       history.replaceState(null, '', '/dashboard.html');
       loginDiv.style.display = '';
       authDiv.style.display = 'none';
+      showAuthError(err.message || 'Discord login failed. Try again.');
     }
   }
 
   function showUser(user) {
     loginDiv.style.display = 'none';
     authDiv.style.display = '';
-    userName.textContent = user.username + '#' + user.discriminator;
+    userName.textContent = user.discriminator && user.discriminator !== '0' ? user.username + '#' + user.discriminator : user.username;
     userId.textContent = 'ID: ' + user.id;
-    userAvatar.src = 'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png?size=64';
+    userAvatar.src = user.avatar ? 'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png?size=64' : '/assets/logo.png';
   }
 
   function loadGuilds(guilds) {
@@ -212,19 +233,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadConfig(guildId, guildName) {
     configPanel.style.display = '';
+    currentGuildName = guildName;
     configPanelTitle.innerHTML = '<i class="fa-solid fa-wrench"></i> ' + escapeHtml(guildName) + ' configuration';
     configStatus.textContent = 'Loading...';
     try {
       const r = await fetch(API + '/api/guild/' + guildId + '/config?token=' + encodeURIComponent(token));
-      if (!r.ok) throw new Error('HTTP ' + r.status + (r.status === 403 ? ' (no permission)' : ''));
+      if (!r.ok) throw new Error(await apiError(r));
       const cfg = await r.json();
-      setFormValue('config-prefix', cfg.command_prefix || '');
-      setFormValue('config-log_channel', cfg.log_channel_id || '');
-      setFormValue('config-staff_role', cfg.staff_role_id || '');
-      setFormValue('config-economy_enabled', !!cfg.economy_enabled);
-      setFormValue('config-auto_mod', !!cfg.auto_mod);
-      setFormValue('config-welcome_channel', cfg.welcome_channel_id || '');
-      setFormValue('config-welcome_message', cfg.welcome_message || '');
+      setFormValue('config-automod_enabled', cfg.automod_enabled);
+      setFormValue('config-spam_enabled', cfg.spam_enabled);
+      setFormValue('config-spam_max_messages', cfg.spam_max_messages || 5);
+      setFormValue('config-spam_window_seconds', cfg.spam_window_seconds || 5);
+      setFormValue('config-mention_enabled', cfg.mention_enabled);
+      setFormValue('config-mention_max', cfg.mention_max || 5);
+      setFormValue('config-links_enabled', cfg.links_enabled);
+      setFormValue('config-caps_enabled', cfg.caps_enabled);
+      setFormValue('config-caps_percent', cfg.caps_percent || 70);
+      setFormValue('config-caps_min_length', cfg.caps_min_length || 15);
+      setFormValue('config-banned_words', cfg.banned_words || '');
+      setFormValue('config-log_channel_id', cfg.log_channel_id || '');
+      setFormValue('config-mod_role_id', cfg.mod_role_id || '');
       configStatus.textContent = '';
       configForm.dataset.guildId = guildId;
     } catch (e) {
@@ -245,13 +273,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!guildId) return;
     configStatus.textContent = 'Saving...';
     const data = {
-      command_prefix: document.getElementById('config-prefix').value,
-      log_channel_id: document.getElementById('config-log_channel').value,
-      staff_role_id: document.getElementById('config-staff_role').value,
-      economy_enabled: document.getElementById('config-economy_enabled').checked,
-      auto_mod: document.getElementById('config-auto_mod').checked,
-      welcome_channel_id: document.getElementById('config-welcome_channel').value,
-      welcome_message: document.getElementById('config-welcome_message').value,
+      automod_enabled: document.getElementById('config-automod_enabled').checked,
+      spam_enabled: document.getElementById('config-spam_enabled').checked,
+      spam_max_messages: Number(document.getElementById('config-spam_max_messages').value || 5),
+      spam_window_seconds: Number(document.getElementById('config-spam_window_seconds').value || 5),
+      spam_action: 'warn',
+      mention_enabled: document.getElementById('config-mention_enabled').checked,
+      mention_max: Number(document.getElementById('config-mention_max').value || 5),
+      mention_action: 'delete',
+      links_enabled: document.getElementById('config-links_enabled').checked,
+      links_action: 'delete',
+      caps_enabled: document.getElementById('config-caps_enabled').checked,
+      caps_percent: Number(document.getElementById('config-caps_percent').value || 70),
+      caps_min_length: Number(document.getElementById('config-caps_min_length').value || 15),
+      caps_action: 'warn',
+      banned_words: document.getElementById('config-banned_words').value,
+      log_channel_id: document.getElementById('config-log_channel_id').value,
+      mod_role_id: document.getElementById('config-mod_role_id').value,
     };
     try {
       const r = await fetch(API + '/api/guild/' + guildId + '/config?token=' + encodeURIComponent(token), {
@@ -259,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (!r.ok) throw new Error(await apiError(r));
       configStatus.innerHTML = '<span style="color:var(--green)">Configuration saved successfully.</span>';
     } catch (err) {
       configStatus.innerHTML = '<span style="color:var(--rose)">Failed to save: ' + err.message + '</span>';
@@ -268,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('config-reload').addEventListener('click', () => {
     const guildId = configForm.dataset.guildId;
-    if (guildId) loadConfig(guildId, configPanelTitle.textContent.replace(' configuration', ''));
+    if (guildId) loadConfig(guildId, currentGuildName || configPanelTitle.textContent.replace(' configuration', ''));
   });
 
   if (logoutBtn) {
@@ -286,6 +324,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  async function apiError(response) {
+    try {
+      const body = await response.json();
+      return body.error || ('HTTP ' + response.status);
+    } catch {
+      return 'HTTP ' + response.status;
+    }
+  }
+
+  function showAuthError(message) {
+    let el = document.getElementById('dashboard-auth-error');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'dashboard-auth-error';
+      el.className = 'status-error';
+      loginDiv.appendChild(el);
+    }
+    el.textContent = message;
+    el.style.display = '';
   }
 
   checkAuth();

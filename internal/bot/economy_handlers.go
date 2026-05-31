@@ -15,6 +15,12 @@ import (
 )
 
 func handleEconomyCommand(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) (discord.MessageCreate, bool) {
+	if msg, unavailable := economyUnavailable(store); unavailable {
+		switch data.CommandName() {
+		case "balance", "profile", "daily", "work", "pay", "coinflip", "rob", "shop", "buy", "inventory", "slots", "fish", "mine", "gamble", "sell", "use", "blackjack", "lottery", "lottery-claim", "rich", "weekly", "gift":
+			return msg, true
+		}
+	}
 	switch data.CommandName() {
 	case "balance":
 		return balanceMessage(store, e, data), true
@@ -31,11 +37,11 @@ func handleEconomyCommand(store *economy.Store, e *events.ApplicationCommandInte
 	case "rob":
 		return robMessage(store, e, data), true
 	case "shop":
-		return shopMessage(store), true
+		return shopMessage(store, data), true
 	case "buy":
 		return buyMessage(store, e, data), true
 	case "inventory":
-		return inventoryMessage(store, e), true
+		return inventoryMessage(store, e, data), true
 	case "slots":
 		return slotsMessage(store, e, data), true
 	case "fish":
@@ -51,11 +57,11 @@ func handleEconomyCommand(store *economy.Store, e *events.ApplicationCommandInte
 	case "blackjack":
 		return blackjackMessage(store, e, data), true
 	case "lottery":
-		return lotteryMessage(store, e), true
+		return lotteryMessage(store, e, data), true
 	case "lottery-claim":
 		return lotteryClaimMessage(store, e), true
 	case "rich":
-		return richMessage(store), true
+		return richMessage(store, data), true
 	case "weekly":
 		return weeklyMessage(store, e), true
 	case "gift":
@@ -65,20 +71,29 @@ func handleEconomyCommand(store *economy.Store, e *events.ApplicationCommandInte
 	}
 }
 
+func economyUnavailable(store *economy.Store) (discord.MessageCreate, bool) {
+	if store != nil {
+		return discord.MessageCreate{}, false
+	}
+	return economyError("Economy unavailable", "The economy store is not ready yet. Try again in a moment."), true
+}
+
 func balanceMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
 	user, ok := data.OptUser("user")
 	if !ok {
 		user = e.User()
 	}
+	public := data.Bool("public")
 
 	record := store.Balance(user.ID, user.EffectiveName())
 	return discord.NewMessageCreate().
-		WithEphemeral(true).
+		WithEphemeral(!public).
 		AddEmbeds(economyEmbed("Pulse Balance", fmt.Sprintf("💰 %s has **%s Pulses** in their wallet.", user.String(), formatPulses(record.Balance))).
 			AddField("Lifetime earned", formatPulses(record.Earned), true).
 			AddField("Lifetime spent", formatPulses(record.Spent), true).
 			AddField("Daily streak", fmt.Sprintf("%d day(s)", record.DailyStreak), true).
-			AddField("Commands", fmt.Sprintf("/pay, /profile, /shop, /daily, /work"), true).
+			AddField("Net worth", formatPulses(record.NetWorth()), true).
+			AddField("Commands", "/pay, /profile, /shop, /daily, /work", true).
 			WithThumbnail(user.EffectiveAvatarURL()))
 }
 
@@ -100,20 +115,23 @@ func profileMessage(store *economy.Store, e *events.ApplicationCommandInteractio
 	if !ok {
 		user = e.User()
 	}
+	public := data.Bool("public")
 
 	record := store.Balance(user.ID, user.EffectiveName())
 	items := store.Inventory(user.ID, user.EffectiveName())
 	itemVal := profileItemValue(items)
 	netWorth := record.Balance + itemVal
 	return discord.NewMessageCreate().
-		WithEphemeral(true).
+		WithEphemeral(!public).
 		AddEmbeds(economyEmbed("Economy Profile", fmt.Sprintf("📊 Full economy breakdown for **%s**.", user.String())).
 			AddField("Wallet", formatPulses(record.Balance), true).
 			AddField("Net worth", fmt.Sprintf("%s (items: %s)", formatPulses(netWorth), formatPulses(itemVal)), true).
 			AddField("Earned / Spent", fmt.Sprintf("%s / %s", formatPulses(record.Earned), formatPulses(record.Spent)), true).
 			AddField("Daily streak", fmt.Sprintf("%d day(s)", record.DailyStreak), true).
+			AddField("Weekly streak", fmt.Sprintf("%d week(s)", record.WeeklyStreak), true).
 			AddField("Coinflip", fmt.Sprintf("%dW / %dL", record.FlipWins, record.FlipLosses), true).
 			AddField("Gambling", fmt.Sprintf("%dW / %dL", record.GambleWins, record.GambleTotal-record.GambleWins), true).
+			AddField("Blackjack", fmt.Sprintf("%dW / %dL", record.BlackjackWins, record.BlackjackLosses), true).
 			AddField("Fishing", fmt.Sprintf("%d caught / %d total", record.FishCaught, record.FishTotal), true).
 			AddField("Mining", fmt.Sprintf("%d mined / %d total", record.MineMined, record.MineTotal), true).
 			AddField("Account started", discordTimestamp(record.CreatedAt), true).
@@ -151,6 +169,7 @@ func dailyMessage(store *economy.Store, e *events.ApplicationCommandInteractionC
 
 	return discord.NewMessageCreate().
 		AddEmbeds(economyEmbed("Daily Reward Claimed", desc).
+			AddField("Streak bonus", formatPulses(result.StreakBonus), true).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Streak", fmt.Sprintf("%d day(s)", result.Streak), true).
 			AddField("Next claim", discordTimestamp(result.NextAvailable), true).
@@ -163,8 +182,17 @@ func workMessage(store *economy.Store, e *events.ApplicationCommandInteractionCr
 		return cooldownMessage("Work is on cooldown", result.NextAvailable)
 	}
 
+	desc := fmt.Sprintf("%s %s and earned **%s Pulses**.", e.User().String(), result.Job, formatPulses(result.Reward))
+	if result.RareEvent != "" {
+		desc += fmt.Sprintf("\nBonus event: **%s** (+%s).", result.RareEvent, formatPulses(result.Bonus))
+	}
+	if result.Boosted {
+		desc += "\nXP Boost doubled the final payout."
+	}
+
 	return discord.NewMessageCreate().
-		AddEmbeds(economyEmbed("Shift Complete", fmt.Sprintf("%s %s and earned **%s Pulses**.", e.User().String(), result.Job, formatPulses(result.Reward))).
+		AddEmbeds(economyEmbed("Shift Complete", desc).
+			AddField("Base pay", formatPulses(result.BaseReward), true).
 			AddField("Pulses earned", formatPulses(result.Reward), true).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Next shift", discordTimestamp(result.NextAvailable), true).
@@ -205,11 +233,15 @@ func coinflipMessage(store *economy.Store, e *events.ApplicationCommandInteracti
 		outcome = "won"
 		color = commands.EconomyMenuAccent
 	}
+	boostText := ""
+	if result.Boosted {
+		boostText = "\nLucky Pickaxe was consumed for a second-chance flip."
+	}
 
 	return discord.NewMessageCreate().
 		AddEmbeds(discord.NewEmbed().
 			WithTitle("Pulse Coinflip").
-			WithDescription(fmt.Sprintf("%s picked **%s**. The coin landed on **%s** and they **%s %s Pulses**.", e.User().String(), result.Side, result.Result, outcome, formatPulses(result.Wager))).
+			WithDescription(fmt.Sprintf("%s picked **%s**. The coin landed on **%s** and they **%s %s Pulses**.%s", e.User().String(), result.Side, result.Result, outcome, formatPulses(result.Wager), boostText)).
 			WithColor(color).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Record", fmt.Sprintf("%dW / %dL", result.Record.FlipWins, result.Record.FlipLosses), true).
@@ -217,13 +249,14 @@ func coinflipMessage(store *economy.Store, e *events.ApplicationCommandInteracti
 			WithFooterText("PulseKeep " + Version + " · Economy · Coinflip"))
 }
 
-func richMessage(store *economy.Store) discord.MessageCreate {
+func richMessage(store *economy.Store, data discord.SlashCommandInteractionData) discord.MessageCreate {
 	records := store.Leaderboard(10)
 	if len(records) == 0 {
 		return discord.NewMessageCreate().
 			WithEphemeral(true).
 			AddEmbeds(economyEmbed("Pulse Wealth Leaderboard", "No economy accounts exist yet. Use `/daily` or `/work` to start earning."))
 	}
+	public := data.Bool("public")
 
 	medals := []string{"🥇", "🥈", "🥉"}
 	var rows strings.Builder
@@ -240,6 +273,7 @@ func richMessage(store *economy.Store) discord.MessageCreate {
 	}
 
 	return discord.NewMessageCreate().
+		WithEphemeral(!public).
 		AddEmbeds(economyEmbed("Pulse Wealth Leaderboard", strings.TrimSpace(rows.String())).
 			AddField("How to climb", "Claim `/daily`, run `/work`, win bets, and keep earning!", false))
 }
@@ -252,6 +286,7 @@ func weeklyMessage(store *economy.Store, e *events.ApplicationCommandInteraction
 
 	return discord.NewMessageCreate().
 		AddEmbeds(economyEmbed("Weekly Reward Claimed", fmt.Sprintf("%s claimed **%s Pulses**!", e.User().String(), formatPulses(result.Reward))).
+			AddField("Streak bonus", formatPulses(result.StreakBonus), true).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Weekly streak", fmt.Sprintf("%d week(s)", result.Streak), true).
 			AddField("Next claim", discordTimestamp(result.NextAvailable), true).
@@ -311,6 +346,18 @@ func robMessage(store *economy.Store, e *events.ApplicationCommandInteractionCre
 				WithThumbnail(e.User().EffectiveAvatarURL()))
 	}
 
+	if result.Shielded {
+		return discord.NewMessageCreate().
+			AddEmbeds(discord.NewEmbed().
+				WithTitle("Robbery Blocked").
+				WithDescription(fmt.Sprintf("%s tried to rob %s, but a **Shield Token** blocked it. Fine paid: **%s Pulses**.", e.User().String(), target.String(), formatPulses(result.Fine))).
+				WithColor(commands.EconomyWarningAccent).
+				AddField("Your balance", formatPulses(result.Record.Balance), true).
+				AddField("Next robbery", discordTimestamp(result.NextAvailable), true).
+				WithThumbnail(e.User().EffectiveAvatarURL()).
+				WithFooterText("PulseKeep " + Version + " Â· Economy Â· Robbery"))
+	}
+
 	return discord.NewMessageCreate().
 		AddEmbeds(discord.NewEmbed().
 			WithTitle("Robbery Failed!").
@@ -322,13 +369,14 @@ func robMessage(store *economy.Store, e *events.ApplicationCommandInteractionCre
 			WithFooterText("PulseKeep " + Version + " · Economy · Robbery"))
 }
 
-func shopMessage(store *economy.Store) discord.MessageCreate {
+func shopMessage(store *economy.Store, data discord.SlashCommandInteractionData) discord.MessageCreate {
 	items := store.Shop()
 	if len(items) == 0 {
 		return discord.NewMessageCreate().
 			WithEphemeral(true).
 			AddEmbeds(economyEmbed("PulseKeep Shop", "The shop is currently empty. Check back later!"))
 	}
+	public := data.Bool("public")
 
 	embed := discord.NewEmbed().
 		WithTitle("PulseKeep Shop").
@@ -343,7 +391,7 @@ func shopMessage(store *economy.Store) discord.MessageCreate {
 	}
 
 	return discord.NewMessageCreate().
-		WithEphemeral(true).
+		WithEphemeral(!public).
 		AddEmbeds(embed)
 }
 
@@ -365,8 +413,9 @@ func buyMessage(store *economy.Store, e *events.ApplicationCommandInteractionCre
 			WithThumbnail(e.User().EffectiveAvatarURL()))
 }
 
-func inventoryMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
+func inventoryMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
 	items := store.Inventory(e.User().ID, e.User().EffectiveName())
+	public := data.Bool("public")
 	if len(items) == 0 {
 		return discord.NewMessageCreate().
 			WithEphemeral(true).
@@ -374,13 +423,21 @@ func inventoryMessage(store *economy.Store, e *events.ApplicationCommandInteract
 	}
 
 	var rows strings.Builder
+	totalValue := 0
 	for _, item := range items {
+		for _, shopItem := range economy.ShopItems {
+			if shopItem.ID == item.ItemID {
+				totalValue += shopItem.Price * item.Quantity
+				break
+			}
+		}
 		rows.WriteString(fmt.Sprintf("**%s** x%d\n", item.ItemName, item.Quantity))
 	}
 
 	return discord.NewMessageCreate().
-		WithEphemeral(true).
+		WithEphemeral(!public).
 		AddEmbeds(economyEmbed(fmt.Sprintf("%s's Inventory", e.User().EffectiveName()), strings.TrimSpace(rows.String())).
+			AddField("Estimated item value", formatPulses(totalValue), true).
 			WithThumbnail(e.User().EffectiveAvatarURL()))
 }
 
@@ -406,7 +463,7 @@ func slotsMessage(store *economy.Store, e *events.ApplicationCommandInteractionC
 	return discord.NewMessageCreate().
 		AddEmbeds(discord.NewEmbed().
 			WithTitle(title).
-			WithDescription(fmt.Sprintf("%s spun `%s` and **%s %s Pulses** (x%d).", e.User().String(), reels, outcome, formatPulses(result.Wager), result.Multiplier)).
+			WithDescription(fmt.Sprintf("%s spun `%s` and **%s %s Pulses** (x%d).", e.User().String(), reels, outcome, formatPulses(max(result.Payout, result.Wager)), result.Multiplier)).
 			WithColor(color).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Record", fmt.Sprintf("%dW / %dL", result.Record.SlotWins, result.Record.SlotLosses), true).
@@ -417,7 +474,7 @@ func slotsMessage(store *economy.Store, e *events.ApplicationCommandInteractionC
 func economyCommandError(err error) discord.MessageCreate {
 	switch {
 	case errors.Is(err, economy.ErrInvalidAmount):
-		return economyError("Invalid amount", "Use an amount greater than zero.")
+		return economyError("Invalid amount", fmt.Sprintf("Use an amount greater than zero. Wagers cap at **%s Pulses** and transfers cap at **%s Pulses**.", formatPulses(economy.MaxWager), formatPulses(economy.MaxTransfer)))
 	case errors.Is(err, economy.ErrInsufficientFund):
 		return economyError("Not enough Pulses", "Your wallet does not have enough Pulses for that action.")
 	case errors.Is(err, economy.ErrSelfPayment):
@@ -516,6 +573,12 @@ func fishMessage(store *economy.Store, e *events.ApplicationCommandInteractionCr
 
 	desc := fmt.Sprintf("%s cast a line and caught... **%s %s** (%s, %s)!\nThey sold it for **%s Pulses**.",
 		e.User().String(), result.Fish.Emoji, result.Fish.Name, result.Fish.Weight, result.Fish.Rarity, formatPulses(result.Reward))
+	if result.Bonus > 0 {
+		desc += fmt.Sprintf("\nRarity bonus: **+%s Pulses**", formatPulses(result.Bonus))
+	}
+	if result.Boosted {
+		desc += "\nTreasure Map doubled the payout."
+	}
 	if interest > 0 {
 		desc += fmt.Sprintf("\n💤 Passive interest: **+%s Pulses**", formatPulses(interest))
 	}
@@ -567,6 +630,12 @@ func mineMessage(store *economy.Store, e *events.ApplicationCommandInteractionCr
 
 	desc := fmt.Sprintf("%s swung their pickaxe and found... **%s %s** (%s)!\nThey sold it for **%s Pulses**.",
 		e.User().String(), result.Ore.Emoji, result.Ore.Name, result.Ore.Rarity, formatPulses(result.Reward))
+	if result.Bonus > 0 {
+		desc += fmt.Sprintf("\nRarity bonus: **+%s Pulses**", formatPulses(result.Bonus))
+	}
+	if result.Boosted {
+		desc += "\nTreasure Map doubled the payout."
+	}
 	if interest > 0 {
 		desc += fmt.Sprintf("\n💤 Passive interest: **+%s Pulses**", formatPulses(interest))
 	}
@@ -849,8 +918,9 @@ func handleBlackjackButton(store *economy.Store, e *events.ComponentInteractionC
 	}
 }
 
-func lotteryMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
+func lotteryMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
 	status := store.LotteryStatus(time.Now())
+	public := data.Bool("public")
 
 	jackpotStr := formatPulses(status.Jackpot)
 	mode := "Auto-draw"
@@ -866,7 +936,7 @@ func lotteryMessage(store *economy.Store, e *events.ApplicationCommandInteractio
 	}
 
 	return discord.NewMessageCreate().
-		WithEphemeral(true).
+		WithEphemeral(!public).
 		AddEmbeds(economyEmbed("🎰 Weekly Lottery", "PulseKeep's weekly lottery draw.").
 			AddField("Jackpot", fmt.Sprintf("**%s Pulses**", jackpotStr), true).
 			AddField("Entries", fmt.Sprintf("**%d** tickets", status.TotalEntries), true).

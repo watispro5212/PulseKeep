@@ -17,16 +17,29 @@ func TestDailyRewardAndCooldown(t *testing.T) {
 	if first.OnCooldown {
 		t.Fatal("first daily claim should not be on cooldown")
 	}
-	if first.Reward != 250 {
-		t.Fatalf("expected first daily reward 250, got %d", first.Reward)
+	if first.Reward != DailyBaseReward+DailyStreakStep {
+		t.Fatalf("expected first daily reward %d, got %d", DailyBaseReward+DailyStreakStep, first.Reward)
 	}
-	if first.Record.Balance != StartingBalance+250 {
+	if first.Record.Balance != StartingBalance+first.Reward {
 		t.Fatalf("unexpected balance after daily: %d", first.Record.Balance)
 	}
 
 	second := store.Daily(userID, "Ada", now.Add(time.Hour))
 	if !second.OnCooldown {
 		t.Fatal("second daily claim inside cooldown should be blocked")
+	}
+}
+
+func TestWorkRewardRange(t *testing.T) {
+	store := NewStore(nil)
+	now := time.Date(2026, 5, 23, 12, 0, 0, 0, time.UTC)
+
+	result := store.Work(snowflake.ID(42), "Grace", now)
+	if result.OnCooldown {
+		t.Fatal("first work shift should not be on cooldown")
+	}
+	if result.Reward < WorkMinReward || result.Reward > WorkMaxReward {
+		t.Fatalf("work reward %d outside expected range %d-%d", result.Reward, WorkMinReward, WorkMaxReward)
 	}
 }
 

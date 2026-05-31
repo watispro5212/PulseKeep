@@ -92,7 +92,7 @@ func bjCleanupLoop() {
 }
 
 func (s *Store) BlackjackStart(userID snowflake.ID, name string, wager int, difficulty BlackjackDifficulty, now time.Time) (BlackjackStartResult, error) {
-	if wager <= 0 {
+	if wager <= 0 || wager > MaxWager {
 		return BlackjackStartResult{}, ErrInvalidAmount
 	}
 

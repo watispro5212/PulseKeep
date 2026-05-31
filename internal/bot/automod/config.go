@@ -8,24 +8,24 @@ import (
 )
 
 type GuildConfig struct {
-	GuildID          string
-	AutomodEnabled   bool
-	SpamEnabled      bool
-	SpamMaxMessages  int
-	SpamWindowSecs   int
-	SpamAction       string
-	MentionEnabled   bool
-	MentionMax       int
-	MentionAction    string
-	LinksEnabled     bool
-	LinksAction      string
-	CapsEnabled      bool
-	CapsPercent      int
-	CapsMinLength    int
-	CapsAction       string
-	BannedWords      string
-	LogChannelID     string
-	ModRoleID        string
+	GuildID         string `json:"guild_id"`
+	AutomodEnabled  bool   `json:"automod_enabled"`
+	SpamEnabled     bool   `json:"spam_enabled"`
+	SpamMaxMessages int    `json:"spam_max_messages"`
+	SpamWindowSecs  int    `json:"spam_window_seconds"`
+	SpamAction      string `json:"spam_action"`
+	MentionEnabled  bool   `json:"mention_enabled"`
+	MentionMax      int    `json:"mention_max"`
+	MentionAction   string `json:"mention_action"`
+	LinksEnabled    bool   `json:"links_enabled"`
+	LinksAction     string `json:"links_action"`
+	CapsEnabled     bool   `json:"caps_enabled"`
+	CapsPercent     int    `json:"caps_percent"`
+	CapsMinLength   int    `json:"caps_min_length"`
+	CapsAction      string `json:"caps_action"`
+	BannedWords     string `json:"banned_words"`
+	LogChannelID    string `json:"log_channel_id"`
+	ModRoleID       string `json:"mod_role_id"`
 }
 
 func DefaultConfig(guildID string) *GuildConfig {
@@ -49,9 +49,9 @@ func DefaultConfig(guildID string) *GuildConfig {
 }
 
 type ConfigStore struct {
-	mu      sync.RWMutex
-	db      *sql.DB
-	cache   map[string]*GuildConfig
+	mu    sync.RWMutex
+	db    *sql.DB
+	cache map[string]*GuildConfig
 }
 
 func NewConfigStore(database *sql.DB) *ConfigStore {

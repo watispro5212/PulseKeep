@@ -16,6 +16,14 @@
         toggle.setAttribute('aria-expanded', expanded);
         mobileNav.classList.toggle('open');
       });
+
+      var closeBtn = document.getElementById('mobile-nav-close-btn');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function () {
+          toggle.setAttribute('aria-expanded', 'false');
+          mobileNav.classList.remove('open');
+        });
+      }
     }
 
     /* --- Scroll reveal animation --- */
@@ -44,7 +52,7 @@
       var dot = statusBadge.querySelector('.pulse-dot');
       var txt = statusBadge.querySelector('.badge-text');
       statusBadge.className = 'hero-eyebrow';
-      if (dot) dot.className = 'pulse-dot' + (state === 'online' ? '' : ' offline');
+      if (dot) dot.className = 'pulse-dot' + (state === 'online' ? ' online' : ' offline');
       if (txt) txt.textContent = label;
     }
 

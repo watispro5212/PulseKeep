@@ -18,7 +18,7 @@ RUN apk add --no-cache ca-certificates tzdata
 COPY --from=builder /app/pulsekeep /pulsekeep
 COPY web /web
 
-EXPOSE 7860
-ENV PORT=7860
+EXPOSE 8080
+ENV PORT=8080
 
 ENTRYPOINT ["/pulsekeep"]

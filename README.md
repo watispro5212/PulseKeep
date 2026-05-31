@@ -6,7 +6,7 @@ A Go-powered Discord bot for moderation, audit logging, support tickets, economy
 
 - **Discord bot** — slash commands, event handling, component interactions, auto-moderation, economy loop
 - **Gin API** — `/health`, `/stats`, and `/api/dashboard` endpoints with CORS support
-- **Cloudflare Pages website** — 11-page static site in `web/` with live API polling
+- **Cloudflare Workers website** — static assets in `web/` plus a Worker gateway for API, auth, health, and stats
 - **Fly.io deployment** — single always-on machine tuned for Discord gateway uptime
 - **PostgreSQL persistence** — guild config, economy records, inventory, command logs
 - **Graceful shutdown** — clean SIGTERM handling so deploys don't duplicate gateway sessions
@@ -28,7 +28,8 @@ PulseKeep/
     cache/                Thread-safe atomic counters for live stats
     config/               Environment variable loader
     db/                   PostgreSQL connection and migration runner
-  web/                    Cloudflare Pages static site (HTML/CSS/JS)
+  web/                    Cloudflare Workers static assets (HTML/CSS/JS)
+  src/worker.js           Worker gateway that proxies API requests to Fly.io
   db/                     Drizzle schema and migration files
   fly.toml                Fly.io app configuration
 ```
@@ -42,7 +43,7 @@ PulseKeep/
 | HTTP router | Gin v1.12.0 |
 | Database | PostgreSQL via pgx v5 / Neon |
 | Hosting | Fly.io (iad, 256 MB, shared-cpu-1x) |
-| Frontend | HTML + CSS + vanilla JS (Cloudflare Pages) |
+| Frontend | HTML + CSS + vanilla JS (Cloudflare Workers static assets) |
 | CI/CD | GitHub Actions (build + deploy to Fly.io) |
 
 ## Local Development
@@ -67,7 +68,7 @@ The static site has no build step — open `web/index.html` or serve `web/` with
 fly launch --no-deploy
 fly secrets set DISCORD_TOKEN="your-token-here"
 fly secrets set DATABASE_URL="postgresql://..."
-fly secrets set ALLOWED_ORIGIN="https://your-cloudflare-site.pages.dev"
+fly secrets set ALLOWED_ORIGIN="https://pulsekeep.williamdelilah3.workers.dev"
 fly secrets set DISCORD_CLIENT_ID="..."
 fly secrets set DISCORD_CLIENT_SECRET="..."
 fly secrets set DISCORD_REDIRECT_URI="https://your-site.com/auth/discord/callback"
@@ -76,17 +77,21 @@ fly deploy
 
 The Fly config keeps one machine running 24/7 because the Discord gateway requires a persistent connection. Health checks use `/health` and always return 200 (database status is reported in the response body).
 
-## Cloudflare Pages Deployment
+## Cloudflare Workers Deployment
 
-The website auto-deploys from the `main` branch:
+The Worker serves the website from `web/` and proxies API traffic to the Fly.io backend. The backend origin is configured in `wrangler.jsonc` and `wrangler.toml`:
 
 ```bash
-npx wrangler pages deploy web --branch main
+npm run deploy
 ```
 
-Or connect the GitHub repo to Cloudflare Pages for automatic deployments on push.
+Current origin:
 
-Environment variables on the Fly.io backend (`ALLOWED_ORIGIN`) must include the Cloudflare Pages domain for CORS to work with the live status polling.
+```text
+API_ORIGIN=https://pulsekeep.fly.dev
+```
+
+Environment variables on the Fly.io backend (`ALLOWED_ORIGIN`) must include the Worker domain for CORS to work with direct API calls and OAuth redirects.
 
 ## Environment Variables
 

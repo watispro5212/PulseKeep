@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/disgoorg/disgo"
@@ -19,8 +20,8 @@ import (
 	"github.com/disgoorg/disgo/rest"
 	"github.com/disgoorg/omit"
 	"github.com/disgoorg/snowflake/v2"
-	"github.com/watispro5212/PulseKeep/internal/bot/commands"
 	"github.com/watispro5212/PulseKeep/internal/bot/automod"
+	"github.com/watispro5212/PulseKeep/internal/bot/commands"
 	"github.com/watispro5212/PulseKeep/internal/bot/economy"
 	"github.com/watispro5212/PulseKeep/internal/cache"
 )
@@ -28,19 +29,21 @@ import (
 const Version = "v6.0.0"
 
 type Bot struct {
-	Client          *bot.Client
-	cache           *cache.Cache
-	db              *sql.DB
-	automod         *automod.Engine
-	cfgStore        *automod.ConfigStore
-	webhookURL      string
-	guildCount      int64
-	economyStore    *economy.Store
-	httpClient      *http.Client
-	statusCtx       context.Context
-	statusCancel    context.CancelFunc
-	ticketCtx       context.Context
-	ticketCancel    context.CancelFunc
+	Client       *bot.Client
+	cache        *cache.Cache
+	db           *sql.DB
+	automod      *automod.Engine
+	cfgStore     *automod.ConfigStore
+	webhookURL   string
+	guildCount   int64
+	economyStore *economy.Store
+	httpClient   *http.Client
+	webhookMu    sync.Mutex
+	lastWebhook  map[string]time.Time
+	statusCtx    context.Context
+	statusCancel context.CancelFunc
+	ticketCtx    context.Context
+	ticketCancel context.CancelFunc
 }
 
 func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL string) *Bot {
@@ -61,6 +64,7 @@ func New(token string, memCache *cache.Cache, database *sql.DB, webhookURL strin
 		webhookURL:   webhookURL,
 		economyStore: economyStore,
 		httpClient:   &http.Client{Timeout: 5 * time.Second, Transport: &http.Transport{MaxIdleConns: 10, IdleConnTimeout: 30 * time.Second}},
+		lastWebhook:  make(map[string]time.Time),
 		statusCtx:    botCtx,
 		statusCancel: botCancel,
 		ticketCtx:    ticketCtx,
@@ -214,7 +218,7 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 				AddField("API", "Reachable", true).
 				AddField("Latency", fmt.Sprintf("%dms", time.Since(t0).Milliseconds()), true).
 				WithColor(commands.UtilityMenuAccent).
-				WithFooterText("PulseKeep " + Version + " · Utility").
+				WithFooterText("PulseKeep "+Version+" · Utility").
 				WithTimestamp(time.Now()),
 		))
 	case "stats":
@@ -330,6 +334,14 @@ func (b *Bot) handleTicketOpen(e *events.ComponentInteractionCreate) {
 				UserID: e.User().ID,
 				Allow:  discord.PermissionViewChannel | discord.PermissionSendMessages | discord.PermissionReadMessageHistory,
 			},
+			discord.MemberPermissionOverwrite{
+				UserID: e.Client().ApplicationID,
+				Allow: discord.PermissionViewChannel |
+					discord.PermissionSendMessages |
+					discord.PermissionReadMessageHistory |
+					discord.PermissionManageChannels |
+					discord.PermissionManageMessages,
+			},
 		},
 	})
 	if err != nil {
@@ -351,21 +363,35 @@ func (b *Bot) handleTicketOpen(e *events.ComponentInteractionCreate) {
 }
 
 func (b *Bot) handleTicketClose(e *events.ComponentInteractionCreate) {
-	if err := e.UpdateMessage(discord.NewMessageUpdate().WithContent("Ticket closed by user. Channel will be deleted shortly.")); err != nil {
-		log.Printf("failed to update ticket close message: %v", err)
-	}
-
 	channelID := e.Channel().ID()
-
-	select {
-	case <-b.ticketCtx.Done():
+	channelName := e.Channel().Name()
+	if !strings.HasPrefix(channelName, "ticket-") {
+		if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContent("This button can only close PulseKeep ticket channels.")); err != nil {
+			log.Printf("failed to reject non-ticket close: %v", err)
+		}
 		return
-	case <-time.After(5 * time.Second):
 	}
 
-	if err := e.Client().Rest.DeleteChannel(channelID); err != nil {
-		log.Printf("failed to delete ticket channel: %v", err)
+	if err := e.UpdateMessage(discord.NewMessageUpdate().
+		WithContentf("Ticket closed by %s. Channel will be deleted shortly.", e.User().Mention()).
+		WithComponents()); err != nil {
+		log.Printf("failed to update ticket close message: %v", err)
+		if err := e.DeferUpdateMessage(); err != nil {
+			log.Printf("failed to acknowledge ticket close interaction: %v", err)
+		}
 	}
+
+	go func() {
+		select {
+		case <-b.ticketCtx.Done():
+			return
+		case <-time.After(2 * time.Second):
+		}
+
+		if err := e.Client().Rest.DeleteChannel(channelID); err != nil {
+			log.Printf("failed to delete ticket channel %s: %v", channelID, err)
+		}
+	}()
 }
 
 func (b *Bot) GetConfigStore() *automod.ConfigStore {
@@ -405,6 +431,22 @@ func (b *Bot) sendWebhook(embed discord.Embed) {
 	if b.webhookURL == "" {
 		return
 	}
+	key := fmt.Sprintf("%s|%s|%d", embed.Title, embed.Description, embed.Color)
+	now := time.Now()
+	b.webhookMu.Lock()
+	for existingKey, sentAt := range b.lastWebhook {
+		if now.Sub(sentAt) > 10*time.Minute {
+			delete(b.lastWebhook, existingKey)
+		}
+	}
+	if sentAt, ok := b.lastWebhook[key]; ok && now.Sub(sentAt) < 2*time.Minute {
+		b.webhookMu.Unlock()
+		log.Printf("skipping duplicate status webhook: %s", embed.Title)
+		return
+	}
+	b.lastWebhook[key] = now
+	b.webhookMu.Unlock()
+
 	payload, err := json.Marshal(map[string]any{
 		"embeds": []discord.Embed{embed},
 	})
@@ -570,7 +612,8 @@ func announceMessage(e *events.ApplicationCommandInteractionCreate, data discord
 		body = "No announcement message was provided."
 	}
 
-	if ping && (e.Member().Permissions&discord.PermissionMentionEveryone) == 0 {
+	member := e.Member()
+	if ping && (member == nil || (member.Permissions&discord.PermissionMentionEveryone) == 0) {
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Missing permission").
@@ -590,6 +633,8 @@ func announceMessage(e *events.ApplicationCommandInteractionCreate, data discord
 			WithTimestamp(time.Now()))
 	if ping {
 		msg = msg.WithContent("@everyone")
+	} else {
+		msg = msg.WithAllowedMentions(&discord.AllowedMentions{})
 	}
 	return msg
 }
@@ -725,13 +770,46 @@ func handlePoll(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 	options := make([]string, 0, 4)
 	emojis := []string{"1\uFE0F\u20E3", "2\uFE0F\u20E3", "3\uFE0F\u20E3", "4\uFE0F\u20E3"}
 
-	if o, ok := data.OptString("option1"); ok { options = append(options, o) }
-	if o, ok := data.OptString("option2"); ok { options = append(options, o) }
-	if o, ok := data.OptString("option3"); ok { options = append(options, o) }
-	if o, ok := data.OptString("option4"); ok { options = append(options, o) }
+	if o, ok := data.OptString("option1"); ok {
+		options = append(options, o)
+	}
+	if o, ok := data.OptString("option2"); ok {
+		options = append(options, o)
+	}
+	if o, ok := data.OptString("option3"); ok {
+		options = append(options, o)
+	}
+	if o, ok := data.OptString("option4"); ok {
+		options = append(options, o)
+	}
 
 	if len(options) < 2 {
 		if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContent("You need at least 2 options for a poll.")); err != nil {
+			log.Printf("failed to send poll error: %v", err)
+		}
+		return
+	}
+	for i, opt := range options {
+		options[i] = strings.TrimSpace(opt)
+		if options[i] == "" {
+			if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContent("Poll options cannot be empty.")); err != nil {
+				log.Printf("failed to send poll error: %v", err)
+			}
+			return
+		}
+		for j := 0; j < i; j++ {
+			if strings.EqualFold(options[j], options[i]) {
+				if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContent("Poll options must be unique.")); err != nil {
+					log.Printf("failed to send poll error: %v", err)
+				}
+				return
+			}
+		}
+	}
+
+	question = strings.TrimSpace(question)
+	if question == "" {
+		if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContent("Poll question cannot be empty.")); err != nil {
 			log.Printf("failed to send poll error: %v", err)
 		}
 		return
@@ -747,6 +825,7 @@ func handlePoll(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 	desc.WriteString("## ")
 	desc.WriteString(question)
 	desc.WriteString("\n\n")
+
 	for i, opt := range options {
 		desc.WriteString(emojis[i])
 		desc.WriteString(" ")

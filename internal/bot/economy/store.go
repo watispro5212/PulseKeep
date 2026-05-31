@@ -15,16 +15,26 @@ import (
 )
 
 const (
-	StartingBalance = 250
-	DailyCooldown   = 24 * time.Hour
-	WorkCooldown    = 45 * time.Minute
-	RobCooldown     = 4 * time.Hour
-	FishingCooldown = 45 * time.Second
-	MiningCooldown  = 45 * time.Second
-	GambleCooldown  = 10 * time.Second
+	StartingBalance  = 250
+	DailyCooldown    = 24 * time.Hour
+	WorkCooldown     = 45 * time.Minute
+	RobCooldown      = 4 * time.Hour
+	FishingCooldown  = 45 * time.Second
+	MiningCooldown   = 45 * time.Second
+	GambleCooldown   = 10 * time.Second
 	InterestRate     = 0.001
 	InterestInterval = 6 * time.Hour
 	WeeklyCooldown   = 7 * 24 * time.Hour
+	DailyBaseReward  = 500
+	DailyStreakStep  = 75
+	DailyStreakCap   = 750
+	WorkMinReward    = 250
+	WorkMaxReward    = 650
+	WeeklyBaseReward = 2500
+	WeeklyStreakStep = 500
+	WeeklyStreakCap  = 5000
+	MaxWager         = 50000
+	MaxTransfer      = 250000
 )
 
 var (
@@ -45,47 +55,48 @@ type Store struct {
 }
 
 type Record struct {
-	UserID      snowflake.ID
-	Name        string
-	Balance     int
-	Earned      int
-	Spent       int
-	DailyStreak int
-	LastDaily   time.Time
-	LastWork    time.Time
-	LastRob     time.Time
-	LastFish    time.Time
-	LastMine    time.Time
-	LastGamble  time.Time
-	LastInterest time.Time
-	FlipWins    int
-	FlipLosses  int
-	SlotWins    int
-	SlotLosses  int
-	RobWins     int
-	RobLosses   int
-	FishCaught  int
-	FishTotal   int
-	MineMined   int
-	MineTotal   int
-	GambleWins      int
-	GambleTotal     int
-	BlackjackWins   int
-	BlackjackLosses int
-	LotteryWins     int
+	UserID            snowflake.ID
+	Name              string
+	Balance           int
+	Earned            int
+	Spent             int
+	DailyStreak       int
+	LastDaily         time.Time
+	LastWork          time.Time
+	LastRob           time.Time
+	LastFish          time.Time
+	LastMine          time.Time
+	LastGamble        time.Time
+	LastInterest      time.Time
+	FlipWins          int
+	FlipLosses        int
+	SlotWins          int
+	SlotLosses        int
+	RobWins           int
+	RobLosses         int
+	FishCaught        int
+	FishTotal         int
+	MineMined         int
+	MineTotal         int
+	GambleWins        int
+	GambleTotal       int
+	BlackjackWins     int
+	BlackjackLosses   int
+	LotteryWins       int
 	WeeklyStreak      int
 	LastWeekly        time.Time
-	XpBoostExpires     time.Time
-	TreasureMapActive  bool
-	GambleBoostActive  bool
-	Inventory          map[string]*InventoryEntry
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	XpBoostExpires    time.Time
+	TreasureMapActive bool
+	GambleBoostActive bool
+	Inventory         map[string]*InventoryEntry
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 type DailyResult struct {
 	Record        Record
 	Reward        int
+	StreakBonus   int
 	Streak        int
 	NextAvailable time.Time
 	OnCooldown    bool
@@ -94,7 +105,11 @@ type DailyResult struct {
 type WorkResult struct {
 	Record        Record
 	Reward        int
+	BaseReward    int
+	Bonus         int
 	Job           string
+	Boosted       bool
+	RareEvent     string
 	NextAvailable time.Time
 	OnCooldown    bool
 }
@@ -111,7 +126,9 @@ type FlipResult struct {
 	Side   string
 	Result string
 	Wager  int
+	Payout int
 	Won    bool
+	Boosted bool
 }
 
 type RobResult struct {
@@ -120,6 +137,7 @@ type RobResult struct {
 	Stolen        int
 	Fine          int
 	Success       bool
+	Shielded      bool
 	NextAvailable time.Time
 	OnCooldown    bool
 }
@@ -155,6 +173,7 @@ type BuyResult struct {
 type SlotsResult struct {
 	Record     Record
 	Wager      int
+	Payout     int
 	Won        bool
 	Multiplier int
 	Symbols    [3]string
@@ -195,6 +214,8 @@ type FishResult struct {
 	Record        Record
 	Fish          FishType
 	Reward        int
+	Bonus         int
+	Boosted       bool
 	NextAvailable time.Time
 	OnCooldown    bool
 }
@@ -227,6 +248,8 @@ type MineResult struct {
 	Record        Record
 	Ore           OreType
 	Reward        int
+	Bonus         int
+	Boosted       bool
 	NextAvailable time.Time
 	OnCooldown    bool
 }
@@ -235,17 +258,19 @@ type GambleResult struct {
 	Record        Record
 	Roll          int
 	Wager         int
+	Payout        int
 	Won           bool
 	Push          bool
 	Multiplier    int
+	Boosted       bool
 	NextAvailable time.Time
 	OnCooldown    bool
 }
 
 type SellResult struct {
-	Record  Record
-	Item    InventoryEntry
-	Reward  int
+	Record Record
+	Item   InventoryEntry
+	Reward int
 }
 
 type UseItemResult struct {
@@ -259,6 +284,7 @@ type UseItemResult struct {
 type WeeklyResult struct {
 	Record        Record
 	Reward        int
+	StreakBonus   int
 	Streak        int
 	NextAvailable time.Time
 	OnCooldown    bool
@@ -285,7 +311,7 @@ func (s *Store) load() {
 	}
 
 	ctx := context.Background()
-		rows, err := s.db.QueryContext(ctx, `
+	rows, err := s.db.QueryContext(ctx, `
 		SELECT user_id, name, balance, total_earned, total_spent,
 		       daily_streak, last_daily, last_work, last_rob,
 		       last_fish, last_mine, last_gamble, last_interest,
@@ -303,20 +329,20 @@ func (s *Store) load() {
 	}
 	defer rows.Close()
 
-		for rows.Next() {
+	for rows.Next() {
 		var (
-			userIDStr, name                                                     string
-			balance, earned, spent, dailyStreak, weeklyStreak                   int
-			flipWins, flipLosses, slotWins, slotLosses                          int
-			robWins, robLosses, fishCaught, fishTotal                           int
-			mineMined, mineTotal, gambleWins, gambleTotal                       int
-			blackjackWins, blackjackLosses, lotteryWins                         int
-			lastDaily, lastWork, lastRob                                        *time.Time
-			lastFish, lastMine, lastGamble, lastInterest, lastWeekly            *time.Time
-			xpBoostExpires                                                      *time.Time
-			treasureMapActive                                                   bool
-			gambleBoostActive                                                   bool
-			createdAt, updatedAt                                                time.Time
+			userIDStr, name                                          string
+			balance, earned, spent, dailyStreak, weeklyStreak        int
+			flipWins, flipLosses, slotWins, slotLosses               int
+			robWins, robLosses, fishCaught, fishTotal                int
+			mineMined, mineTotal, gambleWins, gambleTotal            int
+			blackjackWins, blackjackLosses, lotteryWins              int
+			lastDaily, lastWork, lastRob                             *time.Time
+			lastFish, lastMine, lastGamble, lastInterest, lastWeekly *time.Time
+			xpBoostExpires                                           *time.Time
+			treasureMapActive                                        bool
+			gambleBoostActive                                        bool
+			createdAt, updatedAt                                     time.Time
 		)
 		err := rows.Scan(&userIDStr, &name, &balance, &earned, &spent,
 			&dailyStreak,
@@ -362,9 +388,9 @@ func (s *Store) load() {
 			BlackjackWins:     blackjackWins,
 			BlackjackLosses:   blackjackLosses,
 			LotteryWins:       lotteryWins,
-			TreasureMapActive:  treasureMapActive,
-			GambleBoostActive:  gambleBoostActive,
-			Inventory:          make(map[string]*InventoryEntry),
+			TreasureMapActive: treasureMapActive,
+			GambleBoostActive: gambleBoostActive,
+			Inventory:         make(map[string]*InventoryEntry),
 			CreatedAt:         createdAt,
 			UpdatedAt:         updatedAt,
 		}
@@ -456,7 +482,7 @@ func (s *Store) save(record *Record) {
 			created_at, updated_at
 		) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,
 		          $14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,
-		          $30,$31,$32,$33,$34,$35,$36,$37)
+		          $30,$31,$32,$33,$34,$35)
 		ON CONFLICT (user_id) DO UPDATE SET
 			name = EXCLUDED.name,
 			balance = EXCLUDED.balance,
@@ -561,7 +587,8 @@ func (s *Store) Daily(userID snowflake.ID, name string, now time.Time) DailyResu
 	}
 
 	record.DailyStreak++
-	reward := 225 + min(record.DailyStreak*25, 275)
+	streakBonus := min(record.DailyStreak*DailyStreakStep, DailyStreakCap)
+	reward := DailyBaseReward + streakBonus
 	record.Balance += reward
 	record.Earned += reward
 	record.LastDaily = now
@@ -571,6 +598,7 @@ func (s *Store) Daily(userID snowflake.ID, name string, now time.Time) DailyResu
 	return DailyResult{
 		Record:        record.copy(),
 		Reward:        reward,
+		StreakBonus:   streakBonus,
 		Streak:        record.DailyStreak,
 		NextAvailable: now.Add(DailyCooldown),
 	}
@@ -613,12 +641,29 @@ func (s *Store) Work(userID snowflake.ID, name string, now time.Time) WorkResult
 		"ran a security audit on command inputs",
 		"drafted the PulseKeep changelog update",
 	}
-	reward := 90 + rand.Intn(161)
+	baseReward := WorkMinReward + rand.Intn(WorkMaxReward-WorkMinReward+1)
+	reward := baseReward
 	job := jobs[rand.Intn(len(jobs))]
+	var rareEvent string
+	bonus := 0
+	if rand.Intn(100) < 12 {
+		rareEvents := []string{
+			"Quality streak bonus",
+			"Emergency support payout",
+			"Automation cleanup bounty",
+			"Community thank-you tip",
+			"Late-shift performance bonus",
+		}
+		rareEvent = rareEvents[rand.Intn(len(rareEvents))]
+		bonus = 125 + rand.Intn(376)
+		reward += bonus
+	}
 
 	// XP Boost — double work earnings
+	boosted := false
 	if !record.XpBoostExpires.IsZero() && now.Before(record.XpBoostExpires) {
 		reward *= 2
+		boosted = true
 	} else {
 		record.XpBoostExpires = time.Time{} // clear expired boost
 	}
@@ -632,13 +677,17 @@ func (s *Store) Work(userID snowflake.ID, name string, now time.Time) WorkResult
 	return WorkResult{
 		Record:        record.copy(),
 		Reward:        reward,
+		BaseReward:    baseReward,
+		Bonus:         bonus,
 		Job:           job,
+		Boosted:       boosted,
+		RareEvent:     rareEvent,
 		NextAvailable: now.Add(WorkCooldown),
 	}
 }
 
 func (s *Store) Pay(senderID snowflake.ID, senderName string, receiverID snowflake.ID, receiverName string, amount int, now time.Time) (TransferResult, error) {
-	if amount <= 0 {
+	if amount <= 0 || amount > MaxTransfer {
 		return TransferResult{}, ErrInvalidAmount
 	}
 	if senderID == receiverID {
@@ -673,7 +722,7 @@ func (s *Store) Pay(senderID snowflake.ID, senderName string, receiverID snowfla
 }
 
 func (s *Store) Coinflip(userID snowflake.ID, name string, side string, wager int, now time.Time) (FlipResult, error) {
-	if wager <= 0 {
+	if wager <= 0 || wager > MaxWager {
 		return FlipResult{}, ErrInvalidAmount
 	}
 
@@ -732,12 +781,18 @@ func (s *Store) Coinflip(userID snowflake.ID, name string, side string, wager in
 	record.UpdatedAt = now
 	s.save(record)
 
+	payout := 0
+	if won {
+		payout = wager
+	}
 	return FlipResult{
 		Record: record.copy(),
 		Side:   side,
 		Result: result,
 		Wager:  wager,
+		Payout: payout,
 		Won:    won,
+		Boosted: hasPickaxe,
 	}, nil
 }
 
@@ -820,6 +875,7 @@ func (s *Store) Rob(userID snowflake.ID, name string, targetID snowflake.ID, tar
 			Record:        record.copy(),
 			Target:        target.copy(),
 			Fine:          fine,
+			Shielded:      true,
 			NextAvailable: now.Add(RobCooldown),
 		}, nil
 	}
@@ -829,7 +885,7 @@ func (s *Store) Rob(userID snowflake.ID, name string, targetID snowflake.ID, tar
 	var fine int
 
 	if success {
-		stolen = target.Balance * rand.Intn(31) / 100
+		stolen = target.Balance * (10 + rand.Intn(21)) / 100
 		if stolen < 10 {
 			stolen = 10
 		}
@@ -842,7 +898,7 @@ func (s *Store) Rob(userID snowflake.ID, name string, targetID snowflake.ID, tar
 		target.Spent += stolen
 		record.RobWins++
 	} else {
-		fine = record.Balance * rand.Intn(26) / 100
+		fine = record.Balance * (8 + rand.Intn(18)) / 100
 		if fine < 10 {
 			fine = 10
 		}
@@ -933,7 +989,7 @@ func (s *Store) Inventory(userID snowflake.ID, name string) []InventoryEntry {
 }
 
 func (s *Store) Slots(userID snowflake.ID, name string, wager int, now time.Time) (SlotsResult, error) {
-	if wager <= 0 {
+	if wager <= 0 || wager > MaxWager {
 		return SlotsResult{}, ErrInvalidAmount
 	}
 
@@ -999,6 +1055,7 @@ func (s *Store) Slots(userID snowflake.ID, name string, wager int, now time.Time
 	return SlotsResult{
 		Record:     record.copy(),
 		Wager:      wager,
+		Payout:     wager * multiplier,
 		Won:        won,
 		Multiplier: multiplier,
 		Symbols:    reels,
@@ -1046,11 +1103,23 @@ func (s *Store) Fish(userID snowflake.ID, name string, now time.Time) FishResult
 	}
 	fish := FishTable[idx]
 	reward := fish.MinPay + rand.Intn(fish.MaxPay-fish.MinPay+1)
+	bonus := 0
+	if reward > 0 {
+		switch fish.Rarity {
+		case "Legendary":
+			bonus = 250 + rand.Intn(501)
+		case "Mythic":
+			bonus = 750 + rand.Intn(1001)
+		}
+		reward += bonus
+	}
+	boosted := false
 
 	if reward > 0 {
 		// Treasure Map — double payout, then consume
 		if record.TreasureMapActive {
 			reward *= 2
+			boosted = true
 			record.TreasureMapActive = false
 		}
 		record.Balance += reward
@@ -1066,6 +1135,8 @@ func (s *Store) Fish(userID snowflake.ID, name string, now time.Time) FishResult
 		Record:        record.copy(),
 		Fish:          fish,
 		Reward:        reward,
+		Bonus:         bonus,
+		Boosted:       boosted,
 		NextAvailable: now.Add(FishingCooldown),
 	}
 }
@@ -1111,11 +1182,23 @@ func (s *Store) Mine(userID snowflake.ID, name string, now time.Time) MineResult
 	}
 	ore := OreTable[idx]
 	reward := ore.MinPay + rand.Intn(ore.MaxPay-ore.MinPay+1)
+	bonus := 0
+	if reward > 0 {
+		switch ore.Rarity {
+		case "Legendary":
+			bonus = 250 + rand.Intn(501)
+		case "Mythic":
+			bonus = 750 + rand.Intn(1001)
+		}
+		reward += bonus
+	}
+	boosted := false
 
 	if reward > 0 {
 		// Treasure Map — double payout, then consume
 		if record.TreasureMapActive {
 			reward *= 2
+			boosted = true
 			record.TreasureMapActive = false
 		}
 		record.Balance += reward
@@ -1131,12 +1214,14 @@ func (s *Store) Mine(userID snowflake.ID, name string, now time.Time) MineResult
 		Record:        record.copy(),
 		Ore:           ore,
 		Reward:        reward,
+		Bonus:         bonus,
+		Boosted:       boosted,
 		NextAvailable: now.Add(MiningCooldown),
 	}
 }
 
 func (s *Store) Gamble(userID snowflake.ID, name string, wager int, now time.Time) (GambleResult, error) {
-	if wager <= 0 {
+	if wager <= 0 || wager > MaxWager {
 		return GambleResult{}, ErrInvalidAmount
 	}
 
@@ -1226,9 +1311,11 @@ func (s *Store) Gamble(userID snowflake.ID, name string, wager int, now time.Tim
 		Record:        record.copy(),
 		Roll:          roll,
 		Wager:         wager,
+		Payout:        wager * multiplier,
 		Won:           won,
 		Push:          push,
 		Multiplier:    multiplier,
+		Boosted:       hasCloverBoost,
 		NextAvailable: now.Add(GambleCooldown),
 	}, nil
 }
@@ -1454,7 +1541,8 @@ func (s *Store) Weekly(userID snowflake.ID, name string, now time.Time) WeeklyRe
 	}
 
 	record.WeeklyStreak++
-	reward := 500 + min(record.WeeklyStreak*100, 1000)
+	streakBonus := min(record.WeeklyStreak*WeeklyStreakStep, WeeklyStreakCap)
+	reward := WeeklyBaseReward + streakBonus
 	record.Balance += reward
 	record.Earned += reward
 	record.LastWeekly = now
@@ -1464,18 +1552,19 @@ func (s *Store) Weekly(userID snowflake.ID, name string, now time.Time) WeeklyRe
 	return WeeklyResult{
 		Record:        record.copy(),
 		Reward:        reward,
+		StreakBonus:   streakBonus,
 		Streak:        record.WeeklyStreak,
 		NextAvailable: now.Add(WeeklyCooldown),
 	}
 }
 
 type LotteryStatus struct {
-	TotalEntries  int
-	Jackpot       int
-	LastWinnerID  string
-	LastDrawTime  time.Time
-	AutoDraw      bool
-	WeekStart     time.Time
+	TotalEntries int
+	Jackpot      int
+	LastWinnerID string
+	LastDrawTime time.Time
+	AutoDraw     bool
+	WeekStart    time.Time
 }
 
 func (s *Store) LotteryStatus(now time.Time) LotteryStatus {
@@ -1689,13 +1778,13 @@ func (s *Store) ensureRecord(userID snowflake.ID, name string) *Record {
 
 	now := time.Now()
 	record := &Record{
-		UserID:      userID,
-		Name:        name,
-		Balance:     StartingBalance,
+		UserID:       userID,
+		Name:         name,
+		Balance:      StartingBalance,
 		LastInterest: now,
-		Inventory:   make(map[string]*InventoryEntry),
-		CreatedAt:   now,
-		UpdatedAt:   now,
+		Inventory:    make(map[string]*InventoryEntry),
+		CreatedAt:    now,
+		UpdatedAt:    now,
 	}
 	s.records[userID] = record
 	s.save(record)

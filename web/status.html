@@ -184,8 +184,11 @@
     totalPolls++;
     try {
       const healthResp = await fetch('/health', { headers: { Accept: 'application/json' }, cache: 'no-store' });
-      if (!healthResp.ok) throw new Error('Health returned HTTP ' + healthResp.status);
-      const health = await healthResp.json();
+      const health = await healthResp.json().catch(function () { return {}; });
+      if (!healthResp.ok) {
+        const details = health.error ? ': ' + health.error : '';
+        throw Object.assign(new Error('Health returned HTTP ' + healthResp.status + details), { health: health });
+      }
       const ms = Math.round(performance.now() - started);
       latencies.push(ms);
       if (latencies.length > 40) latencies.shift();
@@ -198,7 +201,9 @@
       updated.textContent = 'Updated ' + new Date().toLocaleTimeString();
     } catch (error) {
       setStatus('offline', 'Service unreachable');
-      renderSkeleton();
+      const fallback = error.health || { status: 'offline', database: 'unavailable', servers: 0, users: 0, commands: 0, uptime: 'unknown', bot_uptime: 'unknown', go_version: 'unknown' };
+      renderCards(fallback, Math.round(performance.now() - started));
+      renderSparkline();
       errorDiv.textContent = error.message || 'Status request failed.';
       errorDiv.style.display = '';
       updated.textContent = 'Last attempt ' + new Date().toLocaleTimeString();

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/watispro5212/PulseKeep/internal/config"
@@ -37,13 +38,24 @@ type DiscordUser struct {
 
 // DiscordGuild represents a Discord guild (server)
 type DiscordGuild struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Icon        string `json:"icon,omitempty"`
-	IconHash    string `json:"icon_hash,omitempty"`
-	Owner       bool   `json:"owner,omitempty"`
-	Permissions int    `json:"permissions,omitempty"`
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	Icon        string   `json:"icon,omitempty"`
+	IconHash    string   `json:"icon_hash,omitempty"`
+	Owner       bool     `json:"owner,omitempty"`
+	Permissions string   `json:"permissions,omitempty"`
 	Features    []string `json:"features,omitempty"`
+}
+
+func (g DiscordGuild) HasPermission(permission int64) bool {
+	if g.Owner {
+		return true
+	}
+	perms, err := strconv.ParseInt(g.Permissions, 10, 64)
+	if err != nil {
+		return false
+	}
+	return perms&permission != 0
 }
 
 // ExchangeCode exchanges an authorization code for an access token
@@ -67,11 +79,11 @@ func ExchangeCode(cfg *config.Config, code string) (string, error) {
 	}
 
 	var tokenResp struct {
-		AccessToken string `json:"access_token"`
-		TokenType   string `json:"token_type"`
-		ExpiresIn   int    `json:"expires_in"`
+		AccessToken  string `json:"access_token"`
+		TokenType    string `json:"token_type"`
+		ExpiresIn    int    `json:"expires_in"`
 		RefreshToken string `json:"refresh_token"`
-		Scope       string `json:"scope"`
+		Scope        string `json:"scope"`
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
@@ -135,4 +147,3 @@ func GetUserGuilds(accessToken string) ([]DiscordGuild, error) {
 
 	return guilds, nil
 }
-

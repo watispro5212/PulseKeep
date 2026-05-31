@@ -74,6 +74,7 @@ func Register() []discord.ApplicationCommandCreate {
 					Name:        "reason",
 					Description: "Reason for kicking the member",
 					Required:    false,
+					MaxLength:   ptrInt(180),
 				},
 			},
 		},
@@ -91,6 +92,7 @@ func Register() []discord.ApplicationCommandCreate {
 					Name:        "reason",
 					Description: "Reason for banning the member",
 					Required:    false,
+					MaxLength:   ptrInt(180),
 				},
 			},
 		},
@@ -103,11 +105,13 @@ func Register() []discord.ApplicationCommandCreate {
 					Name:        "title",
 					Description: "Announcement title",
 					Required:    true,
+					MaxLength:   ptrInt(120),
 				},
 				discord.ApplicationCommandOptionString{
 					Name:        "message",
 					Description: "Announcement body text",
 					Required:    true,
+					MaxLength:   ptrInt(1800),
 				},
 				discord.ApplicationCommandOptionBool{
 					Name:        "ping",
@@ -126,22 +130,32 @@ func Register() []discord.ApplicationCommandCreate {
 		},
 		discord.SlashCommandCreate{
 			Name:        "balance",
-			Description: "Check your current PulseKeep balance",
+			Description: "Check a PulseKeep wallet balance and quick economy stats",
 			Options: []discord.ApplicationCommandOption{
 				discord.ApplicationCommandOptionUser{
 					Name:        "user",
 					Description: "The user to check the balance of, defaults to yourself",
 					Required:    false,
 				},
+				discord.ApplicationCommandOptionBool{
+					Name:        "public",
+					Description: "Show the balance publicly instead of only to you",
+					Required:    false,
+				},
 			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "profile",
-			Description: "View a PulseKeep economy profile",
+			Description: "View a full PulseKeep economy profile and activity record",
 			Options: []discord.ApplicationCommandOption{
 				discord.ApplicationCommandOptionUser{
 					Name:        "user",
 					Description: "The user to inspect, defaults to yourself",
+					Required:    false,
+				},
+				discord.ApplicationCommandOptionBool{
+					Name:        "public",
+					Description: "Show the profile publicly instead of only to you",
 					Required:    false,
 				},
 			},
@@ -163,11 +177,16 @@ func Register() []discord.ApplicationCommandCreate {
 					Description: "How many Pulses to wager",
 					Required:    true,
 					MinValue:    ptrInt(1),
+					MaxValue:    ptrInt(50000),
 				},
 				discord.ApplicationCommandOptionString{
 					Name:        "side",
 					Description: "Pick heads or tails",
 					Required:    true,
+					Choices: []discord.ApplicationCommandOptionChoiceString{
+						{Name: "Heads", Value: "heads"},
+						{Name: "Tails", Value: "tails"},
+					},
 				},
 			},
 		},
@@ -185,6 +204,7 @@ func Register() []discord.ApplicationCommandCreate {
 					Description: "The amount of Pulses to send",
 					Required:    true,
 					MinValue:    ptrInt(1),
+					MaxValue:    ptrInt(250000),
 				},
 			},
 		},
@@ -201,7 +221,14 @@ func Register() []discord.ApplicationCommandCreate {
 		},
 		discord.SlashCommandCreate{
 			Name:        "shop",
-			Description: "Browse the PulseKeep item shop",
+			Description: "Browse the PulseKeep item shop with prices and effects",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionBool{
+					Name:        "public",
+					Description: "Show the shop publicly instead of only to you",
+					Required:    false,
+				},
+			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "buy",
@@ -211,12 +238,20 @@ func Register() []discord.ApplicationCommandCreate {
 					Name:        "item",
 					Description: "The item to purchase",
 					Required:    true,
+					Choices:     itemChoices(),
 				},
 			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "inventory",
-			Description: "View your purchased items",
+			Description: "View your purchased items and item value",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionBool{
+					Name:        "public",
+					Description: "Show your inventory publicly instead of only to you",
+					Required:    false,
+				},
+			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "slots",
@@ -227,6 +262,7 @@ func Register() []discord.ApplicationCommandCreate {
 					Description: "How many Pulses to wager",
 					Required:    true,
 					MinValue:    ptrInt(1),
+					MaxValue:    ptrInt(50000),
 				},
 			},
 		},
@@ -247,6 +283,7 @@ func Register() []discord.ApplicationCommandCreate {
 					Description: "How many Pulses to wager",
 					Required:    true,
 					MinValue:    ptrInt(1),
+					MaxValue:    ptrInt(50000),
 				},
 			},
 		},
@@ -258,6 +295,7 @@ func Register() []discord.ApplicationCommandCreate {
 					Name:        "item",
 					Description: "The item to sell",
 					Required:    true,
+					Choices:     itemChoices(),
 				},
 			},
 		},
@@ -269,6 +307,7 @@ func Register() []discord.ApplicationCommandCreate {
 					Name:        "item",
 					Description: "The item to use",
 					Required:    true,
+					Choices:     itemChoices(),
 				},
 			},
 		},
@@ -281,6 +320,8 @@ func Register() []discord.ApplicationCommandCreate {
 					Name:        "user_id",
 					Description: "The ID of the user to unban",
 					Required:    true,
+					MinLength:   ptrInt(17),
+					MaxLength:   ptrInt(20),
 				},
 			},
 		},
@@ -312,6 +353,7 @@ func Register() []discord.ApplicationCommandCreate {
 					Name:        "nickname",
 					Description: "The new nickname (leave empty to reset)",
 					Required:    false,
+					MaxLength:   ptrInt(32),
 				},
 			},
 		},
@@ -351,38 +393,50 @@ func Register() []discord.ApplicationCommandCreate {
 		},
 		discord.SlashCommandCreate{
 			Name:        "poll",
-			Description:  "Create a poll for members to vote on",
+			Description: "Create a poll for members to vote on",
 			Options: []discord.ApplicationCommandOption{
 				discord.ApplicationCommandOptionString{
 					Name:        "question",
 					Description: "The poll question",
 					Required:    true,
+					MaxLength:   ptrInt(240),
 				},
 				discord.ApplicationCommandOptionString{
 					Name:        "option1",
 					Description: "First option",
 					Required:    true,
+					MaxLength:   ptrInt(80),
 				},
 				discord.ApplicationCommandOptionString{
 					Name:        "option2",
 					Description: "Second option",
 					Required:    true,
+					MaxLength:   ptrInt(80),
 				},
 				discord.ApplicationCommandOptionString{
 					Name:        "option3",
 					Description: "Third option (optional)",
 					Required:    false,
+					MaxLength:   ptrInt(80),
 				},
 				discord.ApplicationCommandOptionString{
 					Name:        "option4",
 					Description: "Fourth option (optional)",
 					Required:    false,
+					MaxLength:   ptrInt(80),
 				},
 			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "rich",
 			Description: "Show the top 10 richest PulseKeep members with rank badges",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionBool{
+					Name:        "public",
+					Description: "Show the leaderboard publicly instead of only to you",
+					Required:    false,
+				},
+			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "weekly",
@@ -397,17 +451,31 @@ func Register() []discord.ApplicationCommandCreate {
 					Description: "How many Pulses to wager (min 100)",
 					Required:    true,
 					MinValue:    ptrInt(100),
+					MaxValue:    ptrInt(50000),
 				},
 				discord.ApplicationCommandOptionString{
 					Name:        "difficulty",
 					Description: "Choose difficulty: easy, normal, hard, expert",
 					Required:    false,
+					Choices: []discord.ApplicationCommandOptionChoiceString{
+						{Name: "Easy", Value: "easy"},
+						{Name: "Normal", Value: "normal"},
+						{Name: "Hard", Value: "hard"},
+						{Name: "Expert", Value: "expert"},
+					},
 				},
 			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "lottery",
 			Description: "Check the weekly lottery jackpot and status",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionBool{
+					Name:        "public",
+					Description: "Show lottery status publicly instead of only to you",
+					Required:    false,
+				},
+			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "lottery-claim",
@@ -426,6 +494,7 @@ func Register() []discord.ApplicationCommandCreate {
 					Name:        "item",
 					Description: "The item ID to give (use /inventory to see your items)",
 					Required:    true,
+					Choices:     itemChoices(),
 				},
 			},
 		},
@@ -455,4 +524,19 @@ func ptrPermissions(p discord.Permissions) omit.Omit[*discord.Permissions] {
 
 func ptrInt(i int) *int {
 	return &i
+}
+
+func itemChoices() []discord.ApplicationCommandOptionChoiceString {
+	return []discord.ApplicationCommandOptionChoiceString{
+		{Name: "Lucky Pickaxe", Value: "lucky_pickaxe"},
+		{Name: "XP Boost", Value: "xp_boost"},
+		{Name: "Golden Watch", Value: "golden_watch"},
+		{Name: "Shield Token", Value: "shield_token"},
+		{Name: "Lucky Clover", Value: "lucky_clover"},
+		{Name: "Fishing Rod", Value: "fishing_rod"},
+		{Name: "Iron Pickaxe", Value: "iron_pickaxe"},
+		{Name: "Lottery Ticket", Value: "lottery_ticket"},
+		{Name: "Health Potion", Value: "health_potion"},
+		{Name: "Treasure Map", Value: "treasure_map"},
+	}
 }
