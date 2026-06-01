@@ -27,7 +27,7 @@ import (
 	"github.com/watispro5212/PulseKeep/internal/cache"
 )
 
-const Version = "v6.0.0"
+const Version = "v6.1.0"
 
 type Bot struct {
 	Client       *bot.Client
@@ -197,6 +197,29 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 	t0 := time.Now()
 	b.cache.IncrCommands()
 	data := e.SlashCommandInteractionData()
+	cmdName := data.CommandName()
+
+	if guildID := e.GuildID(); guildID != nil {
+		cfg := b.cfgStore.Get(guildID.String())
+		if cfg != nil {
+			if isEconomyCommand(cmdName) && !cfg.EconomyEnabled {
+				b.respond(e, featureDisabledEmbed("Economy", "Economy commands are disabled in this server."))
+				return
+			}
+			if cmdName == "ticketpanel" && !cfg.TicketsEnabled {
+				b.respond(e, featureDisabledEmbed("Tickets", "The ticket system is disabled in this server."))
+				return
+			}
+		}
+	}
+
+	if b.db != nil {
+		gID := ""
+		if e.GuildID() != nil {
+			gID = e.GuildID().String()
+		}
+		_, _ = b.db.ExecContext(context.Background(), "INSERT INTO command_logs (guild_id, user_id, command_name) VALUES ($1, $2, $3)", gID, e.User().ID.String(), cmdName)
+	}
 
 	if response, ok := handleEconomyCommand(b.economyStore, e, data); ok {
 		if err := e.CreateMessage(response); err != nil {
@@ -206,7 +229,7 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 		return
 	}
 
-	switch data.CommandName() {
+	switch cmdName {
 	case "help":
 		b.respond(e, commands.MenuMessage("", true))
 	case "ticketpanel":
@@ -304,6 +327,12 @@ func (b *Bot) handleTicketOpen(e *events.ComponentInteractionCreate) {
 	guildID := e.GuildID()
 	if guildID == nil {
 		_, _ = e.Client().Rest.CreateFollowupMessage(e.ApplicationID(), e.Token(), discord.NewMessageCreate().WithContent("Tickets can only be opened inside a server.").WithEphemeral(true))
+		return
+	}
+
+	cfg := b.cfgStore.Get(guildID.String())
+	if cfg != nil && !cfg.TicketsEnabled {
+		_, _ = e.Client().Rest.CreateFollowupMessage(e.ApplicationID(), e.Token(), discord.NewMessageCreate().WithContent("The ticket system is disabled in this server.").WithEphemeral(true))
 		return
 	}
 
@@ -1348,6 +1377,24 @@ func startStatusRotation(ctx context.Context, client *bot.Client, memCache *cach
 			}
 		}
 	}()
+}
+
+func isEconomyCommand(name string) bool {
+	switch name {
+	case "balance", "profile", "daily", "work", "pay", "coinflip", "rob", "shop", "buy", "inventory", "slots", "fish", "mine", "gamble", "sell", "use", "blackjack", "lottery", "lottery-claim", "rich", "weekly", "gift":
+		return true
+	}
+	return false
+}
+
+func featureDisabledEmbed(feature, description string) discord.MessageCreate {
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("🔒 " + feature + " Disabled").
+			WithDescription(description).
+			WithColor(commands.EconomyWarningAccent).
+			WithFooterText("PulseKeep " + Version + " · Configuration").
+			WithTimestamp(time.Now()))
 }
 
 func formatBotDuration(d time.Duration) string {

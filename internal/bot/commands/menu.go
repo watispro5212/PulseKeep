@@ -17,7 +17,7 @@ const (
 	EconomyMenuAccent    = 0x36d399
 	EconomyWarningAccent = 0xf5bd4f
 	TicketMenuAccent     = 0x38d5c8
-	PulseKeepVersion     = "v6.0.0"
+	PulseKeepVersion     = "v6.1.0"
 )
 
 type CommandInfo struct {

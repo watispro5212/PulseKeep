@@ -95,8 +95,24 @@
 document.addEventListener('DOMContentLoaded', () => {
   const releases = [
     {
-      version: 'v6.1.0', type: 'minor', date: 'May 31, 2026',
-      title: 'QoL overload: tips, public options, rotating footers, dashboard auth fix',
+      version: 'v6.2.0', type: 'minor', date: 'June 1, 2026',
+      title: 'Premium dashboard redesign — server grid, sidebar nav, overview cards, global card accents',
+      changes: [
+        { kind: 'changed', text: '<strong>Dashboard completely rebuilt</strong> — MEE6/Dyno-style server selection grid replaces the old sidebar guild list; per-server dashboard with icon-based sidebar navigation (Overview, Moderation, Economy, Tickets, Configuration)', highlight: true },
+        { kind: 'added', text: '<strong>Server selection grid</strong> — glass cards with bot presence badges, search bar, smooth hover animations' },
+        { kind: 'added', text: '<strong>Sidebar navigation</strong> — per-server dashboard has a 220px sidebar with section icons, active indicator, guild info header, and back-to-servers button' },
+        { kind: 'added', text: '<strong>Overview section</strong> — stats dashboard showing auto-mod status, economy, tickets, mod logs, and welcome message state at a glance; click-through to full config' },
+        { kind: 'added', text: '<strong>Split config sections</strong> — Moderation, Economy, and Tickets each have their own dedicated form panels with lazy loading; full Configuration page still available' },
+        { kind: 'changed', text: '<strong>Premium card accents</strong> — every card type (stats, features, commands, metrics, team, tech, changelog, status, legal, support, signal rows) now has a top gradient accent bar that fades in on hover' },
+        { kind: 'changed', text: '<strong>Hover animations unified</strong> — all cards use cubic-bezier(0.16, 1, 0.3, 1) easing for lift, glow, and border transitions' },
+        { kind: 'changed', text: '<strong>Changelog timeline enhanced</strong> — thicker gradient timeline, bigger node dots with glow-on-hover, richer borders' },
+        { kind: 'changed', text: '<strong>Footer updated</strong> — increased padding, darker background, hover states for links' },
+        { kind: 'changed', text: '<strong>Global CSS polish</strong> — all input fields have inner shadow; all focus states use box-shadow rings; selects use custom SVG arrows; smoother section header underlines' },
+      ]
+    },
+    {
+      version: 'v6.1.0', type: 'minor', date: 'June 1, 2026',
+      title: 'Dashboard config redesign, guild toggles, command persistence',
       changes: [
         { kind: 'added', text: '<strong>/tip</strong> — 20 rotating tips about economy, commands, and features', highlight: true },
         { kind: 'added', text: '<strong>/vote</strong> — link to vote for PulseKeep on Top.gg' },
@@ -122,6 +138,11 @@ document.addEventListener('DOMContentLoaded', () => {
         { kind: 'fixed', text: '<strong>Dashboard auth fix</strong> — OAuth state cookie now uses Secure=true; login link and API origin both point to Fly.io directly; human-readable auth error messages', highlight: true },
         { kind: 'fixed', text: '<strong>Auth redirect</strong> — login URL changed to absolute Fly.io path to avoid workers.dev 404' },
         { kind: 'changed', text: '<strong>.env.example</strong> — DISCORD_REDIRECT_URI updated to Fly.io domain' },
+        { kind: 'changed', text: '<strong>Dashboard configs redesigned</strong> — bigger toggle switches, polished input fields with glow focus, color-coded group sections, sticky save bar, hover badges on dependency-linked cards, smoother animations', highlight: true },
+        { kind: 'changed', text: '<strong>Guild toggles enforced</strong> — economy and tickets toggles now block commands at runtime (economy commands, /ticketpanel, ticket open button all respect the toggle)' },
+        { kind: 'fixed', text: '<strong>Commands now logged to DB</strong> — every slash command is inserted into the command_logs table for persistent run tracking across restarts' },
+        { kind: 'fixed', text: '<strong>command_logs migration added</strong> — the table was used by GetCommandsRunCount/IncrementCommandRun but never created' },
+        { kind: 'fixed', text: '<strong>Version bumped to v6.1.0</strong> — bot.Version and commands.PulseKeepVersion both updated from v6.0.0' },
       ]
     },
     {

@@ -99,6 +99,13 @@ func (db *Database) Migrate() {
 			last_draw_time TIMESTAMPTZ,
 			last_winner_id TEXT
 		)`,
+		`CREATE TABLE IF NOT EXISTS command_logs (
+			id SERIAL PRIMARY KEY,
+			guild_id TEXT NOT NULL DEFAULT '',
+			user_id TEXT NOT NULL DEFAULT '',
+			command_name TEXT NOT NULL DEFAULT '',
+			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		)`,
 		`CREATE TABLE IF NOT EXISTS guild_config (
 			guild_id TEXT PRIMARY KEY,
 			automod_enabled BOOLEAN NOT NULL DEFAULT true,
