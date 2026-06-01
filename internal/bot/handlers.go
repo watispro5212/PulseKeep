@@ -172,6 +172,9 @@ func (b *Bot) onReady(e *events.Ready) {
 	b.guildCount = gc
 	b.cache.ResetGuilds()
 	b.cache.GuildCount.Store(gc)
+	for _, g := range e.Guilds {
+		b.cache.AddGuild(g.ID.String(), g.ID.String())
+	}
 	if _, err := e.Client().Rest.SetGlobalCommands(e.Client().ApplicationID, commands.Register()); err != nil {
 		log.Printf("failed to register global slash commands: %v", err)
 	}

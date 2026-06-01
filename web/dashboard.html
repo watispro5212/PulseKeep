@@ -108,6 +108,10 @@
           </div>
 
           <form id="dash-config-form" style="display:none">
+            <div class="cfg-search-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="cfg-search" placeholder="Search settings..." autocomplete="off">
+            </div>
             <div class="cfg-card">
               <div class="cfg-card-head">
                 <i class="fa-solid fa-shield-halved" style="color:var(--primary)"></i>
@@ -301,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentGuildId = '';
   let currentGuildName = '';
   let allGuilds = [];
+  let botGuildSet = new Set();
 
   function getToken() {
     if (window.location.hash) {
@@ -329,9 +334,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const r = await fetch(API + '/api/guilds?token=' + encodeURIComponent(token));
       if (!r.ok) throw new Error(await apiError(r));
       const d = await r.json();
-      const isAdmin = (g) => (g.permissions & 0x8) === 0x8;
+      const isAdmin = (g) => g.owner || ((Number(g.permissions) & 0x8) === 0x8);
       allGuilds = (d.guilds || []).filter(isAdmin);
       showUser(d.user);
+      try {
+        const br = await fetch(API + '/api/bot/guilds');
+        if (br.ok) {
+          const bd = await br.json();
+          botGuildSet = new Set(bd.guild_ids || []);
+        }
+      } catch (_) {}
       renderGuilds(allGuilds);
       loginScreen.style.display = 'none';
       dashApp.style.display = '';
@@ -371,10 +383,11 @@ document.addEventListener('DOMContentLoaded', () => {
       el.type = 'button';
       el.className = 'dash-guild-item' + (g.id === currentGuildId ? ' active' : '');
       el.innerHTML =
-        '<span class="dash-guild-item-icon">' +
+        '<span class="dash-guild-item-icon' + (botGuildSet.has(g.id) ? ' has-bot' : '') + '">' +
         (g.icon ? '<img src="https://cdn.discordapp.com/icons/' + g.id + '/' + g.icon + '.png?size=64" alt="">' : '<i class="fa-solid fa-server"></i>') +
         '</span>' +
-        '<span class="dash-guild-item-name">' + escapeHtml(g.name) + '</span>';
+        '<span class="dash-guild-item-name">' + escapeHtml(g.name) + '</span>' +
+        (botGuildSet.has(g.id) ? '<span class="dash-guild-item-check" title="PulseKeep is in this server"><i class="fa-solid fa-circle-check"></i></span>' : '<span class="dash-guild-item-missing" title="PulseKeep is not in this server"><i class="fa-solid fa-circle-plus"></i></span>');
       el.addEventListener('click', () => selectGuild(g.id, g.name, g.icon));
       dashGuildList.appendChild(el);
     }
@@ -451,6 +464,18 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('#dash-config-form input[type="checkbox"]').forEach(el => {
     el.addEventListener('change', syncDepends);
   });
+
+  const cfgSearch = document.getElementById('cfg-search');
+  if (cfgSearch) {
+    cfgSearch.addEventListener('input', () => {
+      const q = cfgSearch.value.toLowerCase().trim();
+      document.querySelectorAll('.cfg-card').forEach(card => {
+        if (!q) { card.style.display = ''; return; }
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(q) ? '' : 'none';
+      });
+    });
+  }
 
   dashConfigForm.addEventListener('submit', async (e) => {
     e.preventDefault();

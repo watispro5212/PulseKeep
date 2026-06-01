@@ -105,6 +105,26 @@ func (c *Cache) AddGuild(guildID, name string) {
 	}
 }
 
+func (c *Cache) GetGuildIDs() []string {
+	c.muGuilds.RLock()
+	defer c.muGuilds.RUnlock()
+	ids := make([]string, 0, len(c.guildNames))
+	for id := range c.guildNames {
+		ids = append(ids, id)
+	}
+	return ids
+}
+
+func (c *Cache) GetGuildNames() map[string]string {
+	c.muGuilds.RLock()
+	defer c.muGuilds.RUnlock()
+	cp := make(map[string]string, len(c.guildNames))
+	for k, v := range c.guildNames {
+		cp[k] = v
+	}
+	return cp
+}
+
 func (c *Cache) RemoveGuild(guildID string) {
 	c.muGuilds.Lock()
 	defer c.muGuilds.Unlock()

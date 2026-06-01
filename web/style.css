@@ -398,6 +398,16 @@ h1,.hero-title{font-size:clamp(2.6rem,6.5vw,4.8rem);line-height:0.96;letter-spac
 .dash-config-err strong{color:var(--rose);font-size:0.95rem}
 .dash-config-err span{font-size:0.85rem}
 
+.cfg-search-wrap{position:relative;margin-bottom:4px}
+.cfg-search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.82rem;pointer-events:none;z-index:1}
+.cfg-search-wrap input{width:100%;padding:9px 10px 9px 30px;border:1px solid var(--border);border-radius:var(--radius-sm);background:rgba(255,255,255,0.03);color:var(--text);font-size:0.85rem;transition:border-color .2s}
+.cfg-search-wrap input:focus{border-color:var(--primary);outline:none;box-shadow:0 0 10px var(--primary-glow)}
+.cfg-search-wrap input::placeholder{color:var(--muted)}
+
+.dash-guild-item-check{flex-shrink:0;color:var(--green);font-size:0.85rem;margin-left:auto}
+.dash-guild-item-missing{flex-shrink:0;color:var(--muted);font-size:0.75rem;margin-left:auto;opacity:0.4}
+.dash-guild-item-icon.has-bot{border-color:rgba(54,211,153,0.3);box-shadow:0 0 8px rgba(54,211,153,0.1)}
+
 @media(max-width:900px){
   .dash-body{flex-direction:column}
   .dash-sidebar{width:100%;min-width:0;max-height:240px;border-right:none;border-bottom:1px solid var(--border)}

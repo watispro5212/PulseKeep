@@ -255,6 +255,13 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		c.Redirect(http.StatusTemporaryRedirect, dashURL)
 	})
 
+	// Bot guild presence — which guilds have PulseKeep installed
+	r.GET("/api/bot/guilds", func(c *gin.Context) {
+		ids := memCache.GetGuildIDs()
+		names := memCache.GetGuildNames()
+		c.JSON(http.StatusOK, gin.H{"guild_ids": ids, "guild_names": names, "count": len(ids)})
+	})
+
 	// Guild config endpoints
 	r.GET("/api/guilds", func(c *gin.Context) {
 		token := c.Query("token")
@@ -354,7 +361,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 
 	return &Server{
 		httpServer: &http.Server{
-			Addr:              ":" + cfg.Port,
+			Addr:              "0.0.0.0:" + cfg.Port,
 			Handler:           r,
 			ReadHeaderTimeout: 5 * time.Second,
 		},
