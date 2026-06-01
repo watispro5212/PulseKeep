@@ -268,5 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 <button class="scroll-top" id="scroll-top" aria-label="Scroll to top"><i class="fa-solid fa-chevron-up"></i></button>
 <script>!function(){var b=document.getElementById('scroll-top');if(b){window.addEventListener('scroll',function(){b.classList.toggle('visible',window.scrollY>400)});b.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})})}}();</script>
+<script>!function(){var t=document.getElementById('mobile-menu-toggle'),n=document.getElementById('mobile-nav'),c=document.getElementById('mobile-nav-close-btn');t&&n&&(t.addEventListener('click',function(){n.classList.toggle('open');t.setAttribute('aria-expanded',n.classList.contains('open'))}),c&&c.addEventListener('click',function(){n.classList.remove('open');t.setAttribute('aria-expanded','false')}),document.addEventListener('click',function(e){!n.contains(e.target)&&!t.contains(e.target)&&n.classList.contains('open')&&(n.classList.remove('open'),t.setAttribute('aria-expanded','false'))}))}();</script>
 </body>
 </html>

@@ -32,6 +32,7 @@
     <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
   </div>
   <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+    <div class="mobile-nav-close"><button id="mobile-nav-close-btn" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button></div>
     <a href="/">Home</a>
     <a href="/commands.html">Commands</a>
     <a href="/dashboard.html">Dashboard</a>
@@ -52,80 +53,224 @@
 
   <section class="container content-section">
     <div id="dashboard-auth">
-      <div id="dashboard-login" class="dashboard-card">
-        <h2><i class="fa-solid fa-lock"></i> Secure login</h2>
-        <p>Authenticate with Discord to access your server dashboard. PulseKeep uses Discord OAuth2 - your credentials are never exposed.</p>
-        <a href="https://pulsekeep.fly.dev/auth/discord" class="btn btn-primary btn-large"><i class="fa-brands fa-discord"></i> Login with Discord</a>
+      <div id="dashboard-login" class="dashboard-card login-card">
+        <div class="login-card-inner">
+          <div class="login-icon-wrap"><i class="fa-solid fa-lock"></i></div>
+          <h2>Secure login</h2>
+          <p>Authenticate with Discord to access your server dashboard. PulseKeep uses Discord OAuth2 — your credentials are never exposed.</p>
+          <a href="https://pulsekeep.fly.dev/auth/discord" class="btn btn-primary btn-large"><i class="fa-brands fa-discord"></i> Login with Discord</a>
+        </div>
       </div>
       <div id="dashboard-authenticated" style="display:none">
-        <div id="user-info" class="dashboard-card card-row">
+        <div id="user-info" class="dashboard-card user-card">
           <div id="user-avatar"><img src="" alt="Your avatar"></div>
-          <div><strong id="user-name"></strong><br><span style="color:var(--muted);font-size:0.9rem" id="user-id"></span></div>
-          <button type="button" id="dashboard-logout" class="btn btn-secondary" style="margin-left:auto"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+          <div class="user-card-body">
+            <strong id="user-name"></strong>
+            <span id="user-id"></span>
+          </div>
+          <button type="button" id="dashboard-logout" class="btn btn-secondary btn-sm"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
         </div>
-        <div id="guild-list" class="dashboard-card">
-          <h3><i class="fa-solid fa-server"></i> Your guilds</h3>
-          <p style="color:var(--muted);margin-bottom:20px">Select a guild to view and manage its PulseKeep configuration.</p>
+
+        <div id="guild-section" class="dashboard-card">
+          <div class="guild-section-header">
+            <h3><i class="fa-solid fa-server"></i> Your guilds</h3>
+            <span id="guild-count" class="guild-count-badge">0</span>
+          </div>
+          <p class="guild-section-desc">Select a guild to view and manage its PulseKeep configuration.</p>
+          <div class="guild-search-wrap">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="guild-search" placeholder="Filter guilds..." autocomplete="off">
+            <button type="button" id="guild-search-clear" class="search-clear-btn" aria-label="Clear search"><i class="fa-solid fa-xmark"></i></button>
+          </div>
           <div id="guild-cards" class="guild-cards"></div>
         </div>
-        <div id="config-panel" style="display:none" class="dashboard-card">
-          <h3 id="config-panel-title"><i class="fa-solid fa-wrench"></i> Guild configuration</h3>
-          <form id="config-form">
-            <div class="form-row">
-              <label class="form-checkbox"><input type="checkbox" id="config-automod_enabled"> Auto-moderation</label>
-              <label class="form-checkbox"><input type="checkbox" id="config-spam_enabled"> Spam guard</label>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="config-spam_max_messages">Spam max messages</label>
-                <input type="number" id="config-spam_max_messages" min="2" max="20">
-              </div>
-              <div class="form-group">
-                <label for="config-spam_window_seconds">Spam window seconds</label>
-                <input type="number" id="config-spam_window_seconds" min="2" max="60">
+
+        <div id="config-panel" style="display:none">
+          <div class="config-header">
+            <div class="config-header-left">
+              <img id="config-guild-icon" src="" alt="" class="config-guild-icon">
+              <div>
+                <strong id="config-guild-name"></strong>
+                <span id="config-guild-id" class="config-guild-id"></span>
               </div>
             </div>
-            <div class="form-row">
-              <label class="form-checkbox"><input type="checkbox" id="config-mention_enabled"> Mention guard</label>
-              <div class="form-group">
-                <label for="config-mention_max">Mention max</label>
-                <input type="number" id="config-mention_max" min="1" max="50">
+            <button type="button" id="config-back" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-left"></i> Back</button>
+          </div>
+
+          <div class="config-body" id="config-body">
+            <div class="config-skeleton" id="config-skeleton">
+              <div class="skeleton-line w60"></div>
+              <div class="skeleton-line w80"></div>
+              <div class="skeleton-line w40"></div>
+              <div class="skeleton-line w70"></div>
+            </div>
+
+            <form id="config-form" style="display:none">
+              <div class="config-card">
+                <div class="config-card-header">
+                  <i class="fa-solid fa-shield-halved" style="color:var(--primary)"></i>
+                  <span>Auto-moderation</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="config-automod_enabled">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <p class="config-card-desc">Master toggle for all automated moderation rules below.</p>
               </div>
-            </div>
-            <div class="form-row">
-              <label class="form-checkbox"><input type="checkbox" id="config-links_enabled"> Link guard</label>
-              <label class="form-checkbox"><input type="checkbox" id="config-caps_enabled"> Caps guard</label>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="config-caps_percent">Caps percent</label>
-                <input type="number" id="config-caps_percent" min="50" max="100">
+
+              <div class="config-card" data-depends="automod_enabled">
+                <div class="config-card-header">
+                  <i class="fa-solid fa-bolt" style="color:var(--amber)"></i>
+                  <span>Spam protection</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="config-spam_enabled">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="config-card-body" id="spam-config-body">
+                  <div class="config-inner-row">
+                    <div class="config-inner-group">
+                      <label for="config-spam_max_messages">Max messages</label>
+                      <div class="input-with-meta">
+                        <input type="number" id="config-spam_max_messages" min="2" max="20">
+                        <span class="input-meta">in window</span>
+                      </div>
+                    </div>
+                    <div class="config-inner-group">
+                      <label for="config-spam_window_seconds">Window (seconds)</label>
+                      <input type="number" id="config-spam_window_seconds" min="2" max="60">
+                    </div>
+                    <div class="config-inner-group">
+                      <label for="config-spam_action">Action</label>
+                      <select id="config-spam_action">
+                        <option value="warn">Warn</option>
+                        <option value="delete">Delete</option>
+                        <option value="mute">Mute</option>
+                        <option value="kick">Kick</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="form-group">
-                <label for="config-caps_min_length">Caps min length</label>
-                <input type="number" id="config-caps_min_length" min="5" max="100">
+
+              <div class="config-card" data-depends="automod_enabled">
+                <div class="config-card-header">
+                  <i class="fa-solid fa-at" style="color:var(--cyan)"></i>
+                  <span>Mention protection</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="config-mention_enabled">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="config-card-body" id="mention-config-body">
+                  <div class="config-inner-row thirds">
+                    <div class="config-inner-group">
+                      <label for="config-mention_max">Max mentions</label>
+                      <input type="number" id="config-mention_max" min="1" max="50">
+                    </div>
+                    <div class="config-inner-group">
+                      <label for="config-mention_action">Action</label>
+                      <select id="config-mention_action">
+                        <option value="delete">Delete</option>
+                        <option value="warn">Warn</option>
+                        <option value="mute">Mute</option>
+                        <option value="kick">Kick</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="form-group">
-              <label for="config-banned_words">Banned words</label>
-              <textarea id="config-banned_words" rows="3" placeholder="comma,separated,words"></textarea>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label for="config-log_channel_id">Log channel ID</label>
-                <input type="text" id="config-log_channel_id" placeholder="Discord channel snowflake">
+
+              <div class="config-card" data-depends="automod_enabled">
+                <div class="config-card-header">
+                  <i class="fa-solid fa-link" style="color:var(--green)"></i>
+                  <span>Link guard</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="config-links_enabled">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="config-card-body" id="links-config-body">
+                  <div class="config-inner-row thirds">
+                    <div class="config-inner-group">
+                      <label for="config-links_action">Action</label>
+                      <select id="config-links_action">
+                        <option value="delete">Delete</option>
+                        <option value="warn">Warn</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="form-group">
-                <label for="config-mod_role_id">Mod role ID</label>
-                <input type="text" id="config-mod_role_id" placeholder="Discord role snowflake">
+
+              <div class="config-card" data-depends="automod_enabled">
+                <div class="config-card-header">
+                  <i class="fa-solid fa-font" style="color:var(--rose)"></i>
+                  <span>Caps guard</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="config-caps_enabled">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="config-card-body" id="caps-config-body">
+                  <div class="config-inner-row thirds">
+                    <div class="config-inner-group">
+                      <label for="config-caps_percent">Caps percent</label>
+                      <input type="number" id="config-caps_percent" min="50" max="100">
+                    </div>
+                    <div class="config-inner-group">
+                      <label for="config-caps_min_length">Min length</label>
+                      <input type="number" id="config-caps_min_length" min="5" max="100">
+                    </div>
+                    <div class="config-inner-group">
+                      <label for="config-caps_action">Action</label>
+                      <select id="config-caps_action">
+                        <option value="warn">Warn</option>
+                        <option value="delete">Delete</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save changes</button>
-              <button type="button" class="btn btn-secondary" id="config-reload"><i class="fa-solid fa-rotate"></i> Reload</button>
-            </div>
-          </form>
-          <div id="config-status" style="margin-top:12px"></div>
+
+              <div class="config-card">
+                <div class="config-card-header">
+                  <i class="fa-solid fa-ban" style="color:var(--rose)"></i>
+                  <span>Banned words</span>
+                </div>
+                <div class="config-card-body">
+                  <div class="config-inner-group">
+                    <label for="config-banned_words">Comma-separated list of prohibited words</label>
+                    <textarea id="config-banned_words" rows="3" placeholder="word1,word2,word3"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="config-card">
+                <div class="config-card-header">
+                  <i class="fa-solid fa-gear" style="color:var(--muted)"></i>
+                  <span>Logging & roles</span>
+                </div>
+                <div class="config-card-body">
+                  <div class="config-inner-row">
+                    <div class="config-inner-group">
+                      <label for="config-log_channel_id">Log channel ID</label>
+                      <input type="text" id="config-log_channel_id" placeholder="Discord channel snowflake">
+                    </div>
+                    <div class="config-inner-group">
+                      <label for="config-mod_role_id">Mod role ID</label>
+                      <input type="text" id="config-mod_role_id" placeholder="Discord role snowflake">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="config-actions">
+                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save changes</button>
+                <button type="button" class="btn btn-secondary" id="config-reload"><i class="fa-solid fa-rotate"></i> Reset</button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -151,6 +296,8 @@
   </div>
 </footer>
 
+<div id="toast-container"></div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const API = 'https://pulsekeep.fly.dev';
@@ -163,12 +310,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const userId = document.getElementById('user-id');
   const userAvatar = document.getElementById('user-avatar').querySelector('img');
   const guildCards = document.getElementById('guild-cards');
+  const guildCount = document.getElementById('guild-count');
+  const guildSearch = document.getElementById('guild-search');
+  const guildSearchClear = document.getElementById('guild-search-clear');
   const configPanel = document.getElementById('config-panel');
-  const configPanelTitle = document.getElementById('config-panel-title');
+  const configBody = document.getElementById('config-body');
+  const configSkeleton = document.getElementById('config-skeleton');
   const configForm = document.getElementById('config-form');
-  const configStatus = document.getElementById('config-status');
+  const configGuildName = document.getElementById('config-guild-name');
+  const configGuildId = document.getElementById('config-guild-id');
+  const configGuildIcon = document.getElementById('config-guild-icon');
+  const configBack = document.getElementById('config-back');
   const logoutBtn = document.getElementById('dashboard-logout');
+  const toastContainer = document.getElementById('toast-container');
+  let currentGuildId = '';
   let currentGuildName = '';
+  let allGuilds = [];
 
   function getToken() {
     if (window.location.hash) {
@@ -198,7 +355,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!r.ok) throw new Error(await apiError(r));
       const d = await r.json();
       showUser(d.user);
-      loadGuilds(d.guilds);
+      allGuilds = d.guilds || [];
+      loadGuilds(allGuilds);
     } catch (err) {
       sessionStorage.removeItem('pk_token');
       history.replaceState(null, '', '/dashboard.html');
@@ -217,26 +375,75 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadGuilds(guilds) {
-    guildCards.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem;margin-bottom:12px"></i><br>Loading guilds...</div>';
+    guildCards.innerHTML = '<div class="guild-loader"><i class="fa-solid fa-spinner fa-spin"></i><span>Loading guilds...</span></div>';
     if (!guilds || !guilds.length) {
-      guildCards.innerHTML = '<p style="color:var(--muted)">No guilds found. Make sure PulseKeep is in your server.</p>';
+      guildCards.innerHTML = '<div class="guild-empty"><i class="fa-solid fa-server"></i><strong>No guilds found</strong><span>Make sure PulseKeep is in your server and you have Manage Server permission.</span></div>';
+      if (guildCount) guildCount.textContent = '0';
       return;
     }
-    for (const g of guilds) {
+    renderGuilds(guilds);
+  }
+
+  function renderGuilds(guilds) {
+    const filter = (guildSearch ? guildSearch.value : '').toLowerCase().trim();
+    const filtered = filter ? guilds.filter(g => g.name.toLowerCase().includes(filter)) : guilds;
+    if (guildCount) guildCount.textContent = guilds.length;
+
+    if (!filtered.length) {
+      guildCards.innerHTML = '<div class="guild-empty"><i class="fa-solid fa-magnifying-glass"></i><strong>No matching guilds</strong><span>Try a different search term.</span></div>';
+      return;
+    }
+
+    guildCards.innerHTML = '';
+    for (const g of filtered) {
       const card = document.createElement('div');
       card.className = 'guild-card';
-      card.innerHTML = '<div class="guild-card-icon">' + (g.icon ? '<img src="https://cdn.discordapp.com/icons/' + g.id + '/' + g.icon + '.png?size=64" alt="">' : '<i class="fa-solid fa-server"></i>') + '</div><div class="guild-card-info"><strong>' + escapeHtml(g.name) + '</strong><span style="color:var(--muted);font-size:0.8rem">' + g.id + '</span></div>';
-      card.addEventListener('click', () => loadConfig(g.id, g.name));
+      card.dataset.guildId = g.id;
+      const hasManage = (g.permissions & 0x20) === 0x20;
+      card.innerHTML =
+        '<div class="guild-card-icon">' +
+        (g.icon ? '<img src="https://cdn.discordapp.com/icons/' + g.id + '/' + g.icon + '.png?size=64" alt="">' : '<i class="fa-solid fa-server"></i>') +
+        '</div>' +
+        '<div class="guild-card-info">' +
+        '<strong>' + escapeHtml(g.name) + '</strong>' +
+        '<div class="guild-card-meta"><span class="guild-card-id">' + g.id + '</span>' +
+        (hasManage ? '<span class="guild-card-badge"><i class="fa-solid fa-check"></i> Manage</span>' : '') +
+        '</div></div>';
+      card.addEventListener('click', () => loadConfig(g.id, g.name, g.icon));
       guildCards.appendChild(card);
     }
   }
 
-  async function loadConfig(guildId, guildName) {
+  if (guildSearch) {
+    guildSearch.addEventListener('input', () => {
+      if (guildSearch.value) {
+        guildSearchClear.classList.add('visible');
+      } else {
+        guildSearchClear.classList.remove('visible');
+      }
+      renderGuilds(allGuilds);
+    });
+  }
+  if (guildSearchClear) {
+    guildSearchClear.addEventListener('click', () => {
+      guildSearch.value = '';
+      guildSearchClear.classList.remove('visible');
+      renderGuilds(allGuilds);
+      guildSearch.focus();
+    });
+  }
+
+  async function loadConfig(guildId, guildName, guildIcon) {
     configPanel.style.display = '';
+    configSkeleton.style.display = '';
+    configForm.style.display = 'none';
+    currentGuildId = guildId;
     currentGuildName = guildName;
-    configPanelTitle.innerHTML = '<i class="fa-solid fa-wrench"></i> ' + escapeHtml(guildName) + ' configuration';
-    configStatus.textContent = 'Loading...';
-    configPanel.style.opacity = '0.5';
+    configGuildName.textContent = escapeHtml(guildName);
+    configGuildId.textContent = guildId;
+    configGuildIcon.src = guildIcon ? 'https://cdn.discordapp.com/icons/' + guildId + '/' + guildIcon + '.png?size=64' : '/assets/logo.png';
+    configPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
     try {
       const r = await fetch(API + '/api/guild/' + guildId + '/config?token=' + encodeURIComponent(token));
       if (!r.ok) throw new Error(await apiError(r));
@@ -245,22 +452,50 @@ document.addEventListener('DOMContentLoaded', () => {
       setFormValue('config-spam_enabled', cfg.spam_enabled);
       setFormValue('config-spam_max_messages', cfg.spam_max_messages || 5);
       setFormValue('config-spam_window_seconds', cfg.spam_window_seconds || 5);
+      setFormValue('config-spam_action', cfg.spam_action || 'warn');
       setFormValue('config-mention_enabled', cfg.mention_enabled);
       setFormValue('config-mention_max', cfg.mention_max || 5);
+      setFormValue('config-mention_action', cfg.mention_action || 'delete');
       setFormValue('config-links_enabled', cfg.links_enabled);
+      setFormValue('config-links_action', cfg.links_action || 'delete');
       setFormValue('config-caps_enabled', cfg.caps_enabled);
       setFormValue('config-caps_percent', cfg.caps_percent || 70);
       setFormValue('config-caps_min_length', cfg.caps_min_length || 15);
+      setFormValue('config-caps_action', cfg.caps_action || 'warn');
       setFormValue('config-banned_words', cfg.banned_words || '');
       setFormValue('config-log_channel_id', cfg.log_channel_id || '');
       setFormValue('config-mod_role_id', cfg.mod_role_id || '');
-      configPanel.style.opacity = '1';
-      configStatus.textContent = '';
+      configSkeleton.style.display = 'none';
+      configForm.style.display = '';
       configForm.dataset.guildId = guildId;
+      updateDependentVisibility();
+      document.querySelectorAll('.guild-card').forEach(c => c.classList.remove('selected'));
+      const selected = document.querySelector('.guild-card[data-guild-id="' + guildId + '"]');
+      if (selected) selected.classList.add('selected');
     } catch (e) {
-      configStatus.innerHTML = '<span style="color:var(--rose)">Failed to load configuration: ' + e.message + '</span>';
+      configSkeleton.style.display = 'none';
+      configBody.innerHTML = '<div class="config-error"><i class="fa-solid fa-triangle-exclamation"></i><strong>Failed to load configuration</strong><span>' + escapeHtml(e.message) + '</span><button class="btn btn-secondary btn-sm" onclick="window.location.reload()">Retry</button></div>';
     }
   }
+
+  function updateDependentVisibility() {
+    const master = document.getElementById('config-automod_enabled').checked;
+    document.querySelectorAll('[data-depends="automod_enabled"]').forEach(el => {
+      el.style.opacity = master ? '1' : '0.4';
+    });
+    const spamEnabled = document.getElementById('config-spam_enabled').checked;
+    document.getElementById('spam-config-body').style.display = spamEnabled ? '' : 'none';
+    const mentionEnabled = document.getElementById('config-mention_enabled').checked;
+    document.getElementById('mention-config-body').style.display = mentionEnabled ? '' : 'none';
+    const linksEnabled = document.getElementById('config-links_enabled').checked;
+    document.getElementById('links-config-body').style.display = linksEnabled ? '' : 'none';
+    const capsEnabled = document.getElementById('config-caps_enabled').checked;
+    document.getElementById('caps-config-body').style.display = capsEnabled ? '' : 'none';
+  }
+
+  document.querySelectorAll('#config-form input[type="checkbox"]').forEach(el => {
+    el.addEventListener('change', updateDependentVisibility);
+  });
 
   function setFormValue(id, val) {
     const el = document.getElementById(id);
@@ -273,22 +508,24 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const guildId = configForm.dataset.guildId;
     if (!guildId) return;
-    configStatus.textContent = 'Saving...';
+    const btn = configForm.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
     const data = {
       automod_enabled: document.getElementById('config-automod_enabled').checked,
       spam_enabled: document.getElementById('config-spam_enabled').checked,
       spam_max_messages: Number(document.getElementById('config-spam_max_messages').value || 5),
       spam_window_seconds: Number(document.getElementById('config-spam_window_seconds').value || 5),
-      spam_action: 'warn',
+      spam_action: document.getElementById('config-spam_action').value,
       mention_enabled: document.getElementById('config-mention_enabled').checked,
       mention_max: Number(document.getElementById('config-mention_max').value || 5),
-      mention_action: 'delete',
+      mention_action: document.getElementById('config-mention_action').value,
       links_enabled: document.getElementById('config-links_enabled').checked,
-      links_action: 'delete',
+      links_action: document.getElementById('config-links_action').value,
       caps_enabled: document.getElementById('config-caps_enabled').checked,
       caps_percent: Number(document.getElementById('config-caps_percent').value || 70),
       caps_min_length: Number(document.getElementById('config-caps_min_length').value || 15),
-      caps_action: 'warn',
+      caps_action: document.getElementById('config-caps_action').value,
       banned_words: document.getElementById('config-banned_words').value,
       log_channel_id: document.getElementById('config-log_channel_id').value,
       mod_role_id: document.getElementById('config-mod_role_id').value,
@@ -300,15 +537,23 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(data),
       });
       if (!r.ok) throw new Error(await apiError(r));
-      configStatus.innerHTML = '<span style="color:var(--green)">Configuration saved successfully.</span>';
+      showToast('Configuration saved successfully.', 'success');
     } catch (err) {
-      configStatus.innerHTML = '<span style="color:var(--rose)">Failed to save: ' + err.message + '</span>';
+      showToast('Failed to save: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save changes';
     }
   });
 
   document.getElementById('config-reload').addEventListener('click', () => {
-    const guildId = configForm.dataset.guildId;
-    if (guildId) loadConfig(guildId, currentGuildName || configPanelTitle.textContent.replace(' configuration', ''));
+    if (currentGuildId) loadConfig(currentGuildId, currentGuildName);
+  });
+
+  configBack.addEventListener('click', () => {
+    configPanel.style.display = 'none';
+    document.querySelector('.guild-card.selected')?.classList.remove('selected');
+    document.getElementById('guild-section').scrollIntoView({ behavior: 'smooth' });
   });
 
   if (logoutBtn) {
@@ -319,6 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
       guildCards.innerHTML = '';
       loginDiv.style.display = '';
       authDiv.style.display = 'none';
+      allGuilds = [];
     });
   }
 
@@ -343,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
       el = document.createElement('div');
       el.id = 'dashboard-auth-error';
       el.className = 'status-error';
-      loginDiv.appendChild(el);
+      loginDiv.querySelector('.login-card-inner').appendChild(el);
     }
     const humanError = authErrorMap[message] || message;
     el.innerHTML = '<strong>Login failed:</strong> ' + humanError + '<br><small>Make sure DISCORD_REDIRECT_URI on the server matches the Discord Developer Portal. Try again or contact the bot owner.</small>';
@@ -356,10 +602,23 @@ document.addEventListener('DOMContentLoaded', () => {
     'access_denied': 'You denied the authorization request.',
   };
 
+  function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = 'toast' + (type === 'error' ? ' toast-error' : ' toast-success');
+    const icon = type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-check';
+    toast.innerHTML = '<i class="fa-solid ' + icon + '"></i> ' + escapeHtml(message);
+    toastContainer.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('toast-hide');
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
   checkAuth();
 });
 </script>
 <button class="scroll-top" id="scroll-top" aria-label="Scroll to top"><i class="fa-solid fa-chevron-up"></i></button>
 <script>!function(){var b=document.getElementById('scroll-top');if(b){window.addEventListener('scroll',function(){b.classList.toggle('visible',window.scrollY>400)});b.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})})}}();</script>
+<script>!function(){var t=document.getElementById('mobile-menu-toggle'),n=document.getElementById('mobile-nav'),c=document.getElementById('mobile-nav-close-btn');t&&n&&(t.addEventListener('click',function(){n.classList.toggle('open');t.setAttribute('aria-expanded',n.classList.contains('open'))}),c&&c.addEventListener('click',function(){n.classList.remove('open');t.setAttribute('aria-expanded','false')}),document.addEventListener('click',function(e){!n.contains(e.target)&&!t.contains(e.target)&&n.classList.contains('open')&&(n.classList.remove('open'),t.setAttribute('aria-expanded','false'))}))}();</script>
 </body>
 </html>
