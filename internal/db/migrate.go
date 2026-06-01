@@ -82,6 +82,10 @@ func (db *Database) Migrate() {
 		`ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS blackjack_losses INTEGER NOT NULL DEFAULT 0`,
 		`ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`,
 		`ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()`,
+		`ALTER TABLE guild_config ADD COLUMN IF NOT EXISTS economy_enabled BOOLEAN NOT NULL DEFAULT true`,
+		`ALTER TABLE guild_config ADD COLUMN IF NOT EXISTS tickets_enabled BOOLEAN NOT NULL DEFAULT true`,
+		`ALTER TABLE guild_config ADD COLUMN IF NOT EXISTS modlogs_enabled BOOLEAN NOT NULL DEFAULT true`,
+		`ALTER TABLE guild_config ADD COLUMN IF NOT EXISTS welcome_enabled BOOLEAN NOT NULL DEFAULT false`,
 		`CREATE TABLE IF NOT EXISTS lottery_entries (
 			id SERIAL PRIMARY KEY,
 			user_id TEXT NOT NULL REFERENCES user_economy(user_id),

@@ -112,164 +112,225 @@
               <i class="fa-solid fa-magnifying-glass"></i>
               <input type="text" id="cfg-search" placeholder="Search settings..." autocomplete="off">
             </div>
-            <div class="cfg-card">
-              <div class="cfg-card-head">
-                <i class="fa-solid fa-shield-halved" style="color:var(--primary)"></i>
-                <span>Auto-moderation</span>
-                <label class="toggle">
-                  <input type="checkbox" id="cfg-automod">
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              <p class="cfg-card-desc">Master toggle for all automated moderation rules.</p>
-            </div>
 
-            <div class="cfg-card" data-depends="automod">
-              <div class="cfg-card-head">
-                <i class="fa-solid fa-bolt" style="color:var(--amber)"></i>
-                <span>Spam protection</span>
-                <label class="toggle">
-                  <input type="checkbox" id="cfg-spam">
-                  <span class="toggle-slider"></span>
-                </label>
+            <div class="cfg-group">
+              <div class="cfg-group-head"><i class="fa-solid fa-shield"></i><span>Moderation</span></div>
+
+              <div class="cfg-card">
+                <div class="cfg-card-head">
+                  <i class="fa-solid fa-shield-halved" style="color:var(--primary)"></i>
+                  <span>Auto-moderation</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="cfg-automod">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <p class="cfg-card-desc">Master toggle for all automated moderation rules below.</p>
               </div>
-              <div class="cfg-card-body" id="cfg-spam-body">
-                <div class="cfg-row">
-                  <div class="cfg-field">
-                    <label for="cfg-spam_msgs">Max messages</label>
-                    <input type="number" id="cfg-spam_msgs" min="2" max="20">
+
+              <div class="cfg-card" data-depends="automod">
+                <div class="cfg-card-head">
+                  <i class="fa-solid fa-bolt" style="color:var(--amber)"></i>
+                  <span>Spam protection</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="cfg-spam">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="cfg-card-body" id="cfg-spam-body">
+                  <div class="cfg-row">
+                    <div class="cfg-field">
+                      <label for="cfg-spam_msgs">Max messages</label>
+                      <input type="number" id="cfg-spam_msgs" min="2" max="20">
+                    </div>
+                    <div class="cfg-field">
+                      <label for="cfg-spam_secs">Window (sec)</label>
+                      <input type="number" id="cfg-spam_secs" min="2" max="60">
+                    </div>
+                    <div class="cfg-field">
+                      <label for="cfg-spam_action">Action</label>
+                      <select id="cfg-spam_action">
+                        <option value="warn">Warn</option>
+                        <option value="delete">Delete</option>
+                        <option value="mute">Mute</option>
+                        <option value="kick">Kick</option>
+                      </select>
+                    </div>
                   </div>
-                  <div class="cfg-field">
-                    <label for="cfg-spam_secs">Window (sec)</label>
-                    <input type="number" id="cfg-spam_secs" min="2" max="60">
+                </div>
+              </div>
+
+              <div class="cfg-card" data-depends="automod">
+                <div class="cfg-card-head">
+                  <i class="fa-solid fa-at" style="color:var(--cyan)"></i>
+                  <span>Mention protection</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="cfg-mention">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="cfg-card-body" id="cfg-mention-body">
+                  <div class="cfg-row thirds">
+                    <div class="cfg-field">
+                      <label for="cfg-mention_max">Max mentions</label>
+                      <input type="number" id="cfg-mention_max" min="1" max="50">
+                    </div>
+                    <div class="cfg-field">
+                      <label for="cfg-mention_action">Action</label>
+                      <select id="cfg-mention_action">
+                        <option value="delete">Delete</option>
+                        <option value="warn">Warn</option>
+                        <option value="mute">Mute</option>
+                        <option value="kick">Kick</option>
+                      </select>
+                    </div>
                   </div>
+                </div>
+              </div>
+
+              <div class="cfg-card" data-depends="automod">
+                <div class="cfg-card-head">
+                  <i class="fa-solid fa-link" style="color:var(--green)"></i>
+                  <span>Link guard</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="cfg-links">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="cfg-card-body" id="cfg-links-body">
+                  <div class="cfg-row thirds">
+                    <div class="cfg-field">
+                      <label for="cfg-links_action">Action</label>
+                      <select id="cfg-links_action">
+                        <option value="delete">Delete</option>
+                        <option value="warn">Warn</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cfg-card" data-depends="automod">
+                <div class="cfg-card-head">
+                  <i class="fa-solid fa-font" style="color:var(--rose)"></i>
+                  <span>Caps guard</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="cfg-caps">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="cfg-card-body" id="cfg-caps-body">
+                  <div class="cfg-row thirds">
+                    <div class="cfg-field">
+                      <label for="cfg-caps_pct">Caps percent</label>
+                      <input type="number" id="cfg-caps_pct" min="50" max="100">
+                    </div>
+                    <div class="cfg-field">
+                      <label for="cfg-caps_min">Min length</label>
+                      <input type="number" id="cfg-caps_min" min="5" max="100">
+                    </div>
+                    <div class="cfg-field">
+                      <label for="cfg-caps_action">Action</label>
+                      <select id="cfg-caps_action">
+                        <option value="warn">Warn</option>
+                        <option value="delete">Delete</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cfg-card">
+                <div class="cfg-card-head">
+                  <i class="fa-solid fa-ban" style="color:var(--rose)"></i>
+                  <span>Banned words</span>
+                </div>
+                <div class="cfg-card-body">
                   <div class="cfg-field">
-                    <label for="cfg-spam_action">Action</label>
-                    <select id="cfg-spam_action">
-                      <option value="warn">Warn</option>
-                      <option value="delete">Delete</option>
-                      <option value="mute">Mute</option>
-                      <option value="kick">Kick</option>
-                    </select>
+                    <label for="cfg-banned">Comma-separated list</label>
+                    <textarea id="cfg-banned" rows="3" placeholder="word1,word2,word3"></textarea>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="cfg-card" data-depends="automod">
-              <div class="cfg-card-head">
-                <i class="fa-solid fa-at" style="color:var(--cyan)"></i>
-                <span>Mention protection</span>
-                <label class="toggle">
-                  <input type="checkbox" id="cfg-mention">
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              <div class="cfg-card-body" id="cfg-mention-body">
-                <div class="cfg-row thirds">
-                  <div class="cfg-field">
-                    <label for="cfg-mention_max">Max mentions</label>
-                    <input type="number" id="cfg-mention_max" min="1" max="50">
-                  </div>
-                  <div class="cfg-field">
-                    <label for="cfg-mention_action">Action</label>
-                    <select id="cfg-mention_action">
-                      <option value="delete">Delete</option>
-                      <option value="warn">Warn</option>
-                      <option value="mute">Mute</option>
-                      <option value="kick">Kick</option>
-                    </select>
-                  </div>
+            <div class="cfg-group">
+              <div class="cfg-group-head"><i class="fa-solid fa-cubes"></i><span>Features</span></div>
+
+              <div class="cfg-card">
+                <div class="cfg-card-head">
+                  <i class="fa-solid fa-coins" style="color:var(--amber)"></i>
+                  <span>Economy system</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="cfg-economy">
+                    <span class="toggle-slider"></span>
+                  </label>
                 </div>
+                <p class="cfg-card-desc">Enable or disable all economy commands: daily, work, gamble, slots, blackjack, shop, leaderboard, and lottery.</p>
+              </div>
+
+              <div class="cfg-card">
+                <div class="cfg-card-head">
+                  <i class="fa-solid fa-ticket" style="color:var(--cyan)"></i>
+                  <span>Ticket system</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="cfg-tickets">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <p class="cfg-card-desc">Allow users to open support tickets via the ticket panel.</p>
+              </div>
+
+              <div class="cfg-card">
+                <div class="cfg-card-head">
+                  <i class="fa-solid fa-clipboard-list" style="color:var(--green)"></i>
+                  <span>Moderation logs</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="cfg-modlogs">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <p class="cfg-card-desc">Log moderation actions (purge, kick, ban, mute) to the configured log channel.</p>
+              </div>
+
+              <div class="cfg-card">
+                <div class="cfg-card-head">
+                  <i class="fa-solid fa-wave" style="color:var(--primary)"></i>
+                  <span>Welcome messages</span>
+                  <label class="toggle">
+                    <input type="checkbox" id="cfg-welcome">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <p class="cfg-card-desc">Send a welcome message when new members join the server.</p>
               </div>
             </div>
 
-            <div class="cfg-card" data-depends="automod">
-              <div class="cfg-card-head">
-                <i class="fa-solid fa-link" style="color:var(--green)"></i>
-                <span>Link guard</span>
-                <label class="toggle">
-                  <input type="checkbox" id="cfg-links">
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              <div class="cfg-card-body" id="cfg-links-body">
-                <div class="cfg-row thirds">
-                  <div class="cfg-field">
-                    <label for="cfg-links_action">Action</label>
-                    <select id="cfg-links_action">
-                      <option value="delete">Delete</option>
-                      <option value="warn">Warn</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div class="cfg-group">
+              <div class="cfg-group-head"><i class="fa-solid fa-gear"></i><span>Configuration</span></div>
 
-            <div class="cfg-card" data-depends="automod">
-              <div class="cfg-card-head">
-                <i class="fa-solid fa-font" style="color:var(--rose)"></i>
-                <span>Caps guard</span>
-                <label class="toggle">
-                  <input type="checkbox" id="cfg-caps">
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              <div class="cfg-card-body" id="cfg-caps-body">
-                <div class="cfg-row thirds">
-                  <div class="cfg-field">
-                    <label for="cfg-caps_pct">Caps percent</label>
-                    <input type="number" id="cfg-caps_pct" min="50" max="100">
-                  </div>
-                  <div class="cfg-field">
-                    <label for="cfg-caps_min">Min length</label>
-                    <input type="number" id="cfg-caps_min" min="5" max="100">
-                  </div>
-                  <div class="cfg-field">
-                    <label for="cfg-caps_action">Action</label>
-                    <select id="cfg-caps_action">
-                      <option value="warn">Warn</option>
-                      <option value="delete">Delete</option>
-                    </select>
-                  </div>
+              <div class="cfg-card">
+                <div class="cfg-card-head">
+                  <i class="fa-solid fa-gear" style="color:var(--muted)"></i>
+                  <span>Logging & roles</span>
                 </div>
-              </div>
-            </div>
-
-            <div class="cfg-card">
-              <div class="cfg-card-head">
-                <i class="fa-solid fa-ban" style="color:var(--rose)"></i>
-                <span>Banned words</span>
-              </div>
-              <div class="cfg-card-body">
-                <div class="cfg-field">
-                  <label for="cfg-banned">Comma-separated list</label>
-                  <textarea id="cfg-banned" rows="3" placeholder="word1,word2,word3"></textarea>
-                </div>
-              </div>
-            </div>
-
-            <div class="cfg-card">
-              <div class="cfg-card-head">
-                <i class="fa-solid fa-gear" style="color:var(--muted)"></i>
-                <span>Logging & roles</span>
-              </div>
-              <div class="cfg-card-body">
-                <div class="cfg-row">
-                  <div class="cfg-field">
-                    <label for="cfg-log_channel">Log channel ID</label>
-                    <input type="text" id="cfg-log_channel" placeholder="Discord channel snowflake">
-                  </div>
-                  <div class="cfg-field">
-                    <label for="cfg-mod_role">Mod role ID</label>
-                    <input type="text" id="cfg-mod_role" placeholder="Discord role snowflake">
+                <div class="cfg-card-body">
+                  <div class="cfg-row">
+                    <div class="cfg-field">
+                      <label for="cfg-log_channel">Log channel ID</label>
+                      <input type="text" id="cfg-log_channel" placeholder="Discord channel snowflake">
+                    </div>
+                    <div class="cfg-field">
+                      <label for="cfg-mod_role">Mod role ID</label>
+                      <input type="text" id="cfg-mod_role" placeholder="Discord role snowflake">
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             <div class="cfg-save-row">
-              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save changes</button>
             </div>
           </form>
         </div>
@@ -433,6 +494,10 @@ document.addEventListener('DOMContentLoaded', () => {
       setVal('cfg-banned', cfg.banned_words || '');
       setVal('cfg-log_channel', cfg.log_channel_id || '');
       setVal('cfg-mod_role', cfg.mod_role_id || '');
+      setVal('cfg-economy', cfg.economy_enabled);
+      setVal('cfg-tickets', cfg.tickets_enabled);
+      setVal('cfg-modlogs', cfg.modlogs_enabled);
+      setVal('cfg-welcome', cfg.welcome_enabled);
       dashConfigLoader.style.display = 'none';
       dashConfigForm.style.display = '';
       dashConfigForm.dataset.guildId = guildId;
@@ -502,6 +567,10 @@ document.addEventListener('DOMContentLoaded', () => {
       banned_words: document.getElementById('cfg-banned').value,
       log_channel_id: document.getElementById('cfg-log_channel').value,
       mod_role_id: document.getElementById('cfg-mod_role').value,
+      economy_enabled: document.getElementById('cfg-economy').checked,
+      tickets_enabled: document.getElementById('cfg-tickets').checked,
+      modlogs_enabled: document.getElementById('cfg-modlogs').checked,
+      welcome_enabled: document.getElementById('cfg-welcome').checked,
     };
     try {
       const r = await fetch(API + '/api/guild/' + guildId + '/config?token=' + encodeURIComponent(token), {
