@@ -127,6 +127,15 @@ func (db *Database) Migrate() {
 			mod_role_id TEXT NOT NULL DEFAULT '',
 			updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 		)`,
+		`CREATE TABLE IF NOT EXISTS user_warnings (
+			id SERIAL PRIMARY KEY,
+			guild_id TEXT NOT NULL,
+			user_id TEXT NOT NULL,
+			moderator_id TEXT NOT NULL,
+			reason TEXT NOT NULL DEFAULT 'No reason provided',
+			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_warnings_guild_user ON user_warnings(guild_id, user_id)`,
 	}
 
 	for _, q := range queries {

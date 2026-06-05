@@ -11,12 +11,12 @@ const (
 	MenuSelectID        = "pulsekeep:menu:category"
 	TicketPanelButtonID = "pulsekeep:tickets:open"
 	TicketCloseButtonID = "pulsekeep:tickets:close"
-	CommandMenuAccent    = 0x4f8cff
-	ModerationMenuAccent = 0xfb7185
-	UtilityMenuAccent    = 0x4f8cff
-	EconomyMenuAccent    = 0x36d399
-	EconomyWarningAccent = 0xf5bd4f
-	TicketMenuAccent     = 0x38d5c8
+	CommandMenuAccent    = 0x8b5cf6
+	ModerationMenuAccent = 0xf43f5e
+	UtilityMenuAccent    = 0x8b5cf6
+	EconomyMenuAccent    = 0x10b981
+	EconomyWarningAccent = 0xf59e0b
+	TicketMenuAccent     = 0x0ea5e9
 	PulseKeepVersion     = "v6.1.0"
 )
 
@@ -52,6 +52,11 @@ var Categories = []CommandCategory{
 			{Name: "/unlock", Description: "Unlock the current channel for @everyone.", Usage: "/unlock"},
 			{Name: "/announce", Description: "Send a clean embedded announcement with optional @everyone ping.", Usage: "/announce title:Update message:Patch notes are live ping:true"},
 			{Name: "/role", Description: "Toggle a role on a member (add or remove).", Usage: "/role user:@member role:Staff"},
+			{Name: "/warn", Description: "Warn a user for a rule violation.", Usage: "/warn user:@member reason:Spamming in chat"},
+			{Name: "/warnings", Description: "View all warnings for a user.", Usage: "/warnings user:@member"},
+			{Name: "/clearwarns", Description: "Clear all warnings for a user.", Usage: "/clearwarns user:@member"},
+			{Name: "/move", Description: "Move a member to a different voice channel.", Usage: "/move user:@member channel:General"},
+			{Name: "/vckick", Description: "Disconnect a member from voice chat.", Usage: "/vckick user:@member"},
 		},
 	},
 	{
@@ -68,6 +73,10 @@ var Categories = []CommandCategory{
 			{Name: "/serverinfo", Description: "Show details about the current server.", Usage: "/serverinfo"},
 			{Name: "/userinfo", Description: "Show details about a user, defaulting to yourself.", Usage: "/userinfo user:@member"},
 			{Name: "/avatar", Description: "Display a user's avatar at full resolution.", Usage: "/avatar user:@member"},
+			{Name: "/servericon", Description: "Show the server's icon in full resolution.", Usage: "/servericon"},
+			{Name: "/roleinfo", Description: "Show detailed information about a role.", Usage: "/roleinfo role:Staff"},
+			{Name: "/channelinfo", Description: "Show information about the current or specified channel.", Usage: "/channelinfo"},
+			{Name: "/invite", Description: "Get invite links for PulseKeep and the support server.", Usage: "/invite"},
 			{Name: "/poll", Description: "Create a multi-option reaction poll.", Usage: "/poll question:\"Best color?\" option1:Red option2:Blue"},
 		},
 	},
@@ -108,6 +117,10 @@ var Categories = []CommandCategory{
 		Color:       TicketMenuAccent,
 		Commands: []CommandInfo{
 			{Name: "/ticketpanel", Description: "Post the interactive ticket opener panel.", Usage: "/ticketpanel"},
+			{Name: "/ticket add", Description: "Add a user to the current ticket channel.", Usage: "/ticket add user:@member"},
+			{Name: "/ticket remove", Description: "Remove a user from the current ticket channel.", Usage: "/ticket remove user:@member"},
+			{Name: "/ticket close", Description: "Close the current ticket channel.", Usage: "/ticket close"},
+			{Name: "/ticket rename", Description: "Rename the current ticket channel.", Usage: "/ticket rename name:new-name"},
 			{Name: "Open Ticket", Description: "Button flow for users to request help from staff.", Usage: "Click Open Ticket in the support panel"},
 		},
 	},

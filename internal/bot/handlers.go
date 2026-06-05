@@ -210,6 +210,10 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 				b.respond(e, featureDisabledEmbed("Tickets", "The ticket system is disabled in this server."))
 				return
 			}
+			if cmdName == "ticket" && !cfg.TicketsEnabled {
+				b.respond(e, featureDisabledEmbed("Tickets", "The ticket system is disabled in this server."))
+				return
+			}
 		}
 	}
 
@@ -230,6 +234,22 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 	}
 
 	switch cmdName {
+	case "magic8ball":
+		question := data.String("question")
+		answers := []string{
+			"It is certain.", "It is decidedly so.", "Without a doubt.", "Yes, definitely.",
+			"You may rely on it.", "As I see it, yes.", "Most likely.", "Outlook good.",
+			"Yes.", "Signs point to yes.", "Reply hazy, try again.", "Ask again later.",
+			"Better not tell you now.", "Cannot predict now.", "Concentrate and ask again.",
+			"Don't count on it.", "My reply is no.", "My sources say no.",
+			"Outlook not so good.", "Very doubtful.",
+		}
+		answer := answers[rand.Intn(len(answers))]
+		embed := discord.NewEmbed().
+			WithTitle("🎱 Magic 8-Ball").
+			WithDescription(fmt.Sprintf("**Question:** %s\n**Answer:** %s", question, answer)).
+			WithColor(commands.UtilityMenuAccent)
+		b.respond(e, discord.NewMessageCreate().AddEmbeds(embed))
 	case "help":
 		b.respond(e, commands.MenuMessage("", true))
 	case "ticketpanel":
@@ -282,6 +302,26 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 		b.respond(e, handleLock(e))
 	case "unlock":
 		b.respond(e, handleUnlock(e))
+	case "warn":
+		b.handleWarn(e, data)
+	case "warnings":
+		b.handleWarnings(e, data)
+	case "clearwarns":
+		b.handleClearWarns(e, data)
+	case "move":
+		b.handleMove(e, data)
+	case "vckick":
+		b.handleVCKick(e, data)
+	case "ticket":
+		b.handleTicketCmd(e, data)
+	case "servericon":
+		b.respond(e, serverIconMessage(e))
+	case "roleinfo":
+		b.respond(e, roleInfoMessage(e, data))
+	case "channelinfo":
+		b.respond(e, channelInfoMessage(e, data))
+	case "invite":
+		b.respond(e, inviteMessage())
 	case "tip":
 		b.respond(e, tipMessage())
 	case "vote":
@@ -400,24 +440,20 @@ func (b *Bot) handleTicketOpen(e *events.ComponentInteractionCreate) {
 }
 
 func (b *Bot) handleTicketClose(e *events.ComponentInteractionCreate) {
-	channelID := e.Channel().ID()
-	channelName := e.Channel().Name()
-	if !strings.HasPrefix(channelName, "ticket-") {
-		if err := e.CreateMessage(discord.NewMessageCreate().WithEphemeral(true).WithContent("This button can only close PulseKeep ticket channels.")); err != nil {
-			log.Printf("failed to reject non-ticket close: %v", err)
-		}
+	if err := e.DeferUpdateMessage(); err != nil {
+		log.Printf("failed to defer ticket close: %v", err)
 		return
 	}
 
-	if err := e.UpdateMessage(discord.NewMessageUpdate().
-		WithContentf("Ticket closed by %s. Channel will be deleted shortly.", e.User().Mention()).
-		WithComponents()); err != nil {
-		log.Printf("failed to update ticket close message: %v", err)
-		if err := e.DeferUpdateMessage(); err != nil {
-			log.Printf("failed to acknowledge ticket close interaction: %v", err)
-		}
-	}
+	_, _ = e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(),
+		discord.NewMessageUpdate().
+			WithContentf("Ticket closed by %s. Channel will be deleted shortly.", e.User().Mention()).
+			WithComponents())
 
+	b.doTicketClose(e.Client().Rest, e.Message.ChannelID)
+}
+
+func (b *Bot) doTicketClose(restClient rest.Rest, channelID snowflake.ID) {
 	go func() {
 		select {
 		case <-b.ticketCtx.Done():
@@ -425,7 +461,7 @@ func (b *Bot) handleTicketClose(e *events.ComponentInteractionCreate) {
 		case <-time.After(2 * time.Second):
 		}
 
-		if err := e.Client().Rest.DeleteChannel(channelID); err != nil {
+		if err := restClient.DeleteChannel(channelID); err != nil {
 			log.Printf("failed to delete ticket channel %s: %v", channelID, err)
 		}
 	}()
@@ -1346,7 +1382,7 @@ func startStatusRotation(ctx context.Context, client *bot.Client, memCache *cach
 		gc, uc := int64(0), int64(0)
 		if memCache != nil {
 			gc = memCache.GuildCount.Load()
-			uc = memCache.UserCount.Load()
+			uc = memCache.GetTotalUserCount()
 		}
 		text := s.text(gc, uc)
 		var opts []gateway.PresenceOpt
@@ -1394,6 +1430,504 @@ func featureDisabledEmbed(feature, description string) discord.MessageCreate {
 			WithDescription(description).
 			WithColor(commands.EconomyWarningAccent).
 			WithFooterText("PulseKeep " + Version + " · Configuration").
+			WithTimestamp(time.Now()))
+}
+
+func (b *Bot) handleWarn(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) {
+	guildID := e.GuildID()
+	if guildID == nil {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server."))
+		return
+	}
+
+	user, ok := data.OptUser("user")
+	if !ok {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a user."))
+		return
+	}
+
+	reason, _ := data.OptString("reason")
+	if reason == "" {
+		reason = "No reason provided"
+	}
+
+	if b.db != nil {
+		_, err := b.db.ExecContext(context.Background(),
+			"INSERT INTO user_warnings (guild_id, user_id, moderator_id, reason) VALUES ($1, $2, $3, $4)",
+			guildID.String(), user.ID.String(), e.User().ID.String(), reason)
+		if err != nil {
+			log.Printf("failed to save warning: %v", err)
+		}
+	}
+
+	b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("User Warned").
+			WithDescription(fmt.Sprintf("**%s** has been warned.", user.Mention())).
+			AddField("Reason", reason, false).
+			AddField("Moderator", e.User().Mention(), true).
+			AddField("User", user.Mention(), true).
+			WithColor(commands.ModerationMenuAccent).
+			WithFooterText("PulseKeep " + Version + " · Moderation").
+			WithTimestamp(time.Now())))
+}
+
+func (b *Bot) handleWarnings(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) {
+	guildID := e.GuildID()
+	if guildID == nil {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server."))
+		return
+	}
+
+	user, ok := data.OptUser("user")
+	if !ok {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a user."))
+		return
+	}
+
+	if b.db == nil {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("Database is not available."))
+		return
+	}
+
+	rows, err := b.db.QueryContext(context.Background(),
+		"SELECT id, moderator_id, reason, created_at FROM user_warnings WHERE guild_id = $1 AND user_id = $2 ORDER BY created_at DESC",
+		guildID.String(), user.ID.String())
+	if err != nil {
+		log.Printf("failed to query warnings: %v", err)
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("Failed to fetch warnings."))
+		return
+	}
+	defer rows.Close()
+
+	type warnEntry struct {
+		ID          int
+		ModeratorID string
+		Reason      string
+		CreatedAt   time.Time
+	}
+	var warns []warnEntry
+	for rows.Next() {
+		var w warnEntry
+		if err := rows.Scan(&w.ID, &w.ModeratorID, &w.Reason, &w.CreatedAt); err != nil {
+			log.Printf("failed to scan warning row: %v", err)
+			continue
+		}
+		warns = append(warns, w)
+	}
+
+	if len(warns) == 0 {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Warnings").
+				WithDescription(fmt.Sprintf("**%s** has no warnings.", user.Mention())).
+				WithColor(commands.ModerationMenuAccent).
+				WithFooterText("PulseKeep " + Version + " · Moderation").
+				WithTimestamp(time.Now())))
+		return
+	}
+
+	var list strings.Builder
+	for i, w := range warns {
+		if i >= 10 {
+			list.WriteString(fmt.Sprintf("\n... and %d more", len(warns)-10))
+			break
+		}
+		list.WriteString(fmt.Sprintf("**#%d** — <@%s> • %s\n└ %s\n", w.ID, w.ModeratorID, w.CreatedAt.Format("Jan 02"), w.Reason))
+	}
+
+	b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle(fmt.Sprintf("Warnings — %s", user.EffectiveName())).
+			WithDescription(list.String()).
+			AddField("Total", fmt.Sprintf("%d warning(s)", len(warns)), true).
+			WithColor(commands.ModerationMenuAccent).
+			WithFooterText("PulseKeep " + Version + " · Moderation").
+			WithTimestamp(time.Now())))
+}
+
+func (b *Bot) handleClearWarns(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) {
+	guildID := e.GuildID()
+	if guildID == nil {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server."))
+		return
+	}
+
+	user, ok := data.OptUser("user")
+	if !ok {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a user."))
+		return
+	}
+
+	if b.db == nil {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("Database is not available."))
+		return
+	}
+
+	res, err := b.db.ExecContext(context.Background(),
+		"DELETE FROM user_warnings WHERE guild_id = $1 AND user_id = $2",
+		guildID.String(), user.ID.String())
+	if err != nil {
+		log.Printf("failed to delete warnings: %v", err)
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("Failed to clear warnings."))
+		return
+	}
+
+	count, _ := res.RowsAffected()
+	b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Warnings Cleared").
+			WithDescription(fmt.Sprintf("Cleared **%d** warning(s) for %s.", count, user.Mention())).
+			WithColor(commands.ModerationMenuAccent).
+			WithFooterText("PulseKeep " + Version + " · Moderation").
+			WithTimestamp(time.Now())))
+}
+
+func (b *Bot) handleMove(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) {
+	guildID := e.GuildID()
+	if guildID == nil {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server."))
+		return
+	}
+
+	user, ok := data.OptUser("user")
+	if !ok {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a user."))
+		return
+	}
+
+	targetChan, ok := data.OptChannel("channel")
+	if !ok {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a voice channel."))
+		return
+	}
+
+	if _, err := e.Client().Rest.UpdateMember(*guildID, user.ID, discord.MemberUpdate{ChannelID: &targetChan.ID}); err != nil {
+		log.Printf("failed to move member: %v", err)
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("Failed to move the member. Make sure they are connected to a voice channel."))
+		return
+	}
+
+	oldChannel := "Unknown (voice state not checked)"
+
+	chanMention := fmt.Sprintf("<#%s>", targetChan.ID.String())
+
+	b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Member Moved").
+			WithDescription(fmt.Sprintf("Moved **%s** to %s.", user.Mention(), chanMention)).
+			AddField("From", oldChannel, true).
+			AddField("To", chanMention, true).
+			WithColor(commands.ModerationMenuAccent).
+			WithFooterText("PulseKeep " + Version + " · Moderation").
+			WithTimestamp(time.Now())))
+}
+
+func (b *Bot) handleVCKick(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) {
+	guildID := e.GuildID()
+	if guildID == nil {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server."))
+		return
+	}
+
+	user, ok := data.OptUser("user")
+	if !ok {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a user."))
+		return
+	}
+
+	if _, err := e.Client().Rest.UpdateMember(*guildID, user.ID, discord.MemberUpdate{ChannelID: nil}); err != nil {
+		log.Printf("failed to disconnect member: %v", err)
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("Failed to disconnect the member from voice."))
+		return
+	}
+
+	b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Member Disconnected").
+			WithDescription(fmt.Sprintf("Disconnected **%s** from voice chat.", user.Mention())).
+			WithColor(commands.ModerationMenuAccent).
+			WithFooterText("PulseKeep " + Version + " · Moderation").
+			WithTimestamp(time.Now())))
+}
+
+func (b *Bot) handleTicketCmd(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) {
+	guildID := e.GuildID()
+	if guildID == nil {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server."))
+		return
+	}
+
+	channelID := e.Channel().ID()
+	ch, err := e.Client().Rest.GetChannel(channelID)
+	if err != nil || !strings.HasPrefix(ch.Name(), "ticket-") {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("This command must be used inside a ticket channel."))
+		return
+	}
+
+	guildChannel, ok := ch.(discord.GuildTextChannel)
+	if !ok {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("This command must be used inside a ticket channel."))
+		return
+	}
+
+	sub := ""
+	if data.SubCommandName != nil {
+		sub = *data.SubCommandName
+	}
+	switch sub {
+	case "add":
+		b.handleTicketAdd(e, data, guildChannel)
+	case "remove":
+		b.handleTicketRemove(e, data, guildChannel)
+	case "close":
+		b.respond(e, discord.NewMessageCreate().WithContent("Ticket closed. Channel will be deleted shortly."))
+		b.doTicketClose(e.Client().Rest, e.Channel().ID())
+	case "rename":
+		b.handleTicketRenameCmd(e, data, guildChannel)
+	default:
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("Unknown ticket subcommand."))
+	}
+}
+
+func (b *Bot) handleTicketAdd(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData, ch discord.GuildTextChannel) {
+	user, ok := data.OptUser("user")
+	if !ok {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a user."))
+		return
+	}
+
+	overwrites := ch.PermissionOverwrites()
+	overwrites = append(overwrites, discord.MemberPermissionOverwrite{
+		UserID: user.ID,
+		Allow:  discord.PermissionViewChannel | discord.PermissionSendMessages | discord.PermissionReadMessageHistory,
+	})
+
+	name := ch.Name()
+	owSlice := []discord.PermissionOverwrite(overwrites)
+	if _, err := e.Client().Rest.UpdateChannel(ch.ID(), discord.GuildTextChannelUpdate{
+		Name:                 &name,
+		PermissionOverwrites: &owSlice,
+	}); err != nil {
+		log.Printf("failed to add user to ticket: %v", err)
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("Failed to add user to ticket."))
+		return
+	}
+
+	b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("User Added").
+			WithDescription(fmt.Sprintf("Added %s to the ticket.", user.Mention())).
+			WithColor(commands.TicketMenuAccent).
+			WithFooterText("PulseKeep " + Version + " · Tickets").
+			WithTimestamp(time.Now())))
+}
+
+func (b *Bot) handleTicketRemove(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData, ch discord.GuildTextChannel) {
+	user, ok := data.OptUser("user")
+	if !ok {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a user."))
+		return
+	}
+
+	var filtered []discord.PermissionOverwrite
+	for _, ow := range ch.PermissionOverwrites() {
+		if ow.Type() == discord.PermissionOverwriteTypeMember && ow.ID() == user.ID {
+			continue
+		}
+		filtered = append(filtered, ow)
+	}
+
+	if len(filtered) == len(ch.PermissionOverwrites()) {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("That user does not have access to this ticket."))
+		return
+	}
+
+	name := ch.Name()
+	if _, err := e.Client().Rest.UpdateChannel(ch.ID(), discord.GuildTextChannelUpdate{
+		Name:                 &name,
+		PermissionOverwrites: &filtered,
+	}); err != nil {
+		log.Printf("failed to remove user from ticket: %v", err)
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("Failed to remove user from ticket."))
+		return
+	}
+
+	b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("User Removed").
+			WithDescription(fmt.Sprintf("Removed %s from the ticket.", user.Mention())).
+			WithColor(commands.TicketMenuAccent).
+			WithFooterText("PulseKeep " + Version + " · Tickets").
+			WithTimestamp(time.Now())))
+}
+
+func (b *Bot) handleTicketRenameCmd(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData, ch discord.GuildTextChannel) {
+	newName, ok := data.OptString("name")
+	if !ok || newName == "" {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("You must provide a new name."))
+		return
+	}
+
+	if _, err := e.Client().Rest.UpdateChannel(ch.ID(), discord.GuildTextChannelUpdate{Name: &newName}); err != nil {
+		log.Printf("failed to rename ticket channel: %v", err)
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("Failed to rename the ticket channel."))
+		return
+	}
+
+	b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Ticket Renamed").
+			WithDescription(fmt.Sprintf("Renamed to **%s**.", newName)).
+			WithColor(commands.TicketMenuAccent).
+			WithFooterText("PulseKeep " + Version + " · Tickets").
+			WithTimestamp(time.Now())))
+}
+
+func serverIconMessage(e *events.ApplicationCommandInteractionCreate) discord.MessageCreate {
+	guildID := e.GuildID()
+	if guildID == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Server Icon").
+				WithDescription("Server icon is only available inside a guild.").
+				WithColor(commands.UtilityMenuAccent))
+	}
+
+	guild, err := e.Client().Rest.GetGuild(*guildID, true)
+	if err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Server Icon").
+				WithDescription("Could not fetch server info.").
+				WithColor(commands.UtilityMenuAccent))
+	}
+
+	iconURL := guild.IconURL()
+	if iconURL == nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Server Icon").
+				WithDescription("This server does not have a custom icon.").
+				WithColor(commands.UtilityMenuAccent))
+	}
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle(fmt.Sprintf("🏠 %s — Server Icon", guild.Name)).
+			WithColor(commands.UtilityMenuAccent).
+			WithImage(*iconURL).
+			WithDescription(fmt.Sprintf("[Open in browser](%s)", *iconURL)).
+			WithFooterText("PulseKeep " + Version + " · Utility").
+			WithTimestamp(time.Now()))
+}
+
+func roleInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	role, ok := data.OptRole("role")
+	if !ok {
+		return discord.NewMessageCreate().WithEphemeral(true).WithContent("You must specify a role.")
+	}
+
+	colorStr := fmt.Sprintf("#%06X", role.Color)
+	createdAt := role.ID.Time().Format("Jan 02, 2006")
+
+	permList := "None"
+	if role.Permissions != 0 {
+		permNames := []string{}
+		if role.Permissions.Has(discord.PermissionAdministrator) {
+			permNames = append(permNames, "Administrator")
+		} else {
+			if role.Permissions.Has(discord.PermissionManageGuild) { permNames = append(permNames, "Manage Server") }
+			if role.Permissions.Has(discord.PermissionManageRoles) { permNames = append(permNames, "Manage Roles") }
+			if role.Permissions.Has(discord.PermissionManageChannels) { permNames = append(permNames, "Manage Channels") }
+			if role.Permissions.Has(discord.PermissionKickMembers) { permNames = append(permNames, "Kick Members") }
+			if role.Permissions.Has(discord.PermissionBanMembers) { permNames = append(permNames, "Ban Members") }
+			if role.Permissions.Has(discord.PermissionModerateMembers) { permNames = append(permNames, "Timeout Members") }
+			if role.Permissions.Has(discord.PermissionMentionEveryone) { permNames = append(permNames, "Mention Everyone") }
+			if role.Permissions.Has(discord.PermissionManageMessages) { permNames = append(permNames, "Manage Messages") }
+		}
+		if len(permNames) > 0 {
+			permList = strings.Join(permNames, ", ")
+		}
+	}
+
+	embed := discord.NewEmbed().
+		WithTitle(fmt.Sprintf("Role — %s", role.Name)).
+		WithColor(int(role.Color)).
+		AddField("Role ID", role.ID.String(), true).
+		AddField("Color", colorStr, true).
+		AddField("Position", fmt.Sprintf("%d", role.Position), true).
+		AddField("Mentionable", fmt.Sprintf("%t", role.Mentionable), true).
+		AddField("Displayed Separately", fmt.Sprintf("%t", role.Hoist), true).
+		AddField("Created", createdAt, true).
+		AddField("Key Permissions", permList, false).
+		WithFooterText("PulseKeep " + Version + " · Utility").
+		WithTimestamp(time.Now())
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(embed)
+}
+
+func channelInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
+	guildID := e.GuildID()
+
+	var channelID snowflake.ID
+	if ch, ok := data.OptChannel("channel"); ok {
+		channelID = ch.ID
+	} else {
+		channelID = e.Channel().ID()
+	}
+
+	ch, err := e.Client().Rest.GetChannel(channelID)
+	if err != nil {
+		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("Channel Info").
+				WithDescription("Could not fetch channel information.").
+				WithColor(commands.UtilityMenuAccent))
+	}
+
+	typeName := map[discord.ChannelType]string{
+		discord.ChannelTypeGuildText:  "Text",
+		discord.ChannelTypeGuildVoice: "Voice",
+		discord.ChannelTypeGuildCategory: "Category",
+		discord.ChannelTypeGuildNews: "Announcement",
+		discord.ChannelTypeGuildForum: "Forum",
+		discord.ChannelTypeGuildStageVoice: "Stage",
+	}[ch.Type()]
+	if typeName == "" {
+		typeName = "Unknown"
+	}
+
+	createdAt := ch.ID().Time().Format("Jan 02, 2006")
+
+	embed := discord.NewEmbed().
+		WithTitle(fmt.Sprintf("#%s — Channel Info", ch.Name())).
+		WithDescription(fmt.Sprintf("Information about <#%s>.", ch.ID())).
+		WithColor(commands.UtilityMenuAccent).
+		AddField("Type", typeName, true).
+		AddField("Channel ID", ch.ID().String(), true).
+		AddField("Created", createdAt, true)
+
+	if guildID != nil {
+		embed = embed.AddField("Server", fmt.Sprintf("<@%s>", guildID.String()), true)
+	}
+
+	embed = embed.WithFooterText("PulseKeep " + Version + " · Utility").
+		WithTimestamp(time.Now())
+
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(embed)
+}
+
+func inviteMessage() discord.MessageCreate {
+	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("Invite PulseKeep").
+			WithDescription("Add PulseKeep to your server or join the support community.").
+			AddField("Invite Bot", "[Click here](https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands)", false).
+			AddField("Support Server", "[Click here](https://discord.gg/pulsekeep)", false).
+			AddField("Top.gg", "[Vote for us](https://top.gg/bot/1507498795569512598/vote)", false).
+			WithColor(commands.UtilityMenuAccent).
+			WithFooterText("PulseKeep " + Version + " · Utility").
 			WithTimestamp(time.Now()))
 }
 

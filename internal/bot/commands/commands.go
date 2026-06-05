@@ -558,6 +558,165 @@ func Register() []discord.ApplicationCommandCreate {
 				},
 			},
 		},
+		discord.SlashCommandCreate{
+			Name:                     "warn",
+			Description:              "Warn a user for a rule violation",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionModerateMembers),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionUser{
+					Name:        "user",
+					Description: "The user to warn",
+					Required:    true,
+				},
+				discord.ApplicationCommandOptionString{
+					Name:        "reason",
+					Description: "Reason for the warning",
+					Required:    false,
+					MaxLength:   ptrInt(500),
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "warnings",
+			Description:              "View all warnings for a user",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionModerateMembers),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionUser{
+					Name:        "user",
+					Description: "The user to check warnings for",
+					Required:    true,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "clearwarns",
+			Description:              "Clear all warnings for a user",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionModerateMembers),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionUser{
+					Name:        "user",
+					Description: "The user to clear warnings for",
+					Required:    true,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "move",
+			Description:              "Move a member to a different voice channel",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionMoveMembers),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionUser{
+					Name:        "user",
+					Description: "The member to move",
+					Required:    true,
+				},
+				discord.ApplicationCommandOptionChannel{
+					Name:        "channel",
+					Description: "The target voice channel",
+					Required:    true,
+					ChannelTypes: []discord.ChannelType{discord.ChannelTypeGuildVoice},
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "vckick",
+			Description:              "Disconnect a member from voice chat",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionMoveMembers),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionUser{
+					Name:        "user",
+					Description: "The member to disconnect from voice",
+					Required:    true,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "ticket",
+			Description:              "Manage support tickets — add, remove, close, rename",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionManageMessages),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionSubCommand{
+					Name:        "add",
+					Description: "Add a user to the current ticket channel",
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionUser{
+							Name:        "user",
+							Description: "The user to add",
+							Required:    true,
+						},
+					},
+				},
+				discord.ApplicationCommandOptionSubCommand{
+					Name:        "remove",
+					Description: "Remove a user from the current ticket channel",
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionUser{
+							Name:        "user",
+							Description: "The user to remove",
+							Required:    true,
+						},
+					},
+				},
+				discord.ApplicationCommandOptionSubCommand{
+					Name:        "close",
+					Description: "Close the current ticket channel",
+				},
+				discord.ApplicationCommandOptionSubCommand{
+					Name:        "rename",
+					Description: "Rename the current ticket channel",
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionString{
+							Name:        "name",
+							Description: "The new channel name",
+							Required:    true,
+							MaxLength:   ptrInt(80),
+						},
+					},
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:        "servericon",
+			Description: "Show the current server's icon in full resolution",
+		},
+		discord.SlashCommandCreate{
+			Name:        "roleinfo",
+			Description: "Show detailed information about a role",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionRole{
+					Name:        "role",
+					Description: "The role to inspect",
+					Required:    true,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:        "channelinfo",
+			Description: "Show information about the current or a specified channel",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionChannel{
+					Name:        "channel",
+					Description: "The channel to inspect (defaults to current)",
+					Required:    false,
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:        "invite",
+			Description: "Get invite links for PulseKeep and support server",
+		},
+		discord.SlashCommandCreate{
+			Name:        "magic8ball",
+			Description: "Ask the magic 8-ball a yes/no question",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
+					Name:        "question",
+					Description: "The question you want to ask",
+					Required:    true,
+					MaxLength:   ptrInt(200),
+				},
+			},
+		},
 	}
 }
 

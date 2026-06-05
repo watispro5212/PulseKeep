@@ -15,6 +15,9 @@ type Cache struct {
 	StartedAt     time.Time
 	muGuilds      sync.RWMutex
 	guildNames    map[string]string
+	muAuth        sync.Mutex
+	authorized    map[string]struct{}
+	AuthorizedCnt atomic.Int64
 	latencyMu     sync.Mutex
 	latencies     []time.Duration
 	latencyMax    int
@@ -27,6 +30,7 @@ func New() *Cache {
 		data:       make(map[string]interface{}),
 		StartedAt:  time.Now(),
 		guildNames: make(map[string]string),
+		authorized: make(map[string]struct{}),
 		latencies:  make([]time.Duration, 0, 100),
 		latencyMax: 100,
 	}
@@ -123,6 +127,24 @@ func (c *Cache) GetGuildNames() map[string]string {
 		cp[k] = v
 	}
 	return cp
+}
+
+func (c *Cache) AddAuthorizedUser(userID string) {
+	c.muAuth.Lock()
+	defer c.muAuth.Unlock()
+	if _, exists := c.authorized[userID]; !exists {
+		c.authorized[userID] = struct{}{}
+		c.AuthorizedCnt.Add(1)
+	}
+}
+
+func (c *Cache) GetTotalUserCount() int64 {
+	guildUsers := c.UserCount.Load()
+	authUsers := c.AuthorizedCnt.Load()
+	if authUsers > guildUsers {
+		return authUsers
+	}
+	return guildUsers
 }
 
 func (c *Cache) RemoveGuild(guildID string) {

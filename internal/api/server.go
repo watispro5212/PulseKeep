@@ -250,6 +250,10 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 			return
 		}
 
+		if memCache != nil {
+			memCache.AddAuthorizedUser(user.ID)
+		}
+
 		// Redirect to dashboard with token in URL fragment
 		dashURL := fmt.Sprintf("/dashboard.html#access_token=%s&user_id=%s", url.QueryEscape(token), url.QueryEscape(user.ID))
 		c.Redirect(http.StatusTemporaryRedirect, dashURL)
@@ -439,7 +443,7 @@ func getUserCount(memCache *cache.Cache) int64 {
 	if memCache == nil {
 		return 0
 	}
-	return memCache.UserCount.Load()
+	return memCache.GetTotalUserCount()
 }
 
 func getCommandsRun(memCache *cache.Cache) int64 {
