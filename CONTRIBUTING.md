@@ -10,10 +10,12 @@ By participating, you agree to uphold the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Reporting Bugs
 
-1. Check the [issues](https://github.com/watispro5212/PulseKeep/issues) for duplicates
-2. Use the **Bug Report** issue template
-3. Include steps to reproduce, expected behavior, and actual behavior
-4. Attach logs or screenshots if relevant
+> [!NOTE]
+> Check the [issues](https://github.com/watispro5212/PulseKeep/issues) for duplicates before reporting a new bug.
+
+1. Use the **Bug Report** issue template.
+2. Include steps to reproduce, expected behavior, and actual behavior.
+3. Attach logs or screenshots if relevant.
 
 ### Suggesting Features
 
@@ -23,12 +25,12 @@ By participating, you agree to uphold the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Submitting Changes
 
-1. Fork the repository
-2. Create a branch: `git checkout -b feat/my-feature`
-3. Make your changes following the coding conventions below
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b feat/my-feature`
+3. Make your changes following the coding conventions below.
 4. Run checks: `go build ./... && go vet ./... && go test ./...`
-5. Commit with a descriptive message
-6. Open a Pull Request using the PR template
+5. Commit with a descriptive message.
+6. Open a Pull Request using the PR template.
 
 ## Development Setup
 
@@ -50,7 +52,7 @@ go run ./cmd/pulsekeep
 
 ### Project Structure
 
-```
+```text
 cmd/pulsekeep/        — Application entrypoint
 internal/api/         — HTTP server (Gin) for health/stats/OAuth
 internal/auth/        — Discord OAuth2 token exchange and API calls
@@ -68,16 +70,18 @@ web/                  — Cloudflare Pages static website (11 pages)
 
 ## Coding Conventions
 
-- Run `gofmt` before committing
-- Use `discord.NewEmbed()` builder for all message embeds
-- Register slash commands in `commands/commands.go`
-- Add descriptions to `commands/menu.go` categories
-- Keep economy logic in `economy/store.go`, not in handlers
-- Prefix component custom IDs with `pulsekeep:namespace:action`
-- Use descriptive variable names; avoid single-letter names outside loops
-- Handle all errors; use `log.Printf` for non-critical failures (never `log.Fatalf`)
-- Use ephemeral responses via `WithEphemeral(true)` for confirmations
-- Every database error path must degrade gracefully — the web server must keep running
+> [!IMPORTANT]
+> Every database error path must degrade gracefully — the web server must keep running.
+
+- Run `gofmt` before committing.
+- Use `discord.NewEmbed()` builder for all message embeds.
+- Register slash commands in `commands/commands.go`.
+- Add descriptions to `commands/menu.go` categories.
+- Keep economy logic in `economy/store.go`, not in handlers.
+- Prefix component custom IDs with `pulsekeep:namespace:action`.
+- Use descriptive variable names; avoid single-letter names outside loops.
+- Handle all errors; use `log.Printf` for non-critical failures (never `log.Fatalf`).
+- Use ephemeral responses via `WithEphemeral(true)` for confirmations.
 
 ## Testing
 

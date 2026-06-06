@@ -92,7 +92,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		avgLat := getAvgLatency(memCache)
 		c.JSON(http.StatusOK, gin.H{
 			"status":         "ok",
-			"version":        "v6.0.0",
+			"version":        "v6.3.0",
 			"database":       dbStatus,
 			"uptime":         formatDuration(time.Since(startedAt)),
 			"bot_uptime":     formatUptime(memCache),
@@ -118,7 +118,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"version":      "v6.0.0",
+			"version":      "v6.3.0",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,
@@ -178,7 +178,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"bot":          "PulseKeep v6.0.0",
+			"bot":          "PulseKeep v6.3.0",
 			"status":       "online",
 			"servers":      servers,
 			"users":        users,

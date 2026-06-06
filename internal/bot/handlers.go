@@ -27,7 +27,7 @@ import (
 	"github.com/watispro5212/PulseKeep/internal/cache"
 )
 
-const Version = "v6.1.0"
+const Version = "v6.3.0"
 
 type Bot struct {
 	Client       *bot.Client

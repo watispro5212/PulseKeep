@@ -4,21 +4,22 @@ Owner: `watispro1`
 Recommended server name: `PulseKeep Support`  
 Recommended permanent invite label: `pulsekeep-support`
 
-This file is a complete Discord support-server build plan for PulseKeep. It is written so you can create the server category by category, role by role, and permission by permission without guessing.
+> [!NOTE]
+> This file is a complete Discord support-server build plan for PulseKeep. It is written so you can create the server category by category, role by role, and permission by permission without guessing.
 
 ## 🎯 Server Purpose
 
-PulseKeep Support should exist for these purposes:
+PulseKeep Support should exist for these core purposes:
 
-- 👑 **Ownership hub** - clearly shows that PulseKeep is owned by `watispro1`.
-- 🧰 **User support** - gives server owners a clean place to ask setup questions.
-- 🎫 **Private tickets** - lets users share server-specific issues without exposing private IDs or screenshots publicly.
-- 🤖 **Bot command help** - explains every major command category and where commands should be tested.
-- 🧪 **Safe testing** - gives testers a controlled place to try moderation, economy, ticket, and dashboard features.
-- 📣 **Announcements** - publishes releases, outages, Top.gg news, and major updates.
-- 📊 **Status updates** - tells users whether the bot, website, dashboard, or API is healthy.
-- 🔐 **Security handling** - gives staff a private path for token leaks, abuse reports, and vulnerability reports.
-- ✅ **Top.gg readiness** - gives Top.gg reviewers a visible support server, command guide, status flow, privacy links, and owner identity.
+- 👑 **Ownership hub** - Clearly shows that PulseKeep is owned by `watispro1`.
+- 🧰 **User support** - Gives server owners a clean place to ask setup questions.
+- 🎫 **Private tickets** - Lets users share server-specific issues without exposing private IDs or screenshots publicly.
+- 🤖 **Bot command help** - Explains every major command category and where commands should be tested.
+- 🧪 **Safe testing** - Gives testers a controlled place to try moderation, economy, ticket, and dashboard features.
+- 📣 **Announcements** - Publishes releases, outages, Top.gg news, and major updates.
+- 📊 **Status updates** - Tells users whether the bot, website, dashboard, or API is healthy.
+- 🔐 **Security handling** - Gives staff a private path for token leaks, abuse reports, and vulnerability reports.
+- ✅ **Top.gg readiness** - Gives Top.gg reviewers a visible support server, command guide, status flow, privacy links, and owner identity.
 
 ## 🧠 Server Style
 
@@ -93,9 +94,10 @@ Give:
 
 Rules:
 
-- Only `watispro1` should have this role.
-- Never give this role as a reward.
-- Never give this role to temporary helpers.
+> [!WARNING]
+> - Only `watispro1` should have this role.
+> - Never give this role as a reward.
+> - Never give this role to temporary helpers.
 
 ### 💎 Co-Owner
 
@@ -116,8 +118,9 @@ Give:
 
 Avoid:
 
-- ❌ Ownership transfer
-- ❌ Sharing Cloudflare, Discord bot, database, or hosting secrets in Discord
+> [!CAUTION]
+> - ❌ Ownership transfer
+> - ❌ Sharing Cloudflare, Discord bot, database, or hosting secrets in Discord
 
 ### 🛡️ Administrator
 
@@ -1256,11 +1259,12 @@ support-username
 
 Troubleshooting:
 
-- ❌ Login fails: check Discord OAuth redirect URI.
-- ❌ Guilds do not load: check `/api/guilds` Worker route.
-- ❌ Save fails: check Worker POST body forwarding.
-- ❌ Permission denied: user needs Manage Server permission.
-- ❌ Config does not persist: check database connection.
+> [!TIP]
+> - ❌ **Login fails**: Check Discord OAuth redirect URI.
+> - ❌ **Guilds do not load**: Check `/api/guilds` Worker route.
+> - ❌ **Save fails**: Check Worker POST body forwarding.
+> - ❌ **Permission denied**: User needs Manage Server permission.
+> - ❌ **Config does not persist**: Check database connection.
 
 ## 📊 Status Workflow
 

@@ -11,25 +11,29 @@
 
 PulseKeep takes security seriously. If you discover a security vulnerability, please **do not** open a public issue.
 
+> [!WARNING]
+> Do not report security vulnerabilities through public issues or Discord channels.
+
 Instead, send a private report to the maintainers:
 
 1. **GitHub Security Advisories**: Navigate to the repository's **Security** tab and use the "Report a vulnerability" feature
 2. **Email**: Contact the maintainers directly (check repository commit history for contact information)
 
-You should receive a response within **48 hours**. If you don't, please follow up.
+> [!TIP]
+> You should receive a response within **48 hours**. If you don't, please follow up.
 
 ### What to include
 
-- Type of vulnerability
-- Steps to reproduce
-- Potential impact
-- Suggested fix (if applicable)
+- Type of vulnerability.
+- Steps to reproduce.
+- Potential impact.
+- Suggested fix (if applicable).
 
 ### What to expect
 
-- Confirmation of receipt within 48 hours
-- Regular updates on the fix timeline
-- Credit in release notes once the fix is published
+- Confirmation of receipt within 48 hours.
+- Regular updates on the fix timeline.
+- Credit in release notes once the fix is published.
 
 ## Scope
 
