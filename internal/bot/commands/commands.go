@@ -523,6 +523,38 @@ func Register() []discord.ApplicationCommandCreate {
 		discord.SlashCommandCreate{
 			Name:        "lottery-claim",
 			Description: "Claim your prize if you won the weekly lottery draw",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
+					Name:        "tier",
+					Description: "Which lottery tier to claim (low or high)",
+					Required:    true,
+					Choices: []discord.ApplicationCommandOptionChoiceString{
+						{Name: "Low (500 Pulses)", Value: "low"},
+						{Name: "High (5,000 Pulses)", Value: "high"},
+					},
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "lottery-config",
+			Description:              "Owner command to configure the lottery",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionAdministrator),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
+					Name:        "tier",
+					Description: "Which lottery tier to configure (low or high)",
+					Required:    true,
+					Choices: []discord.ApplicationCommandOptionChoiceString{
+						{Name: "Low", Value: "low"},
+						{Name: "High", Value: "high"},
+					},
+				},
+				discord.ApplicationCommandOptionBool{
+					Name:        "autodraw",
+					Description: "Enable or disable automatic weekly draws",
+					Required:    true,
+				},
+			},
 		},
 		discord.SlashCommandCreate{
 			Name:        "gift",
@@ -714,6 +746,46 @@ func Register() []discord.ApplicationCommandCreate {
 					Description: "The question you want to ask",
 					Required:    true,
 					MaxLength:   ptrInt(200),
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:                     "say",
+			Description:              "Send a message as PulseKeep in the current channel (Manage Messages required)",
+			DefaultMemberPermissions: ptrPermissions(discord.PermissionManageMessages),
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
+					Name:        "message",
+					Description: "The message to send",
+					Required:    true,
+					MaxLength:   ptrInt(2000),
+				},
+			},
+		},
+		discord.SlashCommandCreate{
+			Name:        "remindme",
+			Description: "Set a reminder — PulseKeep will DM you after the chosen time",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
+					Name:        "duration",
+					Description: "How long to wait before reminding you",
+					Required:    true,
+					Choices: []discord.ApplicationCommandOptionChoiceString{
+						{Name: "5 minutes", Value: "5m"},
+						{Name: "15 minutes", Value: "15m"},
+						{Name: "30 minutes", Value: "30m"},
+						{Name: "1 hour", Value: "1h"},
+						{Name: "2 hours", Value: "2h"},
+						{Name: "6 hours", Value: "6h"},
+						{Name: "12 hours", Value: "12h"},
+						{Name: "24 hours", Value: "24h"},
+					},
+				},
+				discord.ApplicationCommandOptionString{
+					Name:        "reminder",
+					Description: "What you want to be reminded about",
+					Required:    true,
+					MaxLength:   ptrInt(300),
 				},
 			},
 		},

@@ -95,6 +95,19 @@
 document.addEventListener('DOMContentLoaded', () => {
   const releases = [
     {
+      version: 'v6.3.0', type: 'minor', date: 'June 6, 2026',
+      title: 'Dual-Tier Lottery & Economy Content Upgrade',
+      changes: [
+        { kind: 'added', text: '<strong>Dual-Tier Lottery</strong> — Separate Low (500 Pulses) and High (5,000 Pulses) tier weekly lotteries.', highlight: true },
+        { kind: 'changed', text: '<strong>/lottery</strong> — Redesigned embed to display jackpot, entries, and last winner for both tiers simultaneously.' },
+        { kind: 'added', text: '<strong>/lottery-claim</strong> — Now accepts a tier parameter to claim prizes from specific pools.' },
+        { kind: 'added', text: '<strong>/lottery-config</strong> — Owner command to independently toggle auto-draws for each tier.' },
+        { kind: 'added', text: '<strong>New Shop Items</strong> — High Lottery Ticket added to the item shop.' },
+        { kind: 'added', text: '<strong>Legendary & Mythic Drops</strong> — Added Great White Shark, Kraken Tentacle, Dragonstone, and Star Fragment to /fish and /mine.', highlight: true },
+        { kind: 'changed', text: '<strong>Dynamic Economy Embeds</strong> — /fish and /mine now feature dynamic embed colors based on the rarity of the drop, with clean markdown layouts and larger emojis.' },
+      ]
+    },
+    {
       version: 'v6.2.0', type: 'minor', date: 'June 1, 2026',
       title: 'Premium dashboard redesign — server grid, sidebar nav, overview cards, global card accents',
       changes: [

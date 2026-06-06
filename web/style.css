@@ -668,9 +668,6 @@ h1,.hero-title{font-size:clamp(2.6rem,6.5vw,4.8rem);line-height:0.96;letter-spac
 .changelog-bar .search-wrap input:focus{border-color:var(--primary);outline:none;box-shadow:0 0 15px var(--primary-glow)}
 .changelog-bar .search-wrap .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.85rem;pointer-events:none}
 .changelog-bar .filter-group{display:flex;gap:6px}
-.changelog-bar .filter-group .filter-btn{padding:6px 14px;border:1px solid var(--border);border-radius:100px;background:rgba(255,255,255,0.03);color:var(--muted);font-size:0.78rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
-.changelog-bar .filter-group .filter-btn:hover{border-color:var(--border-hover);color:var(--text)}
-.changelog-bar .filter-group .filter-btn.active{border-color:var(--primary);background:rgba(139,92,246,0.12);color:var(--primary)}
 
 /* Toast notifications */
 #toast-container{position:fixed;bottom:80px;right:24px;z-index:200;display:grid;gap:8px;pointer-events:none}

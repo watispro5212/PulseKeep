@@ -236,19 +236,41 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 	switch cmdName {
 	case "magic8ball":
 		question := data.String("question")
-		answers := []string{
+		positive := []string{
 			"It is certain.", "It is decidedly so.", "Without a doubt.", "Yes, definitely.",
 			"You may rely on it.", "As I see it, yes.", "Most likely.", "Outlook good.",
-			"Yes.", "Signs point to yes.", "Reply hazy, try again.", "Ask again later.",
+			"Yes.", "Signs point to yes.",
+		}
+		neutral := []string{
+			"Reply hazy, try again.", "Ask again later.",
 			"Better not tell you now.", "Cannot predict now.", "Concentrate and ask again.",
+		}
+		negative := []string{
 			"Don't count on it.", "My reply is no.", "My sources say no.",
 			"Outlook not so good.", "Very doubtful.",
 		}
-		answer := answers[rand.Intn(len(answers))]
+		all := append(append(positive, neutral...), negative...)
+		answer := all[rand.Intn(len(all))]
+		// Determine color based on answer type
+		color := commands.EconomyWarningAccent // neutral = amber
+		for _, p := range positive {
+			if p == answer {
+				color = commands.EconomyMenuAccent // green
+				break
+			}
+		}
+		for _, n := range negative {
+			if n == answer {
+				color = commands.ModerationMenuAccent // red
+				break
+			}
+		}
 		embed := discord.NewEmbed().
 			WithTitle("🎱 Magic 8-Ball").
-			WithDescription(fmt.Sprintf("**Question:** %s\n**Answer:** %s", question, answer)).
-			WithColor(commands.UtilityMenuAccent)
+			WithDescription(fmt.Sprintf("🔮 *%s*\n\n**🗨️ Answer:** %s", question, answer)).
+			WithColor(color).
+			WithFooterText("PulseKeep "+Version+" · Utility").
+			WithTimestamp(time.Now())
 		b.respond(e, discord.NewMessageCreate().AddEmbeds(embed))
 	case "help":
 		b.respond(e, commands.MenuMessage("", true))
@@ -257,13 +279,22 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 	case "about":
 		b.respond(e, aboutMessage(e))
 	case "ping":
+		latencyMs := time.Since(t0).Milliseconds()
+		latencyLabel := "🟢 Excellent"
+		if latencyMs > 200 {
+			latencyLabel = "🔴 High"
+		} else if latencyMs > 100 {
+			latencyLabel = "🟡 Good"
+		}
 		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("🏓 Pong!").
-				WithDescription("PulseKeep is online and responding to commands.").
-				AddField("WebSocket", "Connected", true).
-				AddField("API", "Reachable", true).
-				AddField("Latency", fmt.Sprintf("%dms", time.Since(t0).Milliseconds()), true).
+				WithDescription("PulseKeep is alive and connected to Discord.").
+				AddField("WebSocket", "🟢 Connected", true).
+				AddField("API", "🟢 Reachable", true).
+				AddField("Latency", fmt.Sprintf("%dms", latencyMs), true).
+				AddField("Quality", latencyLabel, true).
+				AddField("Version", Version, true).
 				WithColor(commands.UtilityMenuAccent).
 				WithFooterText("PulseKeep "+Version+" · Utility").
 				WithTimestamp(time.Now()),
@@ -271,7 +302,17 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 	case "stats":
 		b.respond(e, statsMessage(startedAt))
 	case "uptime":
-		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContentf("PulseKeep has been online for `%s`.", formatBotDuration(time.Since(startedAt))))
+		upDur := time.Since(startedAt)
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("⏱ Uptime").
+				WithDescription(fmt.Sprintf("PulseKeep has been online for **%s** without interruption.", formatBotDuration(upDur))).
+				AddField("Started", fmt.Sprintf("%s UTC", startedAt.UTC().Format("Jan 02, 2006 at 15:04")), true).
+				AddField("Duration", formatBotDuration(upDur), true).
+				WithColor(commands.UtilityMenuAccent).
+				WithFooterText("PulseKeep "+Version+" · Utility").
+				WithTimestamp(time.Now()),
+		))
 	case "serverinfo":
 		b.respond(e, serverInfoMessage(e))
 	case "userinfo":
@@ -314,6 +355,10 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 		b.handleVCKick(e, data)
 	case "ticket":
 		b.handleTicketCmd(e, data)
+	case "say":
+		b.handleSay(e, data)
+	case "remindme":
+		b.handleRemindMe(e, data, startedAt)
 	case "servericon":
 		b.respond(e, serverIconMessage(e))
 	case "roleinfo":
@@ -429,10 +474,20 @@ func (b *Bot) handleTicketOpen(e *events.ComponentInteractionCreate) {
 
 	_, _ = e.Client().Rest.CreateFollowupMessage(e.ApplicationID(), e.Token(), discord.NewMessageCreate().WithContentf("Your ticket has been created: %s", gChannel.Mention()).WithEphemeral(true))
 
+	welcomeEmbed := discord.NewEmbed().
+		WithTitle("🎫 Support Ticket Opened").
+		WithDescription(fmt.Sprintf("Welcome %s! A staff member will be with you shortly.\n\nPlease describe your issue in as much detail as possible.", e.User().Mention())).
+		AddField("📋 Before you wait", "Share the affected feature, command, or error message so staff can help faster.", false).
+		AddField("⏳ Response time", "Staff typically respond within a few hours.", true).
+		AddField("🔒 Privacy", "This channel is private between you and staff.", true).
+		WithColor(commands.TicketMenuAccent).
+		WithFooterText("PulseKeep " + Version + " · Tickets").
+		WithTimestamp(time.Now())
+
 	if _, err := e.Client().Rest.CreateMessage(gChannel.ID(), discord.NewMessageCreate().
-		WithContentf("Welcome %s! A staff member will be with you shortly. Please describe your issue.", e.User().Mention()).
+		AddEmbeds(welcomeEmbed).
 		AddActionRow(
-			discord.NewDangerButton("Close Ticket", commands.TicketCloseButtonID),
+			discord.NewDangerButton("🔒 Close Ticket", commands.TicketCloseButtonID),
 		),
 	); err != nil {
 		log.Printf("failed to send welcome message in ticket: %v", err)
@@ -545,17 +600,17 @@ func statsMessage(startedAt time.Time) discord.MessageCreate {
 	return discord.NewMessageCreate().
 		WithEphemeral(true).
 		AddEmbeds(discord.NewEmbed().
-			WithTitle("PulseKeep Stats").
-			WithDescription("Current runtime snapshot for this bot process.").
+			WithTitle("📊 PulseKeep Stats").
+			WithDescription("Live operational snapshot for this PulseKeep process.").
 			WithColor(commands.CommandMenuAccent).
 			AddField("Status", "🟢 Online", true).
 			AddField("Version", Version, true).
 			AddField("Uptime", formatBotDuration(time.Since(startedAt)), true).
 			AddField("Language", "Go (disgo v0.19)", true).
 			AddField("Database", "PostgreSQL (Neon)", true).
-			AddField("Commands", "40+ slash commands", true).
+			AddField("Commands", "45+ slash commands", true).
 			AddField("Categories", "Utility · Moderation · Economy · Tickets", false).
-			AddField("Get started", "Use `/help` to browse all commands.", false).
+			AddField("Get started", "Use `/help` to browse all commands or `/tip` for a quick tip.", false).
 			WithFooterText("PulseKeep " + Version + " · Stats").
 			WithTimestamp(time.Now()))
 }
@@ -604,11 +659,12 @@ func serverInfoMessage(e *events.ApplicationCommandInteractionCreate) discord.Me
 			WithColor(commands.UtilityMenuAccent).
 			AddField("Owner", fmt.Sprintf("<@%s>", guild.OwnerID), true).
 			AddField("Members", fmt.Sprintf("%d", guild.ApproximateMemberCount), true).
-			AddField("Boosts", fmt.Sprintf("Tier %d (%d boosts)", guild.PremiumTier, guild.PremiumSubscriptionCount), true).
 			AddField("Online", fmt.Sprintf("%d", guild.ApproximatePresenceCount), true).
+			AddField("Boosts", fmt.Sprintf("Tier %d (%d boosts)", guild.PremiumTier, guild.PremiumSubscriptionCount), true).
 			AddField("Roles", fmt.Sprintf("%d", len(guild.Roles)), true).
-			AddField("Server ID", guild.ID.String(), false).
-			AddField("Created", createdAt, false).
+			AddField("Emojis", fmt.Sprintf("%d", len(guild.Emojis)), true).
+			AddField("Server ID", guild.ID.String(), true).
+			AddField("Created", createdAt, true).
 			WithThumbnail(iconURL).
 			WithFooterText("PulseKeep " + Version + " · Utility").
 			WithTimestamp(time.Now()))
@@ -620,19 +676,20 @@ func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 		user = e.User()
 	}
 
-	botBadge := "User"
+	botBadge := "👤 User"
 	if user.Bot {
 		botBadge = "🤖 Bot"
 	}
 
 	createdAt := user.ID.Time().Format("Jan 02, 2006")
+	accountAgeDays := int(time.Since(user.ID.Time()).Hours() / 24)
 
 	embed := discord.NewEmbed().
 		WithTitle(user.EffectiveName()).
 		WithDescription(fmt.Sprintf("%s · %s", user.Tag(), botBadge)).
 		WithColor(commands.UtilityMenuAccent).
-		AddField("User ID", user.ID.String(), false).
-		AddField("Joined Discord", createdAt, true).
+		AddField("User ID", user.ID.String(), true).
+		AddField("Account Created", fmt.Sprintf("%s (%d days ago)", createdAt, accountAgeDays), true).
 		WithThumbnail(user.EffectiveAvatarURL()).
 		WithFooterText("PulseKeep " + Version + " · Utility").
 		WithTimestamp(time.Now())
@@ -643,6 +700,11 @@ func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 			joinedAt := member.JoinedAt.Format("Jan 02, 2006")
 			rolesCount := len(member.RoleIDs)
 			embed = embed.AddField("Joined Server", joinedAt, true)
+			nick := "None"
+			if member.Nick != nil && *member.Nick != "" {
+				nick = *member.Nick
+			}
+			embed = embed.AddField("Nickname", nick, true)
 			if rolesCount > 0 {
 				embed = embed.AddField("Roles", fmt.Sprintf("%d roles", rolesCount), true)
 			} else {
@@ -1371,6 +1433,12 @@ func startStatusRotation(ctx context.Context, client *bot.Client, memCache *cach
 		{func(_, _ int64) string { return "support tickets" }, "listening"},
 		{func(_, _ int64) string { return "/shop | /rich | /weekly" }, "playing"},
 		{func(_, _ int64) string { return "automod" }, "watching"},
+		{func(_, _ int64) string { return "/remindme · /magic8ball · /tip" }, "playing"},
+		{func(_, _ int64) string { return "your server's economy" }, "watching"},
+		{func(_, _ int64) string { return "/blackjack | /coinflip | /gamble" }, "playing"},
+		{func(_, uc int64) string { return fmt.Sprintf("%d community members", uc) }, "watching"},
+		{func(_, _ int64) string { return "your commands" }, "listening"},
+		{func(_, _ int64) string { return "/lottery draws every week" }, "playing"},
 	}
 
 	ticker := time.NewTicker(2 * time.Minute)
@@ -1460,10 +1528,29 @@ func (b *Bot) handleWarn(e *events.ApplicationCommandInteractionCreate, data dis
 		}
 	}
 
+	// Try to DM the user about the warning
+	serverName := "the server"
+	if guildID != nil {
+		if guild, err := e.Client().Rest.GetGuild(*guildID, false); err == nil {
+			serverName = guild.Name
+		}
+	}
+	dmEmbed := discord.NewEmbed().
+		WithTitle("⚠️ You received a warning").
+		WithDescription(fmt.Sprintf("You were warned in **%s**.", serverName)).
+		AddField("Reason", reason, false).
+		AddField("Moderator", e.User().Tag(), true).
+		WithColor(commands.EconomyWarningAccent).
+		WithFooterText("PulseKeep " + Version + " · Moderation").
+		WithTimestamp(time.Now())
+	if dmChan, err := e.Client().Rest.CreateDMChannel(user.ID); err == nil {
+		_, _ = e.Client().Rest.CreateMessage(dmChan.ID(), discord.NewMessageCreate().AddEmbeds(dmEmbed))
+	}
+
 	b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 		discord.NewEmbed().
-			WithTitle("User Warned").
-			WithDescription(fmt.Sprintf("**%s** has been warned.", user.Mention())).
+			WithTitle("⚠️ User Warned").
+			WithDescription(fmt.Sprintf("**%s** has been warned and notified via DM.", user.Mention())).
 			AddField("Reason", reason, false).
 			AddField("Moderator", e.User().Mention(), true).
 			AddField("User", user.Mention(), true).
@@ -1909,7 +1996,11 @@ func channelInfoMessage(e *events.ApplicationCommandInteractionCreate, data disc
 		AddField("Created", createdAt, true)
 
 	if guildID != nil {
-		embed = embed.AddField("Server", fmt.Sprintf("<@%s>", guildID.String()), true)
+		guildName := guildID.String()
+		if guild, err := e.Client().Rest.GetGuild(*guildID, false); err == nil {
+			guildName = guild.Name
+		}
+		embed = embed.AddField("Server", guildName, true)
 	}
 
 	embed = embed.WithFooterText("PulseKeep " + Version + " · Utility").
@@ -1947,4 +2038,99 @@ func formatBotDuration(d time.Duration) string {
 		return fmt.Sprintf("%dm %ds", minutes, seconds)
 	}
 	return fmt.Sprintf("%ds", seconds)
+}
+
+func (b *Bot) handleSay(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) {
+	member := e.Member()
+	if member == nil {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server."))
+		return
+	}
+	if !member.Permissions.Has(discord.PermissionManageMessages) && !member.Permissions.Has(discord.PermissionAdministrator) {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("You need **Manage Messages** permission to use this command."))
+		return
+	}
+
+	message := data.String("message")
+	if message == "" {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("You must provide a message."))
+		return
+	}
+
+	channelID := e.Channel().ID()
+	if _, err := e.Client().Rest.CreateMessage(channelID, discord.NewMessageCreate().WithContent(message)); err != nil {
+		log.Printf("failed to send /say message: %v", err)
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("Failed to send the message. Check that I have **Send Messages** permission."))
+		return
+	}
+
+	b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("✅ Message Sent").
+			WithDescription(fmt.Sprintf("Your message was posted in <#%s>.", channelID)).
+			WithColor(commands.UtilityMenuAccent).
+			WithFooterText("PulseKeep "+Version+" · Utility").
+			WithTimestamp(time.Now())))
+}
+
+func (b *Bot) handleRemindMe(e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData, _ time.Time) {
+	durationStr := data.String("duration")
+	reminder := data.String("reminder")
+
+	var dur time.Duration
+	switch durationStr {
+	case "5m":
+		dur = 5 * time.Minute
+	case "15m":
+		dur = 15 * time.Minute
+	case "30m":
+		dur = 30 * time.Minute
+	case "1h":
+		dur = time.Hour
+	case "2h":
+		dur = 2 * time.Hour
+	case "6h":
+		dur = 6 * time.Hour
+	case "12h":
+		dur = 12 * time.Hour
+	case "24h":
+		dur = 24 * time.Hour
+	default:
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("Invalid duration."))
+		return
+	}
+
+	if reminder == "" {
+		b.respond(e, discord.NewMessageCreate().WithEphemeral(true).WithContent("You must provide a reminder message."))
+		return
+	}
+
+	userID := e.User().ID
+	clientRef := e.Client()
+	fireAt := time.Now().Add(dur)
+
+	b.respond(e, discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
+		discord.NewEmbed().
+			WithTitle("⏰ Reminder Set!").
+			WithDescription(fmt.Sprintf("I'll DM you in **%s**.\n\n> %s", durationStr, reminder)).
+			AddField("Fires at", fmt.Sprintf("%s UTC", fireAt.UTC().Format("15:04, Jan 02")), false).
+			WithColor(commands.UtilityMenuAccent).
+			WithFooterText("PulseKeep "+Version+" · Reminders").
+			WithTimestamp(time.Now())))
+
+	go func() {
+		time.Sleep(dur)
+		dmChan, err := clientRef.Rest.CreateDMChannel(userID)
+		if err != nil {
+			log.Printf("failed to create DM for reminder: %v", err)
+			return
+		}
+		_, _ = clientRef.Rest.CreateMessage(dmChan.ID(), discord.NewMessageCreate().AddEmbeds(
+			discord.NewEmbed().
+				WithTitle("⏰ Reminder!").
+				WithDescription(reminder).
+				WithColor(commands.UtilityMenuAccent).
+				WithFooterText("PulseKeep "+Version+" · Reminders").
+				WithTimestamp(time.Now())))
+	}()
 }

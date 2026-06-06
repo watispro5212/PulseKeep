@@ -160,7 +160,8 @@ var ShopItems = []ShopItem{
 	{ID: "lucky_clover", Name: "Lucky Clover", Description: "Boosts your next gamble win chance by 10%", Price: 5000, Usable: true, Sellable: true},
 	{ID: "fishing_rod", Name: "Fishing Rod", Description: "Unlocks the /fish command", Price: 1500, Sellable: true},
 	{ID: "iron_pickaxe", Name: "Iron Pickaxe", Description: "Unlocks the /mine command", Price: 2000, Sellable: true},
-	{ID: "lottery_ticket", Name: "Lottery Ticket", Description: "Entry for the server lottery draw", Price: 500, Usable: true, Sellable: true},
+	{ID: "lottery_ticket_low", Name: "Low Lottery Ticket", Description: "Entry for the standard server lottery draw", Price: 500, Usable: true, Sellable: true},
+	{ID: "lottery_ticket_high", Name: "High Lottery Ticket", Description: "Entry for the premium high-roller lottery draw", Price: 5000, Usable: true, Sellable: true},
 	{ID: "health_potion", Name: "Health Potion", Description: "Restores 625 Pulses when used (25% refund of purchase price)", Price: 2500, Usable: true, Sellable: true},
 	{ID: "treasure_map", Name: "Treasure Map", Description: "Reveals a hidden treasure worth 2500–7500 Pulses", Price: 3000, Usable: true, Sellable: false, OneTimeUse: true},
 }
@@ -199,15 +200,20 @@ var FishTable = []FishType{
 	{Name: "Perch", Emoji: "🐟", Weight: "0.5 lbs", MinPay: 10, MaxPay: 25, Rarity: "Common"},
 	{Name: "Bass", Emoji: "🐠", Weight: "2 lbs", MinPay: 20, MaxPay: 50, Rarity: "Uncommon"},
 	{Name: "Trout", Emoji: "🐟", Weight: "3 lbs", MinPay: 30, MaxPay: 70, Rarity: "Uncommon"},
+	{Name: "Pike", Emoji: "🐟", Weight: "6 lbs", MinPay: 40, MaxPay: 90, Rarity: "Uncommon"},
 	{Name: "Salmon", Emoji: "🐟", Weight: "5 lbs", MinPay: 50, MaxPay: 120, Rarity: "Rare"},
 	{Name: "Tuna", Emoji: "🐟", Weight: "20 lbs", MinPay: 80, MaxPay: 200, Rarity: "Rare"},
 	{Name: "Catfish", Emoji: "🐱", Weight: "8 lbs", MinPay: 60, MaxPay: 150, Rarity: "Rare"},
+	{Name: "Mahi-Mahi", Emoji: "🐬", Weight: "15 lbs", MinPay: 120, MaxPay: 250, Rarity: "Epic"},
 	{Name: "Swordfish", Emoji: "🗡️", Weight: "50 lbs", MinPay: 150, MaxPay: 350, Rarity: "Epic"},
+	{Name: "Great White Shark", Emoji: "🦈", Weight: "1500 lbs", MinPay: 400, MaxPay: 1000, Rarity: "Legendary"},
 	{Name: "Golden Koi", Emoji: "✨", Weight: "3 lbs", MinPay: 300, MaxPay: 800, Rarity: "Legendary"},
+	{Name: "Kraken Tentacle", Emoji: "🐙", Weight: "300 lbs", MinPay: 800, MaxPay: 2500, Rarity: "Mythic"},
 	{Name: "Ancient Coelacanth", Emoji: "🦕", Weight: "80 lbs", MinPay: 500, MaxPay: 1500, Rarity: "Mythic"},
 	{Name: "Boot", Emoji: "👢", Weight: "1 lb", MinPay: 0, MaxPay: 5, Rarity: "Junk"},
 	{Name: "Old Tire", Emoji: "🔘", Weight: "15 lbs", MinPay: 0, MaxPay: 10, Rarity: "Junk"},
 	{Name: "Seaweed", Emoji: "🌿", Weight: "0.2 lbs", MinPay: 2, MaxPay: 8, Rarity: "Junk"},
+	{Name: "Rusty Can", Emoji: "🥫", Weight: "0.5 lbs", MinPay: 1, MaxPay: 3, Rarity: "Junk"},
 }
 
 type FishResult struct {
@@ -234,14 +240,19 @@ var OreTable = []OreType{
 	{Name: "Iron", Emoji: "🔩", MinPay: 15, MaxPay: 35, Rarity: "Common"},
 	{Name: "Silver", Emoji: "🥈", MinPay: 30, MaxPay: 60, Rarity: "Uncommon"},
 	{Name: "Gold", Emoji: "🥇", MinPay: 50, MaxPay: 100, Rarity: "Uncommon"},
+	{Name: "Amethyst", Emoji: "🔮", MinPay: 60, MaxPay: 130, Rarity: "Uncommon"},
 	{Name: "Platinum", Emoji: "💎", MinPay: 80, MaxPay: 180, Rarity: "Rare"},
 	{Name: "Ruby", Emoji: "🔴", MinPay: 120, MaxPay: 250, Rarity: "Rare"},
 	{Name: "Sapphire", Emoji: "🔵", MinPay: 150, MaxPay: 300, Rarity: "Epic"},
 	{Name: "Emerald", Emoji: "🟢", MinPay: 200, MaxPay: 400, Rarity: "Epic"},
+	{Name: "Obsidian", Emoji: "⬛", MinPay: 250, MaxPay: 450, Rarity: "Epic"},
 	{Name: "Diamond", Emoji: "💠", MinPay: 300, MaxPay: 600, Rarity: "Legendary"},
+	{Name: "Dragonstone", Emoji: "🐉", MinPay: 450, MaxPay: 900, Rarity: "Legendary"},
+	{Name: "Star Fragment", Emoji: "⭐", MinPay: 800, MaxPay: 2000, Rarity: "Mythic"},
 	{Name: "Ancient Relic", Emoji: "🏺", MinPay: 500, MaxPay: 1200, Rarity: "Mythic"},
 	{Name: "Stone", Emoji: "🪨", MinPay: 1, MaxPay: 5, Rarity: "Junk"},
 	{Name: "Gravel", Emoji: "🪨", MinPay: 1, MaxPay: 3, Rarity: "Junk"},
+	{Name: "Fossilized Bone", Emoji: "🦴", MinPay: 5, MaxPay: 15, Rarity: "Junk"},
 }
 
 type MineResult struct {
@@ -1480,19 +1491,25 @@ func (s *Store) UseItem(userID snowflake.ID, name string, itemID string, now tim
 			Used:        true,
 			Description: "You clutch the Lucky Clover! Your next `/gamble` loss will be rerolled.",
 		}, nil
-	case "lottery_ticket":
+	case "lottery_ticket_low", "lottery_ticket_high":
 		entry.Quantity--
 		if entry.Quantity <= 0 {
 			delete(record.Inventory, itemID)
 		}
-		s.LotteryBuyTicket(userID, now)
+		tier := "low"
+		tierName := "Low Tier"
+		if itemID == "lottery_ticket_high" {
+			tier = "high"
+			tierName = "High Tier"
+		}
+		s.LotteryBuyTicket(userID, tier, now)
 		s.save(record)
 		return UseItemResult{
 			Record:      record.copy(),
 			ItemID:      itemID,
-			ItemName:    "Lottery Ticket",
+			ItemName:    fmt.Sprintf("%s Lottery Ticket", tierName),
 			Used:        true,
-			Description: "You enter the weekly lottery draw! You will be automatically entered into the next drawing. Use `/lottery` to check the status.",
+			Description: fmt.Sprintf("You enter the weekly %s lottery draw! You will be automatically entered into the next drawing.", tierName),
 		}, nil
 	default:
 		return UseItemResult{}, ErrCannotUse
@@ -1559,82 +1576,104 @@ func (s *Store) Weekly(userID snowflake.ID, name string, now time.Time) WeeklyRe
 }
 
 type LotteryStatus struct {
-	TotalEntries int
-	Jackpot      int
-	LastWinnerID string
-	LastDrawTime time.Time
-	AutoDraw     bool
+	TotalEntriesLow  int
+	JackpotLow       int
+	LastWinnerIDLow  string
+	LastDrawTimeLow  time.Time
+	AutoDrawLow      bool
+	
+	TotalEntriesHigh int
+	JackpotHigh      int
+	LastWinnerIDHigh string
+	LastDrawTimeHigh time.Time
+	AutoDrawHigh     bool
+	
 	WeekStart    time.Time
 }
 
 func (s *Store) LotteryStatus(now time.Time) LotteryStatus {
 	weekStart := weekStartTime(now)
 
-	var totalEntries int
-	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false`, weekStart).Scan(&totalEntries)
+	var totalEntriesLow, totalEntriesHigh int
+	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false AND tier = 'low'`, weekStart).Scan(&totalEntriesLow)
+	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false AND tier = 'high'`, weekStart).Scan(&totalEntriesHigh)
 
-	jackpot := totalEntries * 400 // 500 * 0.8 = 400 per entry (20% house cut)
+	jackpotLow := totalEntriesLow * 400 // 500 * 0.8
+	jackpotHigh := totalEntriesHigh * 4000 // 5000 * 0.8
 
-	var lastWinnerID string
-	var lastDrawTime time.Time
-	_ = s.db.QueryRow(`SELECT COALESCE(last_winner_id,''), COALESCE(last_draw_time, 'epoch'::timestamptz) FROM lottery_config WHERE guild_id = 'global'`).Scan(&lastWinnerID, &lastDrawTime)
+	var lastWinnerIDLow, lastWinnerIDHigh string
+	var lastDrawTimeLow, lastDrawTimeHigh time.Time
+	_ = s.db.QueryRow(`SELECT COALESCE(last_winner_id,''), COALESCE(last_draw_time, 'epoch'::timestamptz), COALESCE(high_last_winner_id,''), COALESCE(high_last_draw_time, 'epoch'::timestamptz) FROM lottery_config WHERE guild_id = 'global'`).Scan(&lastWinnerIDLow, &lastDrawTimeLow, &lastWinnerIDHigh, &lastDrawTimeHigh)
 
-	autoDraw := true
-	_ = s.db.QueryRow(`SELECT auto_draw FROM lottery_config WHERE guild_id = 'global'`).Scan(&autoDraw)
+	autoDrawLow := true
+	autoDrawHigh := true
+	_ = s.db.QueryRow(`SELECT auto_draw, high_auto_draw FROM lottery_config WHERE guild_id = 'global'`).Scan(&autoDrawLow, &autoDrawHigh)
 
 	return LotteryStatus{
-		TotalEntries: totalEntries,
-		Jackpot:      jackpot,
-		LastWinnerID: lastWinnerID,
-		LastDrawTime: lastDrawTime,
-		AutoDraw:     autoDraw,
+		TotalEntriesLow:  totalEntriesLow,
+		JackpotLow:       jackpotLow,
+		LastWinnerIDLow:  lastWinnerIDLow,
+		LastDrawTimeLow:  lastDrawTimeLow,
+		AutoDrawLow:      autoDrawLow,
+		
+		TotalEntriesHigh: totalEntriesHigh,
+		JackpotHigh:      jackpotHigh,
+		LastWinnerIDHigh: lastWinnerIDHigh,
+		LastDrawTimeHigh: lastDrawTimeHigh,
+		AutoDrawHigh:     autoDrawHigh,
+		
 		WeekStart:    weekStart,
 	}
 }
 
-func (s *Store) LotteryBuyTicket(userID snowflake.ID, now time.Time) {
+func (s *Store) LotteryBuyTicket(userID snowflake.ID, tier string, now time.Time) {
 	weekStart := weekStartTime(now)
-	_, _ = s.db.Exec(`INSERT INTO lottery_entries (user_id, week_start) VALUES ($1, $2) ON CONFLICT DO NOTHING`, userID.String(), weekStart)
+	_, _ = s.db.Exec(`INSERT INTO lottery_entries (user_id, week_start, tier) VALUES ($1, $2, $3)`, userID.String(), weekStart, tier)
 }
 
-func (s *Store) LotteryClaim(userID snowflake.ID, name string, now time.Time) (UseItemResult, error) {
+func (s *Store) LotteryClaim(userID snowflake.ID, name string, tier string, now time.Time) (UseItemResult, error) {
 	weekStart := weekStartTime(now)
 
-	// Check if draw already happened this week
-	var lastDrawTime time.Time
-	_ = s.db.QueryRow(`SELECT COALESCE(last_draw_time, 'epoch'::timestamptz) FROM lottery_config WHERE guild_id = 'global'`).Scan(&lastDrawTime)
+	// Determine column names based on tier
+	drawTimeCol := "last_draw_time"
+	autoDrawCol := "auto_draw"
+	winnerCol := "last_winner_id"
+	ticketPrice := 500
+	itemName := "Low Lottery Ticket"
+	if tier == "high" {
+		drawTimeCol = "high_last_draw_time"
+		autoDrawCol = "high_auto_draw"
+		winnerCol = "high_last_winner_id"
+		ticketPrice = 5000
+		itemName = "High Lottery Ticket"
+	}
 
-	// If draw hasn't happened yet this week, check if auto_draw is on
+	var lastDrawTime time.Time
+	_ = s.db.QueryRow(fmt.Sprintf(`SELECT COALESCE(%s, 'epoch'::timestamptz) FROM lottery_config WHERE guild_id = 'global'`, drawTimeCol)).Scan(&lastDrawTime)
+
 	var autoDraw bool
-	_ = s.db.QueryRow(`SELECT COALESCE(auto_draw, true) FROM lottery_config WHERE guild_id = 'global'`).Scan(&autoDraw)
+	_ = s.db.QueryRow(fmt.Sprintf(`SELECT COALESCE(%s, true) FROM lottery_config WHERE guild_id = 'global'`, autoDrawCol)).Scan(&autoDraw)
 
 	if lastDrawTime.Before(weekStart) {
 		if autoDraw {
-			// run the draw
-			s.lotteryRunDraw(weekStart, now)
+			s.lotteryRunDraw(weekStart, tier, now)
 		} else {
 			return UseItemResult{}, errors.New("the weekly draw has not started yet. wait for the auto-draw or ask an admin to trigger one")
 		}
 	}
 
-	// Now check if this user won
 	var entryID int
-	err := s.db.QueryRow(`SELECT id FROM lottery_entries WHERE week_start = $1 AND user_id = $2 AND claimed = false`, weekStart, userID.String()).Scan(&entryID)
+	err := s.db.QueryRow(`SELECT id FROM lottery_entries WHERE week_start = $1 AND user_id = $2 AND claimed = false AND tier = $3`, weekStart, userID.String(), tier).Scan(&entryID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return UseItemResult{}, errors.New("you did not win the lottery this week. better luck next time!")
+			return UseItemResult{}, fmt.Errorf("you did not win the %s lottery this week. better luck next time!", tier)
 		}
 		return UseItemResult{}, errors.New("could not check lottery status")
 	}
 
-	// Claim the prize
-	var jackpot int
-	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false`, weekStart).Scan(&jackpot)
-	totalEntries := jackpot
-	jackpot = totalEntries * 400
-
-	var winnerID string
-	_ = s.db.QueryRow(`SELECT COALESCE(last_winner_id, '') FROM lottery_config WHERE guild_id = 'global'`).Scan(&winnerID)
+	var totalEntries int
+	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false AND tier = $2`, weekStart, tier).Scan(&totalEntries)
+	jackpot := int(float64(totalEntries) * float64(ticketPrice) * 0.8)
 
 	s.mu.Lock()
 	record := s.ensureRecord(userID, name)
@@ -1646,23 +1685,27 @@ func (s *Store) LotteryClaim(userID snowflake.ID, name string, now time.Time) (U
 	s.mu.Unlock()
 
 	_, _ = s.db.Exec(`UPDATE lottery_entries SET claimed = true WHERE id = $1`, entryID)
-	_, _ = s.db.Exec(`UPDATE lottery_config SET last_winner_id = $1 WHERE guild_id = 'global'`, userID.String())
+	_, _ = s.db.Exec(fmt.Sprintf(`UPDATE lottery_config SET %s = $1 WHERE guild_id = 'global'`, winnerCol), userID.String())
 
 	return UseItemResult{
 		Record:      record.copy(),
-		ItemID:      "lottery_ticket",
-		ItemName:    "Lottery Ticket",
+		ItemID:      "lottery_ticket_" + tier,
+		ItemName:    itemName,
 		Used:        true,
-		Description: fmt.Sprintf("You won the weekly lottery! **%d Pulses** have been added to your balance.", jackpot),
+		Description: fmt.Sprintf("You won the weekly %s lottery! **%d Pulses** have been added to your balance.", tier, jackpot),
 	}, nil
 }
 
-func (s *Store) LotteryToggleAutoDraw(enable bool) error {
-	_, err := s.db.Exec(`
-		INSERT INTO lottery_config (guild_id, auto_draw)
+func (s *Store) LotteryToggleAutoDraw(tier string, enable bool) error {
+	col := "auto_draw"
+	if tier == "high" {
+		col = "high_auto_draw"
+	}
+	_, err := s.db.Exec(fmt.Sprintf(`
+		INSERT INTO lottery_config (guild_id, %s)
 		VALUES ('global', $1)
-		ON CONFLICT (guild_id) DO UPDATE SET auto_draw = $1
-	`, enable)
+		ON CONFLICT (guild_id) DO UPDATE SET %s = $1
+	`, col, col), enable)
 	return err
 }
 
@@ -1677,18 +1720,24 @@ func weekStartTime(now time.Time) time.Time {
 	return start
 }
 
-func (s *Store) lotteryRunDraw(weekStart time.Time, now time.Time) {
+func (s *Store) lotteryRunDraw(weekStart time.Time, tier string, now time.Time) {
 	var totalEntries int
-	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false`, weekStart).Scan(&totalEntries)
+	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false AND tier = $2`, weekStart, tier).Scan(&totalEntries)
 	if totalEntries == 0 {
 		return
 	}
 
-	// Pick random entry
 	var userIDStr string
-	_ = s.db.QueryRow(`SELECT user_id FROM lottery_entries WHERE week_start = $1 AND claimed = false OFFSET floor(random() * $2) LIMIT 1`, weekStart, totalEntries).Scan(&userIDStr)
+	_ = s.db.QueryRow(`SELECT user_id FROM lottery_entries WHERE week_start = $1 AND claimed = false AND tier = $3 OFFSET floor(random() * $2) LIMIT 1`, weekStart, totalEntries, tier).Scan(&userIDStr)
 
-	_, _ = s.db.Exec(`UPDATE lottery_config SET last_draw_time = $1, last_winner_id = $2 WHERE guild_id = 'global'`, now, userIDStr)
+	drawTimeCol := "last_draw_time"
+	winnerCol := "last_winner_id"
+	if tier == "high" {
+		drawTimeCol = "high_last_draw_time"
+		winnerCol = "high_last_winner_id"
+	}
+
+	_, _ = s.db.Exec(fmt.Sprintf(`UPDATE lottery_config SET %s = $1, %s = $2 WHERE guild_id = 'global'`, drawTimeCol, winnerCol), now, userIDStr)
 }
 
 // StartLotteryAutoDraw starts a goroutine that checks weekly for auto-draw
@@ -1699,17 +1748,20 @@ func (s *Store) StartLotteryAutoDraw(ctx context.Context) {
 		for {
 			select {
 			case <-ticker.C:
-				var autoDraw bool
-				_ = s.db.QueryRow(`SELECT COALESCE(auto_draw, true) FROM lottery_config WHERE guild_id = 'global'`).Scan(&autoDraw)
-				if !autoDraw {
-					continue
-				}
+				var autoDrawLow, autoDrawHigh bool
+				_ = s.db.QueryRow(`SELECT COALESCE(auto_draw, true), COALESCE(high_auto_draw, true) FROM lottery_config WHERE guild_id = 'global'`).Scan(&autoDrawLow, &autoDrawHigh)
+				
 				now := time.Now()
 				weekStart := weekStartTime(now)
-				var lastDrawTime time.Time
-				_ = s.db.QueryRow(`SELECT COALESCE(last_draw_time, 'epoch'::timestamptz) FROM lottery_config WHERE guild_id = 'global'`).Scan(&lastDrawTime)
-				if lastDrawTime.Before(weekStart) {
-					s.lotteryRunDraw(weekStart, now)
+				
+				var lastDrawTimeLow, lastDrawTimeHigh time.Time
+				_ = s.db.QueryRow(`SELECT COALESCE(last_draw_time, 'epoch'::timestamptz), COALESCE(high_last_draw_time, 'epoch'::timestamptz) FROM lottery_config WHERE guild_id = 'global'`).Scan(&lastDrawTimeLow, &lastDrawTimeHigh)
+				
+				if autoDrawLow && lastDrawTimeLow.Before(weekStart) {
+					s.lotteryRunDraw(weekStart, "low", now)
+				}
+				if autoDrawHigh && lastDrawTimeHigh.Before(weekStart) {
+					s.lotteryRunDraw(weekStart, "high", now)
 				}
 			case <-ctx.Done():
 				return

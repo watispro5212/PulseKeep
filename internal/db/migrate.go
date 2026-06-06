@@ -91,14 +91,22 @@ func (db *Database) Migrate() {
 			user_id TEXT NOT NULL REFERENCES user_economy(user_id),
 			entry_date TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 			week_start TIMESTAMPTZ NOT NULL,
-			claimed BOOLEAN NOT NULL DEFAULT false
+			claimed BOOLEAN NOT NULL DEFAULT false,
+			tier TEXT NOT NULL DEFAULT 'low'
 		)`,
 		`CREATE TABLE IF NOT EXISTS lottery_config (
 			guild_id TEXT PRIMARY KEY,
 			auto_draw BOOLEAN NOT NULL DEFAULT true,
 			last_draw_time TIMESTAMPTZ,
-			last_winner_id TEXT
+			last_winner_id TEXT,
+			high_auto_draw BOOLEAN NOT NULL DEFAULT true,
+			high_last_draw_time TIMESTAMPTZ,
+			high_last_winner_id TEXT
 		)`,
+		`ALTER TABLE lottery_entries ADD COLUMN IF NOT EXISTS tier TEXT NOT NULL DEFAULT 'low'`,
+		`ALTER TABLE lottery_config ADD COLUMN IF NOT EXISTS high_auto_draw BOOLEAN NOT NULL DEFAULT true`,
+		`ALTER TABLE lottery_config ADD COLUMN IF NOT EXISTS high_last_draw_time TIMESTAMPTZ`,
+		`ALTER TABLE lottery_config ADD COLUMN IF NOT EXISTS high_last_winner_id TEXT`,
 		`CREATE TABLE IF NOT EXISTS command_logs (
 			id SERIAL PRIMARY KEY,
 			guild_id TEXT NOT NULL DEFAULT '',
