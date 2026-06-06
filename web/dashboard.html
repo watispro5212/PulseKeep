@@ -129,6 +129,10 @@
                 <i class="fa-solid fa-ticket"></i>
                 <span>Tickets</span>
               </button>
+              <button class="dash-sv-nav-item" data-section="welcome">
+                <i class="fa-solid fa-hand-wave"></i>
+                <span>Welcome</span>
+              </button>
               <button class="dash-sv-nav-item" data-section="config">
                 <i class="fa-solid fa-gear"></i>
                 <span>Configuration</span>
@@ -152,6 +156,25 @@
                 <div class="dash-loading-grid" style="grid-column:1/-1">
                   <div class="loader-spinner"><i class="fa-solid fa-spinner fa-spin"></i></div>
                   <span>Loading...</span>
+                </div>
+              </div>
+              
+              <div class="dash-sv-section-head" style="margin-top: 40px;">
+                <h2><i class="fa-solid fa-chart-line"></i> Analytics (Preview)</h2>
+                <p>Server activity over the last 7 days.</p>
+              </div>
+              <div class="dash-analytics-placeholder">
+                <div class="analytics-chart glass">
+                   <div class="chart-bar" style="height: 40%;"></div>
+                   <div class="chart-bar" style="height: 60%;"></div>
+                   <div class="chart-bar" style="height: 30%;"></div>
+                   <div class="chart-bar" style="height: 80%;"></div>
+                   <div class="chart-bar" style="height: 50%;"></div>
+                   <div class="chart-bar" style="height: 90%;"></div>
+                   <div class="chart-bar" style="height: 100%; background: var(--primary);"></div>
+                </div>
+                <div class="analytics-labels">
+                   <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                 </div>
               </div>
             </div>
@@ -326,6 +349,32 @@
                 <div class="cfg-save-row"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button></div>
               </form>
               <div id="dash-loader-tickets" class="dash-config-loader"><div class="loader-spinner"><i class="fa-solid fa-spinner fa-spin"></i></div><span>Loading ticket config...</span></div>
+            </div>
+
+            <!-- Welcome Section -->
+            <div id="dash-section-welcome" class="dash-sv-section">
+              <div class="dash-sv-section-head">
+                <h2><i class="fa-solid fa-hand-wave"></i> Welcome</h2>
+                <p>Configure automated welcome messages for new members.</p>
+              </div>
+              <form id="dash-config-form-welcome" class="dash-config-form" data-section="welcome" style="display:none">
+                <div class="cfg-group welcome-group">
+                  <div class="cfg-group-head"><i class="fa-solid fa-wave-square"></i><span>Welcome System</span></div>
+                  <div class="cfg-card">
+                    <div class="cfg-card-head">
+                      <i class="fa-solid fa-hand-sparkles" style="color:var(--primary)"></i>
+                      <span>Welcome messages</span>
+                      <label class="toggle">
+                        <input type="checkbox" class="cfg-toggle" id="cfg-welcome" data-section="welcome">
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                    <p class="cfg-card-desc">Send a customized welcome message when new members join the server.</p>
+                  </div>
+                </div>
+                <div class="cfg-save-row"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button></div>
+              </form>
+              <div id="dash-loader-welcome" class="dash-config-loader"><div class="loader-spinner"><i class="fa-solid fa-spinner fa-spin"></i></div><span>Loading welcome config...</span></div>
             </div>
 
             <!-- Configuration Section (full config) -->
@@ -673,10 +722,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const section = document.getElementById('dash-section-' + name);
     if (section) section.classList.add('active');
     // Load config-based sections on first open
-    if (name !== 'overview' && name !== 'economy' && name !== 'tickets' && name !== 'config' && name !== 'moderation') return;
+    if (name !== 'overview' && name !== 'economy' && name !== 'tickets' && name !== 'config' && name !== 'moderation' && name !== 'welcome') return;
     if (name === 'moderation') loadConfigSection(name, 'dash-config-form-mod', 'dash-loader-mod', false);
     if (name === 'economy') loadConfigSection(name, 'dash-config-form-eco', 'dash-loader-eco', true);
     if (name === 'tickets') loadConfigSection(name, 'dash-config-form-tickets', 'dash-loader-tickets', true);
+    if (name === 'welcome') loadConfigSection(name, 'dash-config-form-welcome', 'dash-loader-welcome', true);
     if (name === 'config') loadConfigSection(name, 'dash-config-form', 'dash-loader-config', false);
   }
 
@@ -713,6 +763,8 @@ document.addEventListener('DOMContentLoaded', () => {
           setVal('cfg-economy', cfg.economy_enabled);
         } else if (sectionName === 'tickets') {
           setVal('cfg-tickets', cfg.tickets_enabled);
+        } else if (sectionName === 'welcome') {
+          setVal('cfg-welcome', cfg.welcome_enabled);
         } else if (sectionName === 'config') {
           setVal('cfg-automod-full', cfg.automod_enabled);
           setVal('cfg-spam-full', cfg.spam_enabled);
