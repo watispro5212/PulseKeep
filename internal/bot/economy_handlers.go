@@ -574,7 +574,7 @@ func cooldownMessage(title string, nextAvailable time.Time) discord.MessageCreat
 		AddEmbeds(discord.NewEmbed().
 			WithTitle(title).
 			WithDescription(fmt.Sprintf("Try again %s.", discordTimestamp(nextAvailable))).
-			WithFooterText("PulseKeep " + Version + " · Economy").
+			WithFooterText("PulseKeep "+Version+" · Economy").
 			WithColor(commands.EconomyWarningAccent).
 			AddField("Remaining", formatBotDuration(time.Until(nextAvailable)), true).
 			WithTimestamp(time.Now()))
@@ -786,7 +786,7 @@ func gambleMessage(store *economy.Store, e *events.ApplicationCommandInteraction
 		outcome = "pushed"
 		payoutStr = "pushed! Your wager is returned."
 	} else if result.Won {
-		payout := result.Wager * result.Multiplier
+		payout := result.Payout
 		title = "Pulse Gamble — Won!"
 		color = commands.EconomyMenuAccent
 		outcome = "won"
@@ -796,13 +796,20 @@ func gambleMessage(store *economy.Store, e *events.ApplicationCommandInteraction
 	return discord.NewMessageCreate().
 		AddEmbeds(discord.NewEmbed().
 			WithTitle(title).
-			WithDescription(fmt.Sprintf("%s rolled **%d** (1-100) and %s!", e.User().String(), result.Roll, payoutStr)).
+			WithDescription(fmt.Sprintf("%s rolled **%d** (1-100) and %s!%s", e.User().String(), result.Roll, payoutStr, gambleBoostText(result.Boosted))).
 			WithColor(color).
 			AddField("New balance", formatPulses(result.Record.Balance), true).
 			AddField("Record", fmt.Sprintf("%dW / %dL", result.Record.GambleWins, result.Record.GambleTotal-result.Record.GambleWins), true).
 			AddField("Tip", "Roll 46+ to win! 36–45 = push (refund). 85+ = 2x, 95+ = 4x, 100 = 10x!", false).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
 			WithFooterText(fmt.Sprintf("PulseKeep "+Version+" · Economy · Gambling · %s", outcome)))
+}
+
+func gambleBoostText(boosted bool) string {
+	if boosted {
+		return "\nLucky Clover was consumed for a second-chance roll."
+	}
+	return ""
 }
 
 func sellMessage(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) discord.MessageCreate {
@@ -942,7 +949,7 @@ func ongoingBlackjackMessage(e *events.ApplicationCommandInteractionCreate, play
 			AddField("Balance", formatPulses(balance), true).
 			WithColor(commands.EconomyMenuAccent).
 			WithThumbnail(e.User().EffectiveAvatarURL()).
-			WithFooterText("PulseKeep " + Version + " · Economy · Blackjack · Choose an action below")).
+			WithFooterText("PulseKeep "+Version+" · Economy · Blackjack · Choose an action below")).
 		AddActionRow(
 			discord.NewPrimaryButton("Hit", economy.BlackjackHitCustomID),
 			discord.NewDangerButton("Stand", economy.BlackjackStandCustomID),

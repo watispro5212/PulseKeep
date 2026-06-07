@@ -42,25 +42,25 @@ type PendingBJ struct {
 }
 
 type BlackjackStartResult struct {
-	Record Record
-	Player BlackjackHand
-	Dealer BlackjackHand
-	Wager  int
-	Won    bool
-	Payout int
-	Push   bool
-	Natural bool
+	Record   Record
+	Player   BlackjackHand
+	Dealer   BlackjackHand
+	Wager    int
+	Won      bool
+	Payout   int
+	Push     bool
+	Natural  bool
 	GameOver bool
 }
 
 type BlackjackTurnResult struct {
-	Record  Record
-	Player  BlackjackHand
-	Dealer  BlackjackHand
-	Wager   int
-	Won     bool
-	Payout  int
-	Push    bool
+	Record   Record
+	Player   BlackjackHand
+	Dealer   BlackjackHand
+	Wager    int
+	Won      bool
+	Payout   int
+	Push     bool
 	GameOver bool
 }
 

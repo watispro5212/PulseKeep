@@ -8,16 +8,16 @@ import (
 )
 
 const (
-	MenuSelectID        = "pulsekeep:menu:category"
-	TicketPanelButtonID = "pulsekeep:tickets:open"
-	TicketCloseButtonID = "pulsekeep:tickets:close"
+	MenuSelectID         = "pulsekeep:menu:category"
+	TicketPanelButtonID  = "pulsekeep:tickets:open"
+	TicketCloseButtonID  = "pulsekeep:tickets:close"
 	CommandMenuAccent    = 0x8b5cf6
 	ModerationMenuAccent = 0xf43f5e
 	UtilityMenuAccent    = 0x8b5cf6
 	EconomyMenuAccent    = 0x10b981
 	EconomyWarningAccent = 0xf59e0b
 	TicketMenuAccent     = 0x0ea5e9
-	PulseKeepVersion     = "v6.3.0"
+	PulseKeepVersion     = "v6.4.0"
 )
 
 type CommandInfo struct {

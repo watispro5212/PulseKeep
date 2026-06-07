@@ -643,9 +643,9 @@ func Register() []discord.ApplicationCommandCreate {
 					Required:    true,
 				},
 				discord.ApplicationCommandOptionChannel{
-					Name:        "channel",
-					Description: "The target voice channel",
-					Required:    true,
+					Name:         "channel",
+					Description:  "The target voice channel",
+					Required:     true,
 					ChannelTypes: []discord.ChannelType{discord.ChannelTypeGuildVoice},
 				},
 			},
@@ -809,7 +809,8 @@ func itemChoices() []discord.ApplicationCommandOptionChoiceString {
 		{Name: "Lucky Clover", Value: "lucky_clover"},
 		{Name: "Fishing Rod", Value: "fishing_rod"},
 		{Name: "Iron Pickaxe", Value: "iron_pickaxe"},
-		{Name: "Lottery Ticket", Value: "lottery_ticket"},
+		{Name: "Low Lottery Ticket", Value: "lottery_ticket_low"},
+		{Name: "High Lottery Ticket", Value: "lottery_ticket_high"},
 		{Name: "Health Potion", Value: "health_potion"},
 		{Name: "Treasure Map", Value: "treasure_map"},
 	}

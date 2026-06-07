@@ -122,12 +122,12 @@ type TransferResult struct {
 }
 
 type FlipResult struct {
-	Record Record
-	Side   string
-	Result string
-	Wager  int
-	Payout int
-	Won    bool
+	Record  Record
+	Side    string
+	Result  string
+	Wager   int
+	Payout  int
+	Won     bool
 	Boosted bool
 }
 
@@ -797,12 +797,12 @@ func (s *Store) Coinflip(userID snowflake.ID, name string, side string, wager in
 		payout = wager
 	}
 	return FlipResult{
-		Record: record.copy(),
-		Side:   side,
-		Result: result,
-		Wager:  wager,
-		Payout: payout,
-		Won:    won,
+		Record:  record.copy(),
+		Side:    side,
+		Result:  result,
+		Wager:   wager,
+		Payout:  payout,
+		Won:     won,
 		Boosted: hasPickaxe,
 	}, nil
 }
@@ -1576,29 +1576,36 @@ func (s *Store) Weekly(userID snowflake.ID, name string, now time.Time) WeeklyRe
 }
 
 type LotteryStatus struct {
-	TotalEntriesLow  int
-	JackpotLow       int
-	LastWinnerIDLow  string
-	LastDrawTimeLow  time.Time
-	AutoDrawLow      bool
-	
+	TotalEntriesLow int
+	JackpotLow      int
+	LastWinnerIDLow string
+	LastDrawTimeLow time.Time
+	AutoDrawLow     bool
+
 	TotalEntriesHigh int
 	JackpotHigh      int
 	LastWinnerIDHigh string
 	LastDrawTimeHigh time.Time
 	AutoDrawHigh     bool
-	
-	WeekStart    time.Time
+
+	WeekStart time.Time
 }
 
 func (s *Store) LotteryStatus(now time.Time) LotteryStatus {
 	weekStart := weekStartTime(now)
+	if s.db == nil {
+		return LotteryStatus{
+			AutoDrawLow:  true,
+			AutoDrawHigh: true,
+			WeekStart:    weekStart,
+		}
+	}
 
 	var totalEntriesLow, totalEntriesHigh int
 	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false AND tier = 'low'`, weekStart).Scan(&totalEntriesLow)
 	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false AND tier = 'high'`, weekStart).Scan(&totalEntriesHigh)
 
-	jackpotLow := totalEntriesLow * 400 // 500 * 0.8
+	jackpotLow := totalEntriesLow * 400    // 500 * 0.8
 	jackpotHigh := totalEntriesHigh * 4000 // 5000 * 0.8
 
 	var lastWinnerIDLow, lastWinnerIDHigh string
@@ -1610,28 +1617,34 @@ func (s *Store) LotteryStatus(now time.Time) LotteryStatus {
 	_ = s.db.QueryRow(`SELECT auto_draw, high_auto_draw FROM lottery_config WHERE guild_id = 'global'`).Scan(&autoDrawLow, &autoDrawHigh)
 
 	return LotteryStatus{
-		TotalEntriesLow:  totalEntriesLow,
-		JackpotLow:       jackpotLow,
-		LastWinnerIDLow:  lastWinnerIDLow,
-		LastDrawTimeLow:  lastDrawTimeLow,
-		AutoDrawLow:      autoDrawLow,
-		
+		TotalEntriesLow: totalEntriesLow,
+		JackpotLow:      jackpotLow,
+		LastWinnerIDLow: lastWinnerIDLow,
+		LastDrawTimeLow: lastDrawTimeLow,
+		AutoDrawLow:     autoDrawLow,
+
 		TotalEntriesHigh: totalEntriesHigh,
 		JackpotHigh:      jackpotHigh,
 		LastWinnerIDHigh: lastWinnerIDHigh,
 		LastDrawTimeHigh: lastDrawTimeHigh,
 		AutoDrawHigh:     autoDrawHigh,
-		
-		WeekStart:    weekStart,
+
+		WeekStart: weekStart,
 	}
 }
 
 func (s *Store) LotteryBuyTicket(userID snowflake.ID, tier string, now time.Time) {
+	if s.db == nil {
+		return
+	}
 	weekStart := weekStartTime(now)
 	_, _ = s.db.Exec(`INSERT INTO lottery_entries (user_id, week_start, tier) VALUES ($1, $2, $3)`, userID.String(), weekStart, tier)
 }
 
 func (s *Store) LotteryClaim(userID snowflake.ID, name string, tier string, now time.Time) (UseItemResult, error) {
+	if s.db == nil {
+		return UseItemResult{}, errors.New("lottery is unavailable because database storage is not configured")
+	}
 	weekStart := weekStartTime(now)
 
 	// Determine column names based on tier
@@ -1697,6 +1710,9 @@ func (s *Store) LotteryClaim(userID snowflake.ID, name string, tier string, now 
 }
 
 func (s *Store) LotteryToggleAutoDraw(tier string, enable bool) error {
+	if s.db == nil {
+		return errors.New("lottery is unavailable because database storage is not configured")
+	}
 	col := "auto_draw"
 	if tier == "high" {
 		col = "high_auto_draw"
@@ -1721,6 +1737,9 @@ func weekStartTime(now time.Time) time.Time {
 }
 
 func (s *Store) lotteryRunDraw(weekStart time.Time, tier string, now time.Time) {
+	if s.db == nil {
+		return
+	}
 	var totalEntries int
 	_ = s.db.QueryRow(`SELECT COUNT(*) FROM lottery_entries WHERE week_start = $1 AND claimed = false AND tier = $2`, weekStart, tier).Scan(&totalEntries)
 	if totalEntries == 0 {
@@ -1742,6 +1761,9 @@ func (s *Store) lotteryRunDraw(weekStart time.Time, tier string, now time.Time) 
 
 // StartLotteryAutoDraw starts a goroutine that checks weekly for auto-draw
 func (s *Store) StartLotteryAutoDraw(ctx context.Context) {
+	if s.db == nil {
+		return
+	}
 	go func() {
 		ticker := time.NewTicker(1 * time.Hour)
 		defer ticker.Stop()
@@ -1750,13 +1772,13 @@ func (s *Store) StartLotteryAutoDraw(ctx context.Context) {
 			case <-ticker.C:
 				var autoDrawLow, autoDrawHigh bool
 				_ = s.db.QueryRow(`SELECT COALESCE(auto_draw, true), COALESCE(high_auto_draw, true) FROM lottery_config WHERE guild_id = 'global'`).Scan(&autoDrawLow, &autoDrawHigh)
-				
+
 				now := time.Now()
 				weekStart := weekStartTime(now)
-				
+
 				var lastDrawTimeLow, lastDrawTimeHigh time.Time
 				_ = s.db.QueryRow(`SELECT COALESCE(last_draw_time, 'epoch'::timestamptz), COALESCE(high_last_draw_time, 'epoch'::timestamptz) FROM lottery_config WHERE guild_id = 'global'`).Scan(&lastDrawTimeLow, &lastDrawTimeHigh)
-				
+
 				if autoDrawLow && lastDrawTimeLow.Before(weekStart) {
 					s.lotteryRunDraw(weekStart, "low", now)
 				}

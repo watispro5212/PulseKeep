@@ -48,7 +48,7 @@
       <div class="dash-login-icon"><i class="fa-solid fa-lock"></i></div>
       <h1>Dashboard</h1>
       <p>Authenticate with Discord to manage your PulseKeep servers.</p>
-      <a href="https://pulsekeep.fly.dev/auth/discord" class="btn btn-primary btn-large"><i class="fa-brands fa-discord"></i> Login with Discord</a>
+      <a href="/auth/discord" class="btn btn-primary btn-large"><i class="fa-brands fa-discord"></i> Login with Discord</a>
     </div>
   </div>
 
@@ -157,6 +157,33 @@
                   <div class="loader-spinner"><i class="fa-solid fa-spinner fa-spin"></i></div>
                   <span>Loading...</span>
                 </div>
+              </div>
+              <div class="dash-ops-row">
+                <section class="dash-ops-panel glass">
+                  <div class="dash-ops-head">
+                    <div>
+                      <span>System</span>
+                      <strong>Live PulseKeep health</strong>
+                    </div>
+                    <button type="button" id="dash-refresh-health" class="btn btn-ghost btn-sm" title="Refresh health"><i class="fa-solid fa-rotate"></i> Refresh</button>
+                  </div>
+                  <div class="dash-health-grid" id="dash-health-grid">
+                    <div class="dash-health-loading"><i class="fa-solid fa-spinner fa-spin"></i> Checking health...</div>
+                  </div>
+                </section>
+                <section class="dash-ops-panel glass">
+                  <div class="dash-ops-head">
+                    <div>
+                      <span>Actions</span>
+                      <strong>Admin shortcuts</strong>
+                    </div>
+                  </div>
+                  <div class="dash-quick-actions">
+                    <a href="/status.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-heart-pulse"></i> Status</a>
+                    <a href="/commands.html" class="btn btn-secondary btn-sm"><i class="fa-solid fa-terminal"></i> Commands</a>
+                    <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary btn-sm"><i class="fa-brands fa-discord"></i> Invite</a>
+                  </div>
+                </section>
               </div>
               
               <div class="dash-sv-section-head" style="margin-top: 40px;">
@@ -661,6 +688,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reset nav to Overview
     activateSection('overview');
     loadOverview(guildId);
+    loadDashboardHealth();
   }
 
   function loadOverview(guildId) {
@@ -936,6 +964,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!r.ok) throw new Error(await apiError(r));
         cachedConfig = payload;
         toast('Saved successfully.', 'success');
+        if (section !== 'overview') loadOverview(currentGuildId);
       } catch (err) {
         toast('Save failed: ' + err.message, 'error');
       } finally {
@@ -955,6 +984,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   document.getElementById('dash-logout').addEventListener('click', logout);
   document.getElementById('dash-logout2').addEventListener('click', logout);
+
+  const dashRefreshHealth = document.getElementById('dash-refresh-health');
+  if (dashRefreshHealth) dashRefreshHealth.addEventListener('click', loadDashboardHealth);
+
+  async function loadDashboardHealth() {
+    const grid = document.getElementById('dash-health-grid');
+    if (!grid) return;
+    grid.innerHTML = '<div class="dash-health-loading"><i class="fa-solid fa-spinner fa-spin"></i> Checking health...</div>';
+    try {
+      const r = await fetch(API + '/health?ts=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const h = await r.json();
+      const dbOk = h.database === 'ok' || h.database === true;
+      const botOk = h.bot === 'ready' || h.bot === 'online' || h.status === 'ok';
+      grid.innerHTML =
+        healthItem('API', h.status || 'ok', h.status === 'ok') +
+        healthItem('Database', dbOk ? 'ok' : (h.database || 'unknown'), dbOk) +
+        healthItem('Bot', botOk ? 'ready' : (h.bot || 'checking'), botOk) +
+        healthItem('Version', h.version || 'v6.4.0', true);
+    } catch (err) {
+      grid.innerHTML =
+        '<div class="dash-health-error"><i class="fa-solid fa-triangle-exclamation"></i><strong>Health check failed</strong><span>' + escapeHtml(err.message || String(err)) + '</span></div>';
+    }
+  }
+
+  function healthItem(label, value, ok) {
+    return '<div class="dash-health-item ' + (ok ? 'ok' : 'warn') + '">' +
+      '<span class="dash-health-dot"></span>' +
+      '<div><strong>' + escapeHtml(label) + '</strong><span>' + escapeHtml(String(value)) + '</span></div>' +
+      '</div>';
+  }
 
   function escapeHtml(str) {
     const div = document.createElement('div');

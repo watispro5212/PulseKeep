@@ -27,7 +27,7 @@ import (
 	"github.com/watispro5212/PulseKeep/internal/cache"
 )
 
-const Version = "v6.3.0"
+const Version = "v6.4.0"
 
 type Bot struct {
 	Client       *bot.Client
@@ -269,7 +269,7 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 			WithTitle("🎱 Magic 8-Ball").
 			WithDescription(fmt.Sprintf("🔮 *%s*\n\n**🗨️ Answer:** %s", question, answer)).
 			WithColor(color).
-			WithFooterText("PulseKeep "+Version+" · Utility").
+			WithFooterText("PulseKeep " + Version + " · Utility").
 			WithTimestamp(time.Now())
 		b.respond(e, discord.NewMessageCreate().AddEmbeds(embed))
 	case "help":
@@ -1555,7 +1555,7 @@ func (b *Bot) handleWarn(e *events.ApplicationCommandInteractionCreate, data dis
 			AddField("Moderator", e.User().Mention(), true).
 			AddField("User", user.Mention(), true).
 			WithColor(commands.ModerationMenuAccent).
-			WithFooterText("PulseKeep " + Version + " · Moderation").
+			WithFooterText("PulseKeep "+Version+" · Moderation").
 			WithTimestamp(time.Now())))
 }
 
@@ -1609,7 +1609,7 @@ func (b *Bot) handleWarnings(e *events.ApplicationCommandInteractionCreate, data
 				WithTitle("Warnings").
 				WithDescription(fmt.Sprintf("**%s** has no warnings.", user.Mention())).
 				WithColor(commands.ModerationMenuAccent).
-				WithFooterText("PulseKeep " + Version + " · Moderation").
+				WithFooterText("PulseKeep "+Version+" · Moderation").
 				WithTimestamp(time.Now())))
 		return
 	}
@@ -1629,7 +1629,7 @@ func (b *Bot) handleWarnings(e *events.ApplicationCommandInteractionCreate, data
 			WithDescription(list.String()).
 			AddField("Total", fmt.Sprintf("%d warning(s)", len(warns)), true).
 			WithColor(commands.ModerationMenuAccent).
-			WithFooterText("PulseKeep " + Version + " · Moderation").
+			WithFooterText("PulseKeep "+Version+" · Moderation").
 			WithTimestamp(time.Now())))
 }
 
@@ -1666,7 +1666,7 @@ func (b *Bot) handleClearWarns(e *events.ApplicationCommandInteractionCreate, da
 			WithTitle("Warnings Cleared").
 			WithDescription(fmt.Sprintf("Cleared **%d** warning(s) for %s.", count, user.Mention())).
 			WithColor(commands.ModerationMenuAccent).
-			WithFooterText("PulseKeep " + Version + " · Moderation").
+			WithFooterText("PulseKeep "+Version+" · Moderation").
 			WithTimestamp(time.Now())))
 }
 
@@ -1706,7 +1706,7 @@ func (b *Bot) handleMove(e *events.ApplicationCommandInteractionCreate, data dis
 			AddField("From", oldChannel, true).
 			AddField("To", chanMention, true).
 			WithColor(commands.ModerationMenuAccent).
-			WithFooterText("PulseKeep " + Version + " · Moderation").
+			WithFooterText("PulseKeep "+Version+" · Moderation").
 			WithTimestamp(time.Now())))
 }
 
@@ -1734,7 +1734,7 @@ func (b *Bot) handleVCKick(e *events.ApplicationCommandInteractionCreate, data d
 			WithTitle("Member Disconnected").
 			WithDescription(fmt.Sprintf("Disconnected **%s** from voice chat.", user.Mention())).
 			WithColor(commands.ModerationMenuAccent).
-			WithFooterText("PulseKeep " + Version + " · Moderation").
+			WithFooterText("PulseKeep "+Version+" · Moderation").
 			WithTimestamp(time.Now())))
 }
 
@@ -1806,7 +1806,7 @@ func (b *Bot) handleTicketAdd(e *events.ApplicationCommandInteractionCreate, dat
 			WithTitle("User Added").
 			WithDescription(fmt.Sprintf("Added %s to the ticket.", user.Mention())).
 			WithColor(commands.TicketMenuAccent).
-			WithFooterText("PulseKeep " + Version + " · Tickets").
+			WithFooterText("PulseKeep "+Version+" · Tickets").
 			WithTimestamp(time.Now())))
 }
 
@@ -1845,7 +1845,7 @@ func (b *Bot) handleTicketRemove(e *events.ApplicationCommandInteractionCreate, 
 			WithTitle("User Removed").
 			WithDescription(fmt.Sprintf("Removed %s from the ticket.", user.Mention())).
 			WithColor(commands.TicketMenuAccent).
-			WithFooterText("PulseKeep " + Version + " · Tickets").
+			WithFooterText("PulseKeep "+Version+" · Tickets").
 			WithTimestamp(time.Now())))
 }
 
@@ -1867,7 +1867,7 @@ func (b *Bot) handleTicketRenameCmd(e *events.ApplicationCommandInteractionCreat
 			WithTitle("Ticket Renamed").
 			WithDescription(fmt.Sprintf("Renamed to **%s**.", newName)).
 			WithColor(commands.TicketMenuAccent).
-			WithFooterText("PulseKeep " + Version + " · Tickets").
+			WithFooterText("PulseKeep "+Version+" · Tickets").
 			WithTimestamp(time.Now())))
 }
 
@@ -1924,14 +1924,30 @@ func roleInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 		if role.Permissions.Has(discord.PermissionAdministrator) {
 			permNames = append(permNames, "Administrator")
 		} else {
-			if role.Permissions.Has(discord.PermissionManageGuild) { permNames = append(permNames, "Manage Server") }
-			if role.Permissions.Has(discord.PermissionManageRoles) { permNames = append(permNames, "Manage Roles") }
-			if role.Permissions.Has(discord.PermissionManageChannels) { permNames = append(permNames, "Manage Channels") }
-			if role.Permissions.Has(discord.PermissionKickMembers) { permNames = append(permNames, "Kick Members") }
-			if role.Permissions.Has(discord.PermissionBanMembers) { permNames = append(permNames, "Ban Members") }
-			if role.Permissions.Has(discord.PermissionModerateMembers) { permNames = append(permNames, "Timeout Members") }
-			if role.Permissions.Has(discord.PermissionMentionEveryone) { permNames = append(permNames, "Mention Everyone") }
-			if role.Permissions.Has(discord.PermissionManageMessages) { permNames = append(permNames, "Manage Messages") }
+			if role.Permissions.Has(discord.PermissionManageGuild) {
+				permNames = append(permNames, "Manage Server")
+			}
+			if role.Permissions.Has(discord.PermissionManageRoles) {
+				permNames = append(permNames, "Manage Roles")
+			}
+			if role.Permissions.Has(discord.PermissionManageChannels) {
+				permNames = append(permNames, "Manage Channels")
+			}
+			if role.Permissions.Has(discord.PermissionKickMembers) {
+				permNames = append(permNames, "Kick Members")
+			}
+			if role.Permissions.Has(discord.PermissionBanMembers) {
+				permNames = append(permNames, "Ban Members")
+			}
+			if role.Permissions.Has(discord.PermissionModerateMembers) {
+				permNames = append(permNames, "Timeout Members")
+			}
+			if role.Permissions.Has(discord.PermissionMentionEveryone) {
+				permNames = append(permNames, "Mention Everyone")
+			}
+			if role.Permissions.Has(discord.PermissionManageMessages) {
+				permNames = append(permNames, "Manage Messages")
+			}
 		}
 		if len(permNames) > 0 {
 			permList = strings.Join(permNames, ", ")
@@ -1974,11 +1990,11 @@ func channelInfoMessage(e *events.ApplicationCommandInteractionCreate, data disc
 	}
 
 	typeName := map[discord.ChannelType]string{
-		discord.ChannelTypeGuildText:  "Text",
-		discord.ChannelTypeGuildVoice: "Voice",
-		discord.ChannelTypeGuildCategory: "Category",
-		discord.ChannelTypeGuildNews: "Announcement",
-		discord.ChannelTypeGuildForum: "Forum",
+		discord.ChannelTypeGuildText:       "Text",
+		discord.ChannelTypeGuildVoice:      "Voice",
+		discord.ChannelTypeGuildCategory:   "Category",
+		discord.ChannelTypeGuildNews:       "Announcement",
+		discord.ChannelTypeGuildForum:      "Forum",
 		discord.ChannelTypeGuildStageVoice: "Stage",
 	}[ch.Type()]
 	if typeName == "" {
