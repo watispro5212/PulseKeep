@@ -105,8 +105,14 @@ func (c *Cache) AddGuild(guildID, name string) {
 	defer c.muGuilds.Unlock()
 	if _, exists := c.guildNames[guildID]; !exists {
 		c.guildNames[guildID] = name
-		c.GuildCount.Add(1)
+		c.GuildCount.Store(int64(len(c.guildNames)))
 	}
+}
+
+func (c *Cache) GuildsCount() int64 {
+	c.muGuilds.RLock()
+	defer c.muGuilds.RUnlock()
+	return int64(len(c.guildNames))
 }
 
 func (c *Cache) GetGuildIDs() []string {
@@ -150,6 +156,8 @@ func (c *Cache) GetTotalUserCount() int64 {
 func (c *Cache) RemoveGuild(guildID string) {
 	c.muGuilds.Lock()
 	defer c.muGuilds.Unlock()
-	delete(c.guildNames, guildID)
-	c.GuildCount.Add(-1)
+	if _, exists := c.guildNames[guildID]; exists {
+		delete(c.guildNames, guildID)
+	}
+	c.GuildCount.Store(int64(len(c.guildNames)))
 }

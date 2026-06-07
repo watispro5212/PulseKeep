@@ -23,6 +23,8 @@ export default {
 		const originUrl = API_ORIGIN + url.pathname + url.search;
 		const headers = new Headers(request.headers);
 		headers.set('Host', new URL(API_ORIGIN).host);
+		headers.set('X-Forwarded-Host', url.host);
+		headers.set('X-Forwarded-Proto', url.protocol.replace(':', ''));
 
 		if (expectsJson(url.pathname)) {
 			headers.set('Accept', 'application/json');

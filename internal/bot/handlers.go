@@ -148,7 +148,7 @@ func (b *Bot) checkAutoMod(e *events.MessageCreate) {
 func (b *Bot) onGuildJoin(e *events.GuildJoin) {
 	b.cache.AddGuild(e.Guild.ID.String(), e.Guild.Name)
 	b.cache.UserCount.Add(int64(e.Guild.MemberCount))
-	b.guildCount = b.cache.GuildCount.Load()
+	b.guildCount = b.cache.GuildsCount()
 	log.Printf("Joined guild: %s (%d members)", e.Guild.Name, e.Guild.MemberCount)
 	b.sendWebhook(discord.NewEmbed().
 		WithTitle("Joined a new server").
@@ -168,13 +168,12 @@ func (b *Bot) onGuildLeave(e *events.GuildLeave) {
 
 func (b *Bot) onReady(e *events.Ready) {
 	log.Printf("Bot is ready as %s", e.User.EffectiveName())
-	gc := int64(len(e.Guilds))
-	b.guildCount = gc
 	b.cache.ResetGuilds()
-	b.cache.GuildCount.Store(gc)
 	for _, g := range e.Guilds {
 		b.cache.AddGuild(g.ID.String(), g.ID.String())
 	}
+	gc := b.cache.GuildsCount()
+	b.guildCount = gc
 	if _, err := e.Client().Rest.SetGlobalCommands(e.Client().ApplicationID, commands.Register()); err != nil {
 		log.Printf("failed to register global slash commands: %v", err)
 	}

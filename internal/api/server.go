@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -36,6 +37,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 	gin.SetMode(gin.ReleaseMode)
 
 	startedAt := time.Now()
+	var oauthStates sync.Map
 	r := gin.Default()
 
 	// Serve static files from the /web directory
@@ -214,10 +216,12 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 			return
 		}
 		state := hex.EncodeToString(b)
-		c.SetCookie("oauth_state", state, 600, "/", "", true, true)
+		oauthStates.Store(state, time.Now().Add(10*time.Minute))
+		secureCookie := requestScheme(c) == "https"
+		c.SetCookie("oauth_state", state, 600, "/", "", secureCookie, true)
 		params := url.Values{}
 		params.Set("client_id", cfg.DiscordClientID)
-		params.Set("redirect_uri", cfg.DiscordRedirectURI)
+		params.Set("redirect_uri", configuredDiscordRedirectURI(c, cfg))
 		params.Set("response_type", "code")
 		params.Set("scope", "identify guilds")
 		params.Set("state", state)
@@ -232,13 +236,16 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Missing code parameter"})
 			return
 		}
-		if cookieState, err := c.Cookie("oauth_state"); err != nil || cookieState == "" || cookieState != state {
+		if !validOAuthState(&oauthStates, state) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid state parameter"})
 			return
 		}
-		c.SetCookie("oauth_state", "", -1, "/", "", true, true)
+		secureCookie := requestScheme(c) == "https"
+		c.SetCookie("oauth_state", "", -1, "/", "", secureCookie, true)
 
-		token, err := auth.ExchangeCode(cfg, code)
+		authCfg := *cfg
+		authCfg.DiscordRedirectURI = configuredDiscordRedirectURI(c, cfg)
+		token, err := auth.ExchangeCode(&authCfg, code)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to exchange code for token: " + err.Error()})
 			return
@@ -436,7 +443,50 @@ func getGuildCount(memCache *cache.Cache) int64 {
 	if memCache == nil {
 		return 0
 	}
-	return memCache.GuildCount.Load()
+	return memCache.GuildsCount()
+}
+
+func validOAuthState(states *sync.Map, state string) bool {
+	if state == "" {
+		return false
+	}
+	value, ok := states.LoadAndDelete(state)
+	if !ok {
+		return false
+	}
+	expires, ok := value.(time.Time)
+	return ok && time.Now().Before(expires)
+}
+
+func configuredDiscordRedirectURI(c *gin.Context, cfg *config.Config) string {
+	if cfg.DiscordRedirectURI != "" {
+		return cfg.DiscordRedirectURI
+	}
+	return requestOrigin(c, cfg) + "/auth/discord/callback"
+}
+
+func requestOrigin(c *gin.Context, cfg *config.Config) string {
+	host := c.GetHeader("X-Forwarded-Host")
+	if host == "" {
+		host = c.Request.Host
+	}
+	if host == "" && cfg.DiscordRedirectURI != "" {
+		if u, err := url.Parse(cfg.DiscordRedirectURI); err == nil && u.Scheme != "" && u.Host != "" {
+			return u.Scheme + "://" + u.Host
+		}
+	}
+	return requestScheme(c) + "://" + host
+}
+
+func requestScheme(c *gin.Context) string {
+	proto := c.GetHeader("X-Forwarded-Proto")
+	if proto != "" {
+		return strings.Split(proto, ",")[0]
+	}
+	if c.Request.TLS != nil {
+		return "https"
+	}
+	return "http"
 }
 
 func getUserCount(memCache *cache.Cache) int64 {
