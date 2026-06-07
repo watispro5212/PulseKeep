@@ -18,7 +18,7 @@ import (
 func handleEconomyCommand(store *economy.Store, e *events.ApplicationCommandInteractionCreate, data discord.SlashCommandInteractionData) (discord.MessageCreate, bool) {
 	if msg, unavailable := economyUnavailable(store); unavailable {
 		switch data.CommandName() {
-		case "balance", "profile", "daily", "work", "pay", "coinflip", "rob", "shop", "buy", "inventory", "slots", "fish", "mine", "gamble", "sell", "use", "blackjack", "lottery", "lottery-claim", "rich", "weekly", "gift":
+		case "balance", "profile", "daily", "work", "pay", "coinflip", "rob", "shop", "buy", "inventory", "slots", "fish", "mine", "gamble", "sell", "use", "blackjack", "lottery", "lottery-claim", "lottery-config", "rich", "weekly", "gift":
 			return msg, true
 		}
 	}

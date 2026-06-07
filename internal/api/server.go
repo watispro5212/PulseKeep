@@ -70,7 +70,7 @@ func NewServer(cfg *config.Config, database *db.Database, memCache *cache.Cache,
 			}
 		}
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET, POST")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)

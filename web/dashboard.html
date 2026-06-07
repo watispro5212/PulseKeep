@@ -74,6 +74,9 @@
           <div class="dash-servers-header">
             <h2><i class="fa-solid fa-server"></i> Select a Server</h2>
             <p>Choose a server to manage its PulseKeep configuration.</p>
+            <div class="dash-global-summary" id="dash-global-summary">
+              <div class="dash-summary-card"><i class="fa-solid fa-spinner fa-spin"></i><strong>Checking</strong><span>System health</span></div>
+            </div>
             <div class="dash-servers-search-wrap">
               <i class="fa-solid fa-magnifying-glass"></i>
               <input type="text" id="dash-servers-search" placeholder="Search servers..." autocomplete="off">
@@ -559,13 +562,14 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const API = 'https://pulsekeep.fly.dev';
+  const API = window.location.origin;
   const loginScreen = document.getElementById('dashboard-login');
   const dashApp = document.getElementById('dashboard-app');
   const dashServersView = document.getElementById('dash-servers-view');
   const dashServerView = document.getElementById('dash-server-view');
   const dashServersGrid = document.getElementById('dash-servers-grid');
   const dashServersSearch = document.getElementById('dash-servers-search');
+  const dashGlobalSummary = document.getElementById('dash-global-summary');
   const dashAvatar = document.getElementById('dash-avatar');
   const dashUsername = document.getElementById('dash-username');
   const dashUsertag = document.getElementById('dash-usertag');
@@ -615,6 +619,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const br = await fetch(API + '/api/bot/guilds');
         if (br.ok) { const bd = await br.json(); botGuildSet = new Set(bd.guild_ids || []); }
       } catch (_) {}
+      loadGlobalSummary();
       renderServerGrid(allGuilds);
       loginScreen.style.display = 'none';
       dashApp.style.display = '';
@@ -626,6 +631,30 @@ document.addEventListener('DOMContentLoaded', () => {
       showLogin();
       showAuthError(err.message || 'Discord login failed. Try again.');
     }
+  }
+
+  async function loadGlobalSummary() {
+    if (!dashGlobalSummary) return;
+    try {
+      const r = await fetch(API + '/health?ts=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const h = await r.json();
+      const installed = allGuilds.filter(g => botGuildSet.has(g.id)).length;
+      dashGlobalSummary.innerHTML =
+        summaryCard('fa-heart-pulse', h.status === 'ok' ? 'Online' : 'Degraded', 'API health', h.status === 'ok' ? 'ok' : 'warn') +
+        summaryCard('fa-database', h.database === 'ok' ? 'Connected' : 'Issue', 'Database', h.database === 'ok' ? 'ok' : 'warn') +
+        summaryCard('fa-robot', Number(h.servers || 0).toLocaleString(), 'Bot guilds', 'ok') +
+        summaryCard('fa-layer-group', installed + ' / ' + allGuilds.length, 'Manageable active', installed ? 'ok' : 'warn') +
+        summaryCard('fa-code-branch', h.version || 'v6.4.0', 'Version', 'ok');
+    } catch (err) {
+      dashGlobalSummary.innerHTML =
+        '<div class="dash-summary-card warn"><i class="fa-solid fa-triangle-exclamation"></i><strong>Unavailable</strong><span>' + escapeHtml(err.message || String(err)) + '</span></div>';
+    }
+  }
+
+  function summaryCard(icon, value, label, state) {
+    return '<div class="dash-summary-card ' + (state || '') + '">' +
+      '<i class="fa-solid ' + icon + '"></i><strong>' + escapeHtml(String(value)) + '</strong><span>' + escapeHtml(label) + '</span></div>';
   }
 
   function showLogin() {
@@ -663,7 +692,8 @@ document.addEventListener('DOMContentLoaded', () => {
         '<div class="dash-server-card-body">' +
         '<strong class="dash-server-card-name">' + escapeHtml(g.name) + '</strong>' +
         '<span class="dash-server-card-status">' + (botGuildSet.has(g.id) ? '<i class="fa-solid fa-circle-check"></i> PulseKeep active' : '<i class="fa-solid fa-circle-plus"></i> Not invited') + '</span>' +
-        '</div>';
+        '</div>' +
+        (!botGuildSet.has(g.id) ? '<span class="dash-server-card-cta">Invite</span>' : '<span class="dash-server-card-cta ok">Manage</span>');
       card.addEventListener('click', () => openServerDashboard(g.id, g.name, g.icon));
       dashServersGrid.appendChild(card);
     }

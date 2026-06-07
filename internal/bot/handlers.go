@@ -123,6 +123,12 @@ func (b *Bot) checkAutoMod(e *events.MessageCreate) {
 	if result.DeleteMsg {
 		_ = e.Client().Rest.DeleteMessage(e.ChannelID, e.MessageID)
 	}
+	if result.Action == automod.ActionTimeout && e.GuildID != nil {
+		until := time.Now().Add(5 * time.Minute)
+		_, _ = e.Client().Rest.UpdateMember(*e.GuildID, e.Message.Author.ID, discord.MemberUpdate{
+			CommunicationDisabledUntil: omit.NewPtr(until),
+		})
+	}
 	if cfg != nil && cfg.LogChannelID != "" {
 		logEmbed := discord.NewEmbed().
 			WithTitle("Auto-mod action").
@@ -150,30 +156,29 @@ func (b *Bot) onGuildJoin(e *events.GuildJoin) {
 	b.cache.UserCount.Add(int64(e.Guild.MemberCount))
 	b.guildCount = b.cache.GuildsCount()
 	log.Printf("Joined guild: %s (%d members)", e.Guild.Name, e.Guild.MemberCount)
-	b.sendWebhook(discord.NewEmbed().
-		WithTitle("Joined a new server").
-		WithDescription(fmt.Sprintf("PulseKeep was added to **%s**.", e.Guild.Name)).
+	b.sendWebhook(b.statusEmbed("Joined a new server", fmt.Sprintf("PulseKeep was added to **%s**.", e.Guild.Name), 0x4f8cff).
 		AddField("Members", fmt.Sprintf("%d", e.Guild.MemberCount), true).
-		AddField("Total servers", fmt.Sprintf("%d", b.guildCount), true).
-		AddField("Owner", fmt.Sprintf("<@%s>", e.Guild.OwnerID), true).
-		WithColor(0x4f8cff).
-		WithFooterText("PulseKeep " + Version + " · Status").
-		WithTimestamp(time.Now()))
+		AddField("Owner", fmt.Sprintf("<@%s>", e.Guild.OwnerID), true))
 }
 
 func (b *Bot) onGuildLeave(e *events.GuildLeave) {
 	b.cache.UserCount.Add(-int64(e.Guild.MemberCount))
 	b.cache.RemoveGuild(e.Guild.ID.String())
+	b.guildCount = b.cache.GuildsCount()
+	b.sendWebhook(b.statusEmbed("Left a server", fmt.Sprintf("PulseKeep was removed from **%s**.", e.Guild.Name), 0xfb7185).
+		AddField("Former members", fmt.Sprintf("%d", e.Guild.MemberCount), true))
 }
 
 func (b *Bot) onReady(e *events.Ready) {
 	log.Printf("Bot is ready as %s", e.User.EffectiveName())
 	b.cache.ResetGuilds()
-	for _, g := range e.Guilds {
-		b.cache.AddGuild(g.ID.String(), g.ID.String())
+	b.cache.SetUsers(0)
+	guildIDs := make([]snowflake.ID, len(e.Guilds))
+	for i, g := range e.Guilds {
+		guildIDs[i] = g.ID
 	}
-	gc := b.cache.GuildsCount()
-	b.guildCount = gc
+	go b.syncGuildCache(e.Client(), guildIDs)
+
 	if _, err := e.Client().Rest.SetGlobalCommands(e.Client().ApplicationID, commands.Register()); err != nil {
 		log.Printf("failed to register global slash commands: %v", err)
 	}
@@ -182,14 +187,30 @@ func (b *Bot) onReady(e *events.Ready) {
 	}
 	b.statusCtx, b.statusCancel = context.WithCancel(context.Background())
 	startStatusRotation(b.statusCtx, e.Client(), b.cache)
-	log.Printf("PulseKeep online — %d guilds", gc)
-	b.sendWebhook(discord.NewEmbed().
-		WithTitle("PulseKeep is online").
-		WithDescription(fmt.Sprintf("**%s** is ready across **%d** guilds.", e.User.EffectiveName(), gc)).
-		AddField("Users", fmt.Sprintf("%d", b.cache.UserCount.Load()), true).
-		WithColor(0x36d399).
-		WithFooterText("PulseKeep " + Version + " · Status").
-		WithTimestamp(time.Now()))
+	log.Printf("PulseKeep online — syncing %d guilds", len(guildIDs))
+	b.sendWebhook(b.statusEmbed("PulseKeep is online", fmt.Sprintf("**%s** is ready and commands were registered globally.", e.User.EffectiveName()), 0x36d399).
+		AddField("Gateway", "Connected", true).
+		AddField("Commands", "Registered", true))
+}
+
+func (b *Bot) syncGuildCache(client *bot.Client, guildIDs []snowflake.ID) {
+	var totalUsers int64
+	for i, guildID := range guildIDs {
+		guild, err := client.Rest.GetGuild(guildID, true)
+		if err != nil {
+			log.Printf("failed to fetch guild %s during sync: %v", guildID, err)
+			b.cache.AddGuild(guildID.String(), guildID.String())
+			continue
+		}
+		b.cache.AddGuild(guild.ID.String(), guild.Name)
+		totalUsers += int64(guild.ApproximateMemberCount)
+		if (i+1)%10 == 0 {
+			time.Sleep(250 * time.Millisecond)
+		}
+	}
+	b.cache.SetUsers(totalUsers)
+	b.guildCount = b.cache.GuildsCount()
+	log.Printf("Guild cache synced — %d guilds, ~%d users", b.guildCount, totalUsers)
 }
 
 func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, startedAt time.Time) {
@@ -268,7 +289,7 @@ func (b *Bot) onSlashCommand(e *events.ApplicationCommandInteractionCreate, star
 			WithTitle("🎱 Magic 8-Ball").
 			WithDescription(fmt.Sprintf("🔮 *%s*\n\n**🗨️ Answer:** %s", question, answer)).
 			WithColor(color).
-			WithFooterText("PulseKeep " + Version + " · Utility").
+			WithFooterText("PulseKeep " + Version + " - Utility").
 			WithTimestamp(time.Now())
 		b.respond(e, discord.NewMessageCreate().AddEmbeds(embed))
 	case "help":
@@ -422,26 +443,24 @@ func (b *Bot) handleTicketOpen(e *events.ComponentInteractionCreate) {
 
 	existingChannels, err := e.Client().Rest.GetGuildChannels(*guildID)
 	if err == nil {
-		prefix := fmt.Sprintf("ticket-%s", strings.ToLower(e.User().Username))
 		for _, ch := range existingChannels {
-			if strings.HasPrefix(ch.Name(), prefix) {
-				_, _ = e.Client().Rest.CreateFollowupMessage(e.ApplicationID(), e.Token(), discord.NewMessageCreate().WithContentf("You already have an open ticket: %s. Please use that channel.", ch.Mention()).WithEphemeral(true))
-				return
+			if !strings.HasPrefix(ch.Name(), "ticket-") {
+				continue
+			}
+			textCh, ok := ch.(discord.GuildTextChannel)
+			if !ok {
+				continue
+			}
+			for _, ow := range textCh.PermissionOverwrites() {
+				if ow.Type() == discord.PermissionOverwriteTypeMember && ow.ID() == e.User().ID {
+					_, _ = e.Client().Rest.CreateFollowupMessage(e.ApplicationID(), e.Token(), discord.NewMessageCreate().WithContentf("You already have an open ticket: %s. Please use that channel.", ch.Mention()).WithEphemeral(true))
+					return
+				}
 			}
 		}
 	}
 
-	safeName := strings.ToLower(e.User().Username)
-	safeName = strings.Map(func(r rune) rune {
-		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
-			return r
-		}
-		return '-'
-	}, safeName)
-	if len(safeName) > 24 {
-		safeName = safeName[:24]
-	}
-	channelName := fmt.Sprintf("ticket-%s", safeName)
+	channelName := ticketChannelName(e.User().Username)
 
 	gChannel, err := e.Client().Rest.CreateGuildChannel(*guildID, discord.GuildTextChannelCreate{
 		Name:  channelName,
@@ -494,15 +513,12 @@ func (b *Bot) handleTicketOpen(e *events.ComponentInteractionCreate) {
 }
 
 func (b *Bot) handleTicketClose(e *events.ComponentInteractionCreate) {
-	if err := e.DeferUpdateMessage(); err != nil {
-		log.Printf("failed to defer ticket close: %v", err)
+	if err := e.UpdateMessage(discord.NewMessageUpdate().
+		WithContentf("Ticket closed by %s. Channel will be deleted shortly.", e.User().Mention()).
+		WithComponents()); err != nil {
+		log.Printf("failed to update ticket close message: %v", err)
 		return
 	}
-
-	_, _ = e.Client().Rest.UpdateInteractionResponse(e.ApplicationID(), e.Token(),
-		discord.NewMessageUpdate().
-			WithContentf("Ticket closed by %s. Channel will be deleted shortly.", e.User().Mention()).
-			WithComponents())
 
 	b.doTicketClose(e.Client().Rest, e.Message.ChannelID)
 }
@@ -537,12 +553,8 @@ func (b *Bot) Stop(ctx context.Context) {
 	if b.economyStore != nil {
 		b.economyStore.FlushAll()
 	}
-	b.sendWebhook(discord.NewEmbed().
-		WithTitle("PulseKeep went offline").
-		WithDescription(fmt.Sprintf("Bot process is shutting down. Served **%d** guilds.", b.guildCount)).
-		WithColor(0xfb7185).
-		WithFooterText("PulseKeep " + Version + " · Status").
-		WithTimestamp(time.Now()))
+	b.sendWebhook(b.statusEmbed("PulseKeep went offline", "Bot process is shutting down cleanly.", 0xfb7185).
+		AddField("Shutdown", "Graceful", true))
 	if b.ticketCancel != nil {
 		b.ticketCancel()
 	}
@@ -554,6 +566,30 @@ func (b *Bot) Stop(ctx context.Context) {
 	}
 }
 
+func (b *Bot) statusEmbed(title, description string, color int) discord.Embed {
+	guilds := b.guildCount
+	users := int64(0)
+	uptime := "unknown"
+	commandsRun := int64(0)
+	if b.cache != nil {
+		guilds = b.cache.GuildsCount()
+		users = b.cache.GetTotalUserCount()
+		uptime = formatBotDuration(time.Since(b.cache.StartedAt))
+		commandsRun = b.cache.CommandsRun.Load()
+	}
+	return discord.NewEmbed().
+		WithTitle(title).
+		WithDescription(description).
+		WithColor(color).
+		AddField("Guilds", fmt.Sprintf("%d", guilds), true).
+		AddField("Users", fmt.Sprintf("%d", users), true).
+		AddField("Uptime", uptime, true).
+		AddField("Commands run", fmt.Sprintf("%d", commandsRun), true).
+		AddField("Version", Version, true).
+		AddField("Status page", "[Open live status](https://pulsekeep.williamdelilah3.workers.dev/status.html)", true).
+		WithFooterText("PulseKeep " + Version + " - Status").
+		WithTimestamp(time.Now())
+}
 func (b *Bot) sendWebhook(embed discord.Embed) {
 	if b.webhookURL == "" {
 		return
@@ -599,21 +635,20 @@ func statsMessage(startedAt time.Time) discord.MessageCreate {
 	return discord.NewMessageCreate().
 		WithEphemeral(true).
 		AddEmbeds(discord.NewEmbed().
-			WithTitle("📊 PulseKeep Stats").
+			WithTitle("PulseKeep Stats").
 			WithDescription("Live operational snapshot for this PulseKeep process.").
 			WithColor(commands.CommandMenuAccent).
-			AddField("Status", "🟢 Online", true).
+			AddField("Status", "Online", true).
 			AddField("Version", Version, true).
 			AddField("Uptime", formatBotDuration(time.Since(startedAt)), true).
 			AddField("Language", "Go (disgo v0.19)", true).
 			AddField("Database", "PostgreSQL (Neon)", true).
-			AddField("Commands", "45+ slash commands", true).
-			AddField("Categories", "Utility · Moderation · Economy · Tickets", false).
+			AddField("Commands", "50+ slash commands", true).
+			AddField("Categories", "Utility - Moderation - Economy - Tickets", false).
 			AddField("Get started", "Use `/help` to browse all commands or `/tip` for a quick tip.", false).
-			WithFooterText("PulseKeep " + Version + " · Stats").
+			WithFooterText("PulseKeep " + Version + " - Stats").
 			WithTimestamp(time.Now()))
 }
-
 func voteMessage() discord.MessageCreate {
 	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 		discord.NewEmbed().
@@ -622,7 +657,7 @@ func voteMessage() discord.MessageCreate {
 			AddField("Top.gg", "https://top.gg/bot/1507498795569512598/vote", false).
 			AddField("Rewards", "Voting helps us rank higher and attract new users. Thank you for your support!", false).
 			WithColor(commands.EconomyMenuAccent).
-			WithFooterText("PulseKeep " + Version + " · Voting").
+			WithFooterText("PulseKeep " + Version + " - Voting").
 			WithTimestamp(time.Now()))
 }
 
@@ -653,7 +688,7 @@ func serverInfoMessage(e *events.ApplicationCommandInteractionCreate) discord.Me
 
 	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 		discord.NewEmbed().
-			WithTitle(fmt.Sprintf("🏠 %s", guild.Name)).
+			WithTitle(guild.Name).
 			WithDescription(fmt.Sprintf("Server overview for **%s**.", guild.Name)).
 			WithColor(commands.UtilityMenuAccent).
 			AddField("Owner", fmt.Sprintf("<@%s>", guild.OwnerID), true).
@@ -665,7 +700,7 @@ func serverInfoMessage(e *events.ApplicationCommandInteractionCreate) discord.Me
 			AddField("Server ID", guild.ID.String(), true).
 			AddField("Created", createdAt, true).
 			WithThumbnail(iconURL).
-			WithFooterText("PulseKeep " + Version + " · Utility").
+			WithFooterText("PulseKeep " + Version + " - Utility").
 			WithTimestamp(time.Now()))
 }
 
@@ -675,9 +710,9 @@ func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 		user = e.User()
 	}
 
-	botBadge := "👤 User"
+	botBadge := "User"
 	if user.Bot {
-		botBadge = "🤖 Bot"
+		botBadge = "Bot"
 	}
 
 	createdAt := user.ID.Time().Format("Jan 02, 2006")
@@ -685,12 +720,12 @@ func userInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 
 	embed := discord.NewEmbed().
 		WithTitle(user.EffectiveName()).
-		WithDescription(fmt.Sprintf("%s · %s", user.Tag(), botBadge)).
+		WithDescription(fmt.Sprintf("%s - %s", user.Tag(), botBadge)).
 		WithColor(commands.UtilityMenuAccent).
 		AddField("User ID", user.ID.String(), true).
 		AddField("Account Created", fmt.Sprintf("%s (%d days ago)", createdAt, accountAgeDays), true).
 		WithThumbnail(user.EffectiveAvatarURL()).
-		WithFooterText("PulseKeep " + Version + " · Utility").
+		WithFooterText("PulseKeep " + Version + " - Utility").
 		WithTimestamp(time.Now())
 
 	if guildID := e.GuildID(); guildID != nil {
@@ -726,9 +761,9 @@ func aboutMessage(e *events.ApplicationCommandInteractionCreate) discord.Message
 			AddField("Commands", "40+ slash commands across 4 categories", true).
 			AddField("Creator", "watispro1 (Discord)", true).
 			AddField("Open source", "Yes (MIT)", true).
-			AddField("Links", "[Commands](https://pulsekeep.williamdelilah3.workers.dev/commands) · [Status](https://pulsekeep.williamdelilah3.workers.dev/status) · [Changelog](https://pulsekeep.williamdelilah3.workers.dev/changelog)", false).
+			AddField("Links", "[Commands](https://pulsekeep.williamdelilah3.workers.dev/commands.html) - [Status](https://pulsekeep.williamdelilah3.workers.dev/status.html) - [Changelog](https://pulsekeep.williamdelilah3.workers.dev/changelog.html)", false).
 			WithColor(commands.UtilityMenuAccent).
-			WithFooterText("PulseKeep " + Version + " · About").
+			WithFooterText("PulseKeep " + Version + " - About").
 			WithTimestamp(time.Now()))
 }
 
@@ -746,7 +781,7 @@ func avatarMessage(e *events.ApplicationCommandInteractionCreate, data discord.S
 			WithDescription(avatarURL).
 			WithColor(commands.UtilityMenuAccent).
 			WithImage(avatarURL).
-			WithFooterText("PulseKeep " + Version + " · Utility").
+			WithFooterText("PulseKeep " + Version + " - Utility").
 			WithTimestamp(time.Now()))
 }
 
@@ -762,7 +797,7 @@ func announceMessage(e *events.ApplicationCommandInteractionCreate, data discord
 	}
 
 	member := e.Member()
-	if ping && (member == nil || (member.Permissions&discord.PermissionMentionEveryone) == 0) {
+	if ping && (member == nil || !member.Permissions.Has(discord.PermissionMentionEveryone)) {
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Missing permission").
@@ -1047,7 +1082,7 @@ func handleRole(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 				WithTitle("Role removed").
 				WithDescription(fmt.Sprintf("Removed <@&%s> from **%s**.", role.ID, user.Tag())).
 				WithColor(commands.UtilityMenuAccent).
-				WithFooterText("PulseKeep " + Version + " · Utility").
+				WithFooterText("PulseKeep " + Version + " - Utility").
 				WithTimestamp(time.Now()))
 	}
 
@@ -1064,7 +1099,7 @@ func handleRole(e *events.ApplicationCommandInteractionCreate, data discord.Slas
 			WithTitle("Role added").
 			WithDescription(fmt.Sprintf("Added <@&%s> to **%s**.", role.ID, user.Tag())).
 			WithColor(commands.UtilityMenuAccent).
-			WithFooterText("PulseKeep " + Version + " · Utility").
+			WithFooterText("PulseKeep " + Version + " - Utility").
 			WithTimestamp(time.Now()))
 }
 
@@ -1224,7 +1259,7 @@ func handleTimeout(e *events.ApplicationCommandInteractionCreate, data discord.S
 			WithTimestamp(time.Now()))
 }
 
-func requireManageChannels(e *events.ApplicationCommandInteractionCreate) (bool, string) {
+func requireManageRolesForChannelOverwrite(e *events.ApplicationCommandInteractionCreate) (bool, string) {
 	member := e.Member()
 	if member == nil {
 		return false, "This command can only be used in a server."
@@ -1232,12 +1267,15 @@ func requireManageChannels(e *events.ApplicationCommandInteractionCreate) (bool,
 	if member.Permissions.Has(discord.PermissionAdministrator) {
 		return true, ""
 	}
-	if !member.Permissions.Has(discord.PermissionManageChannels) {
-		return false, "You need the **Manage Channels** permission to use this command."
+	if !member.Permissions.Has(discord.PermissionManageRoles) && !member.Permissions.Has(discord.PermissionManageChannels) {
+		return false, "You need **Manage Roles** or **Manage Channels** permission to use this command."
 	}
 	botPerms := e.AppPermissions()
-	if botPerms == nil || !botPerms.Has(discord.PermissionManageChannels) {
-		return false, "I need the **Manage Channels** permission to lock or unlock channels."
+	if botPerms == nil {
+		return false, "I could not verify my permissions in this channel."
+	}
+	if !botPerms.Has(discord.PermissionManageRoles) && !botPerms.Has(discord.PermissionManageChannels) {
+		return false, "I need **Manage Roles** or **Manage Channels** permission to lock or unlock channels."
 	}
 	return true, ""
 }
@@ -1248,7 +1286,7 @@ func handleLock(e *events.ApplicationCommandInteractionCreate) discord.MessageCr
 		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
 	}
 
-	ok, msg := requireManageChannels(e)
+	ok, msg := requireManageRolesForChannelOverwrite(e)
 	if !ok {
 		return discord.NewMessageCreate().WithEphemeral(true).WithContent(msg)
 	}
@@ -1297,7 +1335,7 @@ func handleLock(e *events.ApplicationCommandInteractionCreate) discord.MessageCr
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Lock failed").
-				WithDescription("Could not lock the channel. Check that I have **Manage Channels** permission and try again.").
+				WithDescription("Could not lock the channel. Check that I have **Manage Channels** or **Manage Roles** permission and try again.").
 				WithColor(commands.ModerationMenuAccent))
 	}
 
@@ -1316,7 +1354,7 @@ func handleUnlock(e *events.ApplicationCommandInteractionCreate) discord.Message
 		return discord.NewMessageCreate().WithEphemeral(true).WithContent("This command can only be used in a server.")
 	}
 
-	ok, msg := requireManageChannels(e)
+	ok, msg := requireManageRolesForChannelOverwrite(e)
 	if !ok {
 		return discord.NewMessageCreate().WithEphemeral(true).WithContent(msg)
 	}
@@ -1361,7 +1399,7 @@ func handleUnlock(e *events.ApplicationCommandInteractionCreate) discord.Message
 		return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(
 			discord.NewEmbed().
 				WithTitle("Unlock failed").
-				WithDescription("Could not unlock the channel. Check that I have **Manage Channels** permission and try again.").
+				WithDescription("Could not unlock the channel. Check that I have **Manage Channels** or **Manage Roles** permission and try again.").
 				WithColor(commands.ModerationMenuAccent))
 	}
 
@@ -1413,6 +1451,20 @@ func snowflakeID(i int) *snowflake.ID {
 	return &id
 }
 
+func ticketChannelName(username string) string {
+	safeName := strings.ToLower(username)
+	safeName = strings.Map(func(r rune) rune {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
+			return r
+		}
+		return '-'
+	}, safeName)
+	if len(safeName) > 24 {
+		safeName = safeName[:24]
+	}
+	return fmt.Sprintf("ticket-%s", safeName)
+}
+
 func startStatusRotation(ctx context.Context, client *bot.Client, memCache *cache.Cache) {
 	statuses := []struct {
 		text func(gc, uc int64) string
@@ -1448,7 +1500,7 @@ func startStatusRotation(ctx context.Context, client *bot.Client, memCache *cach
 		idx++
 		gc, uc := int64(0), int64(0)
 		if memCache != nil {
-			gc = memCache.GuildCount.Load()
+			gc = memCache.GuildsCount()
 			uc = memCache.GetTotalUserCount()
 		}
 		text := s.text(gc, uc)
@@ -1484,7 +1536,7 @@ func startStatusRotation(ctx context.Context, client *bot.Client, memCache *cach
 
 func isEconomyCommand(name string) bool {
 	switch name {
-	case "balance", "profile", "daily", "work", "pay", "coinflip", "rob", "shop", "buy", "inventory", "slots", "fish", "mine", "gamble", "sell", "use", "blackjack", "lottery", "lottery-claim", "rich", "weekly", "gift":
+	case "balance", "profile", "daily", "work", "pay", "coinflip", "rob", "shop", "buy", "inventory", "slots", "fish", "mine", "gamble", "sell", "use", "blackjack", "lottery", "lottery-claim", "lottery-config", "rich", "weekly", "gift":
 		return true
 	}
 	return false
@@ -1904,7 +1956,7 @@ func serverIconMessage(e *events.ApplicationCommandInteractionCreate) discord.Me
 			WithColor(commands.UtilityMenuAccent).
 			WithImage(*iconURL).
 			WithDescription(fmt.Sprintf("[Open in browser](%s)", *iconURL)).
-			WithFooterText("PulseKeep " + Version + " · Utility").
+			WithFooterText("PulseKeep " + Version + " - Utility").
 			WithTimestamp(time.Now()))
 }
 
@@ -1963,7 +2015,7 @@ func roleInfoMessage(e *events.ApplicationCommandInteractionCreate, data discord
 		AddField("Displayed Separately", fmt.Sprintf("%t", role.Hoist), true).
 		AddField("Created", createdAt, true).
 		AddField("Key Permissions", permList, false).
-		WithFooterText("PulseKeep " + Version + " · Utility").
+		WithFooterText("PulseKeep " + Version + " - Utility").
 		WithTimestamp(time.Now())
 
 	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(embed)
@@ -2018,7 +2070,7 @@ func channelInfoMessage(e *events.ApplicationCommandInteractionCreate, data disc
 		embed = embed.AddField("Server", guildName, true)
 	}
 
-	embed = embed.WithFooterText("PulseKeep " + Version + " · Utility").
+	embed = embed.WithFooterText("PulseKeep " + Version + " - Utility").
 		WithTimestamp(time.Now())
 
 	return discord.NewMessageCreate().WithEphemeral(true).AddEmbeds(embed)
@@ -2033,7 +2085,7 @@ func inviteMessage() discord.MessageCreate {
 			AddField("Support Server", "[Click here](https://discord.gg/pulsekeep)", false).
 			AddField("Top.gg", "[Vote for us](https://top.gg/bot/1507498795569512598/vote)", false).
 			WithColor(commands.UtilityMenuAccent).
-			WithFooterText("PulseKeep " + Version + " · Utility").
+			WithFooterText("PulseKeep " + Version + " - Utility").
 			WithTimestamp(time.Now()))
 }
 

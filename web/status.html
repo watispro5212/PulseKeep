@@ -193,8 +193,10 @@
       latencies.push(ms);
       if (latencies.length > 40) latencies.shift();
 
-      healthyPolls++;
-      setStatus(health.database === 'ok' ? 'online' : 'degraded', health.database === 'ok' ? 'All systems online' : 'API online, database degraded');
+      const botOnline = health.bot_uptime && health.bot_uptime !== 'unknown' && health.bot_uptime !== 'N/A';
+      const healthy = health.status === 'ok' && health.database === 'ok' && botOnline;
+      healthyPolls += healthy ? 1 : 0;
+      setStatus(healthy ? 'online' : 'degraded', healthy ? 'All systems online' : 'Service degraded');
       renderCards(health, ms);
       renderSparkline();
       errorDiv.style.display = 'none';

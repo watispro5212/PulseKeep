@@ -60,7 +60,7 @@ func (e *Engine) CheckMessage(guildID, userID, content string) RuleResult {
 	// 2. Mass mention protection
 	if cfg.MentionEnabled && countMentions(content) > cfg.MentionMax {
 		action := parseAction(cfg.MentionAction)
-		return RuleResult{Action: action, Reason: "Mass mention detected", DeleteMsg: action == ActionDelete}
+		return RuleResult{Action: action, Reason: "Mass mention detected", DeleteMsg: action == ActionDelete || action == ActionTimeout}
 	}
 
 	// 3. Keyword filter
@@ -73,13 +73,13 @@ func (e *Engine) CheckMessage(guildID, userID, content string) RuleResult {
 	// 4. Link protection
 	if cfg.LinksEnabled && urlRegex.MatchString(content) {
 		action := parseAction(cfg.LinksAction)
-		return RuleResult{Action: action, Reason: "Links are not allowed", DeleteMsg: action == ActionDelete}
+		return RuleResult{Action: action, Reason: "Links are not allowed", DeleteMsg: action == ActionDelete || action == ActionTimeout}
 	}
 
 	// 5. Caps lock protection
 	if cfg.CapsEnabled && len(content) >= cfg.CapsMinLength && isMostlyCaps(content, cfg.CapsPercent) {
 		action := parseAction(cfg.CapsAction)
-		return RuleResult{Action: action, Reason: "Excessive caps lock", DeleteMsg: action == ActionDelete}
+		return RuleResult{Action: action, Reason: "Excessive caps lock", DeleteMsg: action == ActionDelete || action == ActionTimeout}
 	}
 
 	return RuleResult{}
