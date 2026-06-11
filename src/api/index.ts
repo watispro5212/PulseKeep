@@ -10,6 +10,22 @@ import { eq } from 'drizzle-orm';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const webDir = path.resolve(__dirname, '../../web');
 
+// Permission bit flags
+const PERMISSION_ADMINISTRATOR = 0x8n;
+const PERMISSION_MANAGE_GUILD = 0x20n;
+
+function hasAdminPerms(permissions: string): boolean {
+  try {
+    const perms = BigInt(permissions);
+    return (perms & PERMISSION_ADMINISTRATOR) === PERMISSION_ADMINISTRATOR ||
+           (perms & PERMISSION_MANAGE_GUILD) === PERMISSION_MANAGE_GUILD;
+  } catch {
+    return false;
+  }
+}
+
+const STATIC_EXTENSIONS = /\.(html?|css|js|json|xml|png|jpg|jpeg|gif|ico|svg|webp|avif|woff2?|ttf|eot|map)$/i;
+
 export class ApiServer {
   private app: express.Application;
   private config: Config;
@@ -31,8 +47,9 @@ export class ApiServer {
     this.app.use(express.json());
     this.app.use((req, res, next) => {
       const origin = req.headers.origin as string;
-      if (this.config.allowedOrigins.split(',').includes(origin)) {
+      if (origin && this.config.allowedOrigins.split(',').map(s => s.trim()).includes(origin)) {
         res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Vary', 'Origin');
       }
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -42,6 +59,18 @@ export class ApiServer {
       }
       next();
     });
+  }
+
+  private async verifyGuildAccess(guildId: string, accessToken: string): Promise<{ ok: boolean; error?: string; status?: number }> {
+    try {
+      const userGuilds = await fetchGuilds(accessToken);
+      const guild = userGuilds.find((g: any) => g.id === guildId);
+      if (!guild) return { ok: false, error: 'You are not a member of this guild', status: 403 };
+      if (!hasAdminPerms(guild.permissions)) return { ok: false, error: 'You need Manage Server or Administrator permission', status: 403 };
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'Invalid token', status: 401 };
+    }
   }
 
   private setupRoutes() {
@@ -58,6 +87,18 @@ export class ApiServer {
         commandsRun: this.cache.getCommandsRun(),
         avgLatency: this.cache.getAvgLatency(),
         uptime: Math.floor((Date.now() - this.cache.getStartedAt().getTime()) / 1000),
+      });
+    });
+
+    // Bot info endpoint
+    this.app.get('/api/bot/info', (_req, res) => {
+      res.json({
+        name: 'PulseKeep',
+        version: '7.0.0',
+        library: 'discord.js v14',
+        website: 'https://pulsekeep.fly.dev',
+        support: 'https://discord.gg/pulsekeep',
+        topgg: 'https://top.gg/bot/1507498795569512598',
       });
     });
 
@@ -98,14 +139,31 @@ export class ApiServer {
         const userGuilds = await fetchGuilds(accessToken);
         const botGuilds = this.cache.getBotGuilds();
         const mutual = fetchMutualGuilds(userGuilds, botGuilds);
-        res.json(mutual);
+        // Add hasAdmin flag for each guild
+        const withAdmin = mutual.map((g: any) => ({
+          ...g,
+          hasAdmin: hasAdminPerms(g.permissions),
+        }));
+        res.json(withAdmin);
       } catch {
         res.status(401).json({ error: 'Invalid token' });
       }
     });
 
-    // Guild config
+    // Guild config (GET - requires admin)
     this.app.get('/api/guild/:id/config', async (req, res) => {
+      const auth = req.headers.authorization;
+      if (!auth || !auth.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Missing authorization' });
+        return;
+      }
+      const accessToken = auth.slice(7);
+      const access = await this.verifyGuildAccess(req.params.id, accessToken);
+      if (!access.ok) {
+        res.status(access.status!).json({ error: access.error });
+        return;
+      }
+
       if (!this.db) {
         res.status(503).json({ error: 'Database unavailable' });
         return;
@@ -117,13 +175,26 @@ export class ApiServer {
         .where(eq(guildConfigs.guildId, req.params.id))
         .limit(1);
       if (rows.length === 0) {
-        res.status(404).json({ error: 'Config not found' });
+        res.json({ guildId: req.params.id });
         return;
       }
       res.json(rows[0]);
     });
 
+    // Guild config (POST - requires admin)
     this.app.post('/api/guild/:id/config', async (req, res) => {
+      const auth = req.headers.authorization;
+      if (!auth || !auth.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Missing authorization' });
+        return;
+      }
+      const accessToken = auth.slice(7);
+      const access = await this.verifyGuildAccess(req.params.id, accessToken);
+      if (!access.ok) {
+        res.status(access.status!).json({ error: access.error });
+        return;
+      }
+
       if (!this.db) {
         res.status(503).json({ error: 'Database unavailable' });
         return;
@@ -132,6 +203,8 @@ export class ApiServer {
       const guildId = req.params.id;
       const updateData = req.body;
       delete updateData.guildId;
+      delete updateData.createdAt;
+      delete updateData.updatedAt;
 
       const existing: any[] = await this.db
         .select()
@@ -142,7 +215,7 @@ export class ApiServer {
       if (existing.length > 0) {
         await this.db
           .update(guildConfigs)
-          .set(updateData)
+          .set({ ...updateData, updatedAt: new Date() })
           .where(eq(guildConfigs.guildId, guildId));
       } else {
         await this.db
@@ -156,12 +229,23 @@ export class ApiServer {
     // Serve static files
     this.app.use(express.static(webDir));
 
-    // SPA fallback for dashboard routes
-    this.app.use((req, res) => {
-      const filePath = path.join(webDir, req.path);
-      res.sendFile(filePath, (err) => {
+    // SPA fallback - redirect /dashboard to /dashboard.html, handle other paths
+    this.app.use((req, res, next) => {
+      // Skip API routes
+      if (req.path.startsWith('/api/') || req.path.startsWith('/auth/')) {
+        res.status(404).json({ error: 'Not found' });
+        return;
+      }
+      // Skip requests with file extensions
+      if (STATIC_EXTENSIONS.test(req.path)) {
+        res.status(404).send('Not found');
+        return;
+      }
+      // Try appending .html
+      const htmlPath = path.join(webDir, req.path + '.html');
+      res.sendFile(htmlPath, (err) => {
         if (err) {
-          res.sendFile(path.join(webDir, 'dashboard.html'));
+          res.sendFile(path.join(webDir, '404.html'));
         }
       });
     });

@@ -51,7 +51,7 @@ export async function fetchGuilds(accessToken: string): Promise<any[]> {
   return res.json();
 }
 
-export async function fetchMutualGuilds(userGuilds: any[], botGuilds: any[]): Promise<any[]> {
+export function fetchMutualGuilds(userGuilds: any[], botGuilds: any[]): any[] {
   const botGuildIds = new Set(botGuilds.map((g: any) => g.id));
   return userGuilds
     .filter((g: any) => botGuildIds.has(g.id))

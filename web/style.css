@@ -129,15 +129,24 @@ footer .social{display:flex;gap:12px}
 footer .social a{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);transition:var(--transition)}
 footer .social a:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-dim)}
 
+.dash-sidebar-toggle{display:none;position:fixed;bottom:20px;right:20px;z-index:60;width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;border:none;font-size:1.2rem;box-shadow:0 4px 24px var(--primary-glow);cursor:pointer;transition:var(--transition)}
+.dash-sidebar-toggle:hover{transform:scale(1.05);box-shadow:0 8px 36px var(--primary-glow)}
+.dash-sidebar-close{display:none;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px}
+.dash-sidebar-close:hover{color:var(--text)}
+
 .dashboard-layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 64px)}
-.dashboard-sidebar{padding:20px;border-right:1px solid var(--border);background:var(--bg-soft)}
+.dashboard-sidebar{padding:20px;border-right:1px solid var(--border);background:var(--bg-soft);display:flex;flex-direction:column}
 .dashboard-sidebar h3{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:16px;padding:0 8px}
-.guild-list{display:flex;flex-direction:column;gap:2px}
+.dash-sidebar-actions{margin-top:16px;padding:12px;text-align:center;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.guild-list{display:flex;flex-direction:column;gap:2px;flex:1;overflow-y:auto}
 .guild-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;font-size:.85rem;color:var(--muted);cursor:pointer;transition:var(--transition)}
 .guild-item:hover{background:rgba(255,255,255,.04);color:var(--text)}
 .guild-item.active{background:var(--primary-dim);color:var(--primary)}
+.guild-item.no-admin{opacity:.5;cursor:not-allowed}
+.guild-item.no-admin:hover{background:transparent;color:var(--muted)}
 .guild-item img{width:32px;height:32px;border-radius:50%;flex-shrink:0}
-.guild-item .guild-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.guild-item .guild-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.guild-item .guild-lock{color:var(--muted);font-size:.75rem;flex-shrink:0}
 .dashboard-main{padding:32px;max-width:720px}
 .dashboard-main h1{font-size:1.4rem;font-weight:700;margin-bottom:4px}
 .dashboard-main .subtitle{color:var(--muted);font-size:.85rem;margin-bottom:28px}
@@ -204,9 +213,11 @@ footer .social a:hover{border-color:var(--primary);color:var(--primary);backgrou
 
 @media(max-width:900px){
   .dashboard-layout{grid-template-columns:1fr}
-  .dashboard-sidebar{display:none}
-  .dashboard-sidebar.open{display:block;position:fixed;inset:0;z-index:100;background:var(--bg);padding:24px;border:none}
-  .dashboard-sidebar.open .guild-list{display:flex}
+  .dashboard-sidebar{display:none;position:fixed;inset:0;z-index:100;background:var(--bg);padding:24px;border:none}
+  .dashboard-sidebar.open{display:flex}
+  .dash-sidebar-toggle{display:flex;align-items:center;justify-content:center}
+  .dash-sidebar-close{display:inline-flex;align-items:center;justify-content:center}
+  .dashboard-main{padding:24px 16px}
 }
 @media(max-width:768px){
   header nav{display:none}

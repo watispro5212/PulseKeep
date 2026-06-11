@@ -5,6 +5,13 @@ import { Bot } from './bot/client.js';
 import { commands } from './bot/commands/index.js';
 import { ApiServer } from './api/index.js';
 
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled rejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+});
+
 async function main() {
   const cfg = loadConfig();
   const database = connect(cfg.databaseURL);

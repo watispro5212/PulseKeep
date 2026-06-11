@@ -36,14 +36,20 @@
   </nav>
 </header>
 
-<div class="dashboard-layout">
+  <button class="dash-sidebar-toggle" id="dash-sidebar-toggle" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
+
+  <div class="dashboard-layout">
   <aside class="dashboard-sidebar" id="dash-sidebar">
-    <h3>Your Servers</h3>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:0 8px">
+      <h3 style="margin-bottom:0">Your Servers</h3>
+      <button class="dash-sidebar-close" id="dash-sidebar-close" aria-label="Close sidebar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
     <div class="guild-list" id="guild-list">
       <div style="color:var(--muted);font-size:.82rem;padding:8px"><div class="loading-spinner" style="margin-right:8px;vertical-align:middle"></div> Loading...</div>
     </div>
-    <div style="margin-top:16px;padding:12px;text-align:center;border-top:1px solid var(--border)">
-      <a href="/auth/discord/login" class="btn btn-primary btn-block btn-large" id="dash-login-btn"><i class="fa-brands fa-discord"></i> Login with Discord</a>
+    <div class="dash-sidebar-actions">
+      <button class="btn btn-primary btn-block btn-large" id="dash-login-btn"><i class="fa-brands fa-discord"></i> Login with Discord</button>
+      <button class="btn btn-secondary btn-block" id="dash-logout-btn" style="display:none"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
     </div>
   </aside>
   <main class="dashboard-main">
