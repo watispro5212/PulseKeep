@@ -1,25 +1,26 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
+import pg from 'pg';
 import * as schema from './schema.js';
 
-export const connect = (databaseURL: string) => {
-    if (!databaseURL) {
-        console.warn('DATABASE_URL is not set; running without database.');
-        return null;
-    }
+const { Pool } = pg;
 
-    const pool = new Pool({
-        connectionString: databaseURL,
-        max: 10,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 2000,
-    });
+export function connect(databaseURL: string) {
+  if (!databaseURL) {
+    console.warn('DATABASE_URL not set; running without database.');
+    return null;
+  }
 
-    pool.on('error', (err) => {
-        console.error('Unexpected error on idle client', err);
-    });
+  const pool = new Pool({
+    connectionString: databaseURL,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  });
 
-    console.log('Database connection pool initialized.');
-    
-    return drizzle(pool, { schema });
-};
+  pool.on('error', (err) => {
+    console.error('Unexpected pool error:', err);
+  });
+
+  console.log('Database pool initialized.');
+  return drizzle(pool, { schema });
+}

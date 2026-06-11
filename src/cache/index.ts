@@ -1,50 +1,28 @@
 export class Cache {
-    private guildsCount: number = 0;
-    private totalUserCount: number = 0;
-    private commandsRun: number = 0;
-    private startedAt: Date = new Date();
-    private latencies: number[] = [];
+  private guildsCount = 0;
+  private totalUserCount = 0;
+  private commandsRun = 0;
+  private startedAt = new Date();
+  private latencies: number[] = [];
 
-    constructor() {}
+  setGuildsCount(count: number) { this.guildsCount = count; }
+  getGuildsCount(): number { return this.guildsCount; }
 
-    public setGuildsCount(count: number) {
-        this.guildsCount = count;
-    }
+  setTotalUserCount(count: number) { this.totalUserCount = count; }
+  getTotalUserCount(): number { return this.totalUserCount; }
 
-    public getGuildsCount(): number {
-        return this.guildsCount;
-    }
+  incrementCommandsRun() { this.commandsRun++; }
+  getCommandsRun(): number { return this.commandsRun; }
 
-    public setTotalUserCount(count: number) {
-        this.totalUserCount = count;
-    }
+  getStartedAt(): Date { return this.startedAt; }
 
-    public getTotalUserCount(): number {
-        return this.totalUserCount;
-    }
+  addLatency(ms: number) {
+    this.latencies.push(ms);
+    if (this.latencies.length > 100) this.latencies.shift();
+  }
 
-    public incrementCommandsRun() {
-        this.commandsRun++;
-    }
-
-    public getCommandsRun(): number {
-        return this.commandsRun;
-    }
-
-    public getStartedAt(): Date {
-        return this.startedAt;
-    }
-
-    public addLatency(latency: number) {
-        this.latencies.push(latency);
-        if (this.latencies.length > 100) {
-            this.latencies.shift();
-        }
-    }
-
-    public getAvgLatency(): number {
-        if (this.latencies.length === 0) return 0;
-        const sum = this.latencies.reduce((a, b) => a + b, 0);
-        return sum / this.latencies.length;
-    }
+  getAvgLatency(): number {
+    if (this.latencies.length === 0) return 0;
+    return this.latencies.reduce((a, b) => a + b, 0) / this.latencies.length;
+  }
 }

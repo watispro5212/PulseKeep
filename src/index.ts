@@ -1,50 +1,45 @@
-import { loadConfig } from './config/index.js';
+import { loadConfig } from './config.js';
 import { connect } from './db/index.js';
 import { Cache } from './cache/index.js';
-import { Bot } from './bot/index.js';
+import { Bot } from './bot/client.js';
+import { commands } from './bot/commands/index.js';
 import { ApiServer } from './api/index.js';
 
 async function main() {
-    // 1. Load Config
-    const cfg = loadConfig();
+  const cfg = loadConfig();
+  const database = connect(cfg.databaseURL);
+  const memCache = new Cache();
 
-    // 2. Init Database
-    const database = connect(cfg.databaseURL);
+  const discordBot = new Bot(cfg.discordToken, memCache, database, cfg.statusWebhookURL);
 
-    // 3. Init Cache
-    const memCache = new Cache();
+  for (const cmd of commands) {
+    discordBot.registerCommand(cmd);
+  }
 
-    // 4. Init Bot
-    let discordBot: Bot | null = null;
-    if (cfg.botDisabled) {
-        console.log('Discord bot is disabled; API endpoints are still available.');
-    } else {
-        discordBot = new Bot(cfg.discordToken, memCache, database, cfg.statusWebhookURL);
-        await discordBot.start(cfg.discordToken);
-    }
+  if (!cfg.botDisabled) {
+    await discordBot.start(cfg.discordToken);
+    await discordBot.registerSlashCommands();
+  } else {
+    console.log('Bot disabled; API server will run standalone.');
+  }
 
-    // 5. Init Web Server
-    const automod = discordBot ? discordBot.getAutomod() : (new (require('./bot/automod').AutomodEngine)());
-    const server = new ApiServer(cfg, database, memCache, automod);
-    server.start();
+  const server = new ApiServer(cfg, database, memCache);
+  server.start();
 
-    console.log('PulseKeep (TypeScript version) is running.');
+  console.log('PulseKeep is running.');
 
-    // Graceful shutdown
-    const shutdown = async () => {
-        console.log('Shutdown signal received. Initiating graceful cleanup...');
-        server.stop();
-        if (discordBot) {
-            await discordBot.stop();
-        }
-        process.exit(0);
-    };
+  const shutdown = async () => {
+    console.log('Shutting down...');
+    server.stop();
+    if (!cfg.botDisabled) await discordBot.stop();
+    process.exit(0);
+  };
 
-    process.on('SIGINT', shutdown);
-    process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 }
 
-main().catch(err => {
-    console.error('Failed to start application:', err);
-    process.exit(1);
+main().catch((err) => {
+  console.error('Fatal:', err);
+  process.exit(1);
 });

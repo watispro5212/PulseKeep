@@ -1,0 +1,48 @@
+import {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  PermissionFlagsBits,
+} from 'discord.js';
+import type { SlashCommand } from '../../types.js';
+import { Colors, footer, timestamp } from '../../../utils/embed.js';
+import { userWarnings } from '../../../db/schema.js';
+
+export const warnCommand: SlashCommand = {
+  data: new SlashCommandBuilder()
+    .setName('warn')
+    .setDescription('Warn a user')
+    .addUserOption((o) => o.setName('user').setDescription('User to warn').setRequired(true))
+    .addStringOption((o) => o.setName('reason').setDescription('Reason for the warning'))
+    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
+    .toJSON(),
+
+  async execute({ db }, interaction) {
+    if (!db) {
+      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      return;
+    }
+
+    const user = interaction.options.getUser('user', true);
+    const reason = interaction.options.getString('reason') ?? 'No reason provided';
+    const moderatorId = interaction.user.id;
+
+    await db.insert(userWarnings).values({
+      guildId: interaction.guildId!,
+      userId: user.id,
+      moderatorId,
+      reason,
+    });
+
+    const emb = new EmbedBuilder()
+      .setTitle('User Warned')
+      .setDescription(`**${user.tag}** has been warned.`)
+      .addFields(
+        { name: 'Reason', value: reason, inline: false },
+        { name: 'Moderator', value: `<@${moderatorId}>`, inline: true },
+        { name: 'User', value: `${user}`, inline: true },
+      )
+      .setColor(Colors.Moderation);
+
+    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+  },
+};
