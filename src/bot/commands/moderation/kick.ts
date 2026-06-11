@@ -19,6 +19,7 @@ export const kickCommand: SlashCommand = {
     const target = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
     const member = interaction.guild?.members.cache.get(target.id);
+    const guildName = interaction.guild?.name ?? 'the server';
 
     if (!member) {
       await interaction.reply({ content: '❌ Could not find that member.', ephemeral: true });
@@ -26,6 +27,16 @@ export const kickCommand: SlashCommand = {
     }
 
     try {
+      try {
+        const dm = new EmbedBuilder()
+          .setTitle(`Kicked from ${guildName}`)
+          .setDescription(`You have been kicked from **${guildName}**.`)
+          .addFields({ name: 'Reason', value: reason })
+          .setColor(Colors.Moderation)
+          .setTimestamp();
+        await target.send({ embeds: [dm] });
+      } catch {}
+
       await member.kick(reason);
       const emb = new EmbedBuilder()
         .setTitle('Member Kicked')

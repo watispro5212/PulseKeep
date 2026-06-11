@@ -15,13 +15,12 @@
 <body>
 <header>
   <div class="container">
-    <a href="/" class="logo"><img src="/assets/logo.png" alt="">PulseKeep</a>
+    <a href="/" class="logo"><img src="/assets/logo.png" alt=""><span>PulseKeep</span></a>
     <nav>
       <a href="/">Home</a>
       <a href="/commands.html">Commands</a>
       <a href="/dashboard.html">Dashboard</a>
       <a href="/status.html">Status</a>
-      <a href="/team.html" class="active">Team</a>
     </nav>
     <button class="mobile-toggle" id="mobile-toggle" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
   </div>
@@ -30,36 +29,29 @@
     <a href="/commands.html">Commands</a>
     <a href="/dashboard.html">Dashboard</a>
     <a href="/status.html">Status</a>
-    <a href="/team.html">Team</a>
   </nav>
 </header>
 
-<section class="section">
-  <div class="container">
-    <div class="section-header">
-      <span class="eyebrow"><i class="fa-solid fa-users"></i> Team</span>
-      <h2>Meet the team.</h2>
-      <p>The people behind PulseKeep.</p>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;max-width:600px;margin:0 auto">
-      <div class="status-card" style="text-align:center;padding:32px 24px">
-        <div style="font-size:3rem;margin-bottom:12px">👤</div>
-        <h3 style="margin-bottom:2px">WilliamDelilah3</h3>
-        <p class="text-muted mb-2" style="font-size:.82rem">Developer & Operator</p>
-        <p style="font-size:.82rem;color:var(--muted)">Building PulseKeep from the ground up — backend, bot, and infrastructure.</p>
-      </div>
+<div class="page-content">
+  <h1>Meet the Team</h1>
+  <p>PulseKeep is built and maintained by a small but dedicated team.</p>
+
+  <div class="features-grid" style="margin-top:24px">
+    <div class="feature-card" style="text-align:center">
+      <i class="fa-solid fa-user" style="font-size:2.5rem;margin-bottom:12px"></i>
+      <h3>William Delilah</h3>
+      <p style="font-size:.8rem;color:var(--primary);font-weight:600;margin-bottom:8px">Lead Developer</p>
+      <p style="font-size:.82rem">Core architecture, bot development, and infrastructure.</p>
     </div>
   </div>
-</section>
+</div>
 
 <footer>
   <div class="container">
-    <span>&copy; <span id="footer-year"></span> PulseKeep</span>
+    <div><span class="copyright">&copy; <span id="footer-year"></span> PulseKeep</span></div>
     <div class="links">
-      <a href="/commands.html">Commands</a>
-      <a href="/dashboard.html">Dashboard</a>
-      <a href="/status.html">Status</a>
       <a href="/team.html">Team</a>
+      <a href="/changelog.html">Changelog</a>
     </div>
   </div>
 </footer>

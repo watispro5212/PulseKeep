@@ -15,32 +15,36 @@
 <body>
 <header>
   <div class="container">
-    <a href="/" class="logo"><img src="/assets/logo.png" alt="">PulseKeep</a>
+    <a href="/" class="logo"><img src="/assets/logo.png" alt=""><span>PulseKeep</span></a>
     <nav>
       <a href="/">Home</a>
       <a href="/commands.html">Commands</a>
       <a href="/dashboard.html">Dashboard</a>
       <a href="/status.html">Status</a>
     </nav>
+    <button class="mobile-toggle" id="mobile-toggle" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
   </div>
+  <nav class="mobile-nav" id="mobile-nav">
+    <a href="/">Home</a>
+    <a href="/commands.html">Commands</a>
+    <a href="/dashboard.html">Dashboard</a>
+    <a href="/status.html">Status</a>
+  </nav>
 </header>
 
-<section class="section" style="min-height:60vh;display:flex;align-items:center">
-  <div class="container text-center">
-    <div style="font-size:5rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px">404</div>
-    <h2 style="margin-bottom:8px">Page not found</h2>
-    <p class="text-muted mb-3">The page you're looking for doesn't exist.</p>
-    <a href="/" class="btn btn-primary">Go Home</a>
-  </div>
-</section>
+<div class="error-page">
+  <h1>404</h1>
+  <p>This page doesn't exist. It might have been moved or the link is incorrect.</p>
+  <a href="/" class="btn btn-primary btn-large"><i class="fa-solid fa-house"></i> Go Home</a>
+</div>
 
 <footer>
   <div class="container">
-    <span>&copy; <span id="footer-year"></span> PulseKeep</span>
+    <div><span class="copyright">&copy; <span id="footer-year"></span> PulseKeep</span></div>
     <div class="links">
+      <a href="/">Home</a>
       <a href="/commands.html">Commands</a>
       <a href="/dashboard.html">Dashboard</a>
-      <a href="/status.html">Status</a>
     </div>
   </div>
 </footer>

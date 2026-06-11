@@ -23,6 +23,7 @@ export const muteCommand: SlashCommand = {
     const minutes = interaction.options.getInteger('duration', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
     const member = interaction.guild?.members.cache.get(target.id);
+    const guildName = interaction.guild?.name ?? 'the server';
 
     if (!member) {
       await interaction.reply({ content: '❌ Could not find that member.', ephemeral: true });
@@ -34,6 +35,16 @@ export const muteCommand: SlashCommand = {
     }
 
     try {
+      try {
+        const dm = new EmbedBuilder()
+          .setTitle(`Muted in ${guildName}`)
+          .setDescription(`You have been muted in **${guildName}** for **${minutes} minute(s)**.`)
+          .addFields({ name: 'Reason', value: reason })
+          .setColor(Colors.Moderation)
+          .setTimestamp();
+        await target.send({ embeds: [dm] });
+      } catch {}
+
       await member.timeout(minutes * 60 * 1000, reason);
       const emb = new EmbedBuilder()
         .setTitle('Member Muted')
@@ -64,6 +75,7 @@ export const unmuteCommand: SlashCommand = {
     const target = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
     const member = interaction.guild?.members.cache.get(target.id);
+    const guildName = interaction.guild?.name ?? 'the server';
 
     if (!member) {
       await interaction.reply({ content: '❌ Could not find that member.', ephemeral: true });
@@ -71,6 +83,16 @@ export const unmuteCommand: SlashCommand = {
     }
 
     try {
+      try {
+        const dm = new EmbedBuilder()
+          .setTitle(`Unmuted in ${guildName}`)
+          .setDescription(`You have been unmuted in **${guildName}**.`)
+          .addFields({ name: 'Reason', value: reason })
+          .setColor(Colors.Moderation)
+          .setTimestamp();
+        await target.send({ embeds: [dm] });
+      } catch {}
+
       await member.timeout(null, reason);
       const emb = new EmbedBuilder()
         .setTitle('Member Unmuted')

@@ -25,6 +25,7 @@ export const warnCommand: SlashCommand = {
     const user = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
     const moderatorId = interaction.user.id;
+    const guildName = interaction.guild?.name ?? 'the server';
 
     await db.insert(userWarnings).values({
       guildId: interaction.guildId!,
@@ -32,6 +33,16 @@ export const warnCommand: SlashCommand = {
       moderatorId,
       reason,
     });
+
+    try {
+      const dm = new EmbedBuilder()
+        .setTitle(`Warning from ${guildName}`)
+        .setDescription(`You have been warned in **${guildName}**.`)
+        .addFields({ name: 'Reason', value: reason })
+        .setColor(Colors.Moderation)
+        .setTimestamp();
+      await user.send({ embeds: [dm] });
+    } catch {}
 
     const emb = new EmbedBuilder()
       .setTitle('User Warned')

@@ -51,6 +51,9 @@ export class Bot {
     this.client.once(Events.ClientReady, (c) => {
       console.log(`Logged in as ${c.user.tag}`);
       this.cache.setGuildsCount(this.client.guilds.cache.size);
+      this.cache.setBotGuilds(
+        this.client.guilds.cache.map((g: any) => ({ id: g.id, name: g.name }))
+      );
     });
 
     this.client.on(Events.InteractionCreate, async (interaction) => {

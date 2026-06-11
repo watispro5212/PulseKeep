@@ -2,12 +2,9 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci --include=dev
-
-COPY tsconfig.json ./
+COPY package.json package-lock.json tsconfig.json ./
 COPY src/ src/
-RUN npx tsc
+RUN npm ci --include=dev && npx tsc
 
 FROM node:22-alpine
 
@@ -16,7 +13,7 @@ RUN apk add --no-cache ca-certificates tzdata
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 COPY --from=builder /app/dist/ dist/
 COPY web/ web/

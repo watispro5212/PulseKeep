@@ -4,7 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import type { Config } from '../config.js';
 import type { Cache } from '../cache/index.js';
-import { getOAuthURL, exchangeCode, fetchUser, fetchGuilds } from './oauth.js';
+import { getOAuthURL, exchangeCode, fetchUser, fetchGuilds, fetchMutualGuilds } from './oauth.js';
 import { eq } from 'drizzle-orm';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -70,7 +70,7 @@ export class ApiServer {
 
     // OAuth callback
     this.app.get('/auth/discord/callback', async (req, res) => {
-      const { code, state } = req.query;
+      const { code } = req.query;
       if (!code || typeof code !== 'string') {
         res.status(400).send('Missing authorization code.');
         return;
@@ -78,13 +78,29 @@ export class ApiServer {
 
       try {
         const tokens = await exchangeCode(this.config, code);
-        const user = await fetchUser(tokens.access_token);
         const accessToken = tokens.access_token;
-
-        res.json({ user, accessToken });
+        res.redirect('/dashboard.html?token=' + encodeURIComponent(accessToken));
       } catch (err: any) {
         console.error('OAuth callback error:', err);
         res.status(500).send('Authentication failed.');
+      }
+    });
+
+    // User guilds (requires Bearer token from OAuth)
+    this.app.get('/api/user/guilds', async (req, res) => {
+      const auth = req.headers.authorization;
+      if (!auth || !auth.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Missing authorization' });
+        return;
+      }
+      const accessToken = auth.slice(7);
+      try {
+        const userGuilds = await fetchGuilds(accessToken);
+        const botGuilds = this.cache.getBotGuilds();
+        const mutual = fetchMutualGuilds(userGuilds, botGuilds);
+        res.json(mutual);
+      } catch {
+        res.status(401).json({ error: 'Invalid token' });
       }
     });
 
@@ -141,7 +157,7 @@ export class ApiServer {
     this.app.use(express.static(webDir));
 
     // SPA fallback for dashboard routes
-    this.app.get('*', (req, res) => {
+    this.app.use((req, res) => {
       const filePath = path.join(webDir, req.path);
       res.sendFile(filePath, (err) => {
         if (err) {

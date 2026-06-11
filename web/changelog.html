@@ -11,28 +11,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="/style.css">
-<style>
-.timeline{position:relative;padding-left:32px}
-.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--primary),var(--cyan),transparent)}
-.timeline-entry{position:relative;padding:0 0 32px 24px}
-.timeline-entry::before{content:'';position:absolute;left:-28px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--primary);border:3px solid var(--bg)}
-.timeline-entry h3{font-size:1rem;font-weight:600;margin-bottom:4px}
-.timeline-entry .date{font-size:.78rem;color:var(--muted);margin-bottom:8px}
-.timeline-entry ul{padding-left:16px;color:var(--muted);font-size:.85rem}
-.timeline-entry ul li{margin-bottom:4px}
-.timeline-entry ul li strong{color:var(--text)}
-</style>
 </head>
 <body>
 <header>
   <div class="container">
-    <a href="/" class="logo"><img src="/assets/logo.png" alt="">PulseKeep</a>
+    <a href="/" class="logo"><img src="/assets/logo.png" alt=""><span>PulseKeep</span></a>
     <nav>
       <a href="/">Home</a>
       <a href="/commands.html">Commands</a>
       <a href="/dashboard.html">Dashboard</a>
       <a href="/status.html">Status</a>
-      <a href="/changelog.html" class="active">Changelog</a>
     </nav>
     <button class="mobile-toggle" id="mobile-toggle" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
   </div>
@@ -41,59 +29,40 @@
     <a href="/commands.html">Commands</a>
     <a href="/dashboard.html">Dashboard</a>
     <a href="/status.html">Status</a>
-    <a href="/changelog.html">Changelog</a>
   </nav>
 </header>
 
-<section class="section">
-  <div class="container" style="max-width:700px">
-    <div class="section-header">
-      <span class="eyebrow"><i class="fa-solid fa-clock-rotate-left"></i> Changelog</span>
-      <h2>Release history.</h2>
-      <p>Every update to PulseKeep, documented.</p>
-    </div>
+<div class="page-content">
+  <h1>Changelog</h1>
+  <p>See what's new in PulseKeep.</p>
 
-    <div class="timeline">
-      <div class="timeline-entry">
-        <h3>v7.0.0 — TypeScript Rewrite</h3>
-        <div class="date">June 2025</div>
-        <ul>
-          <li><strong>Complete rewrite</strong> from Go to TypeScript</li>
-          <li>30+ slash commands across Economy, Moderation, Tickets, and Utility</li>
-          <li>New dashboard with per-server toggle controls</li>
-          <li>Live status page with real-time metrics</li>
-          <li>Guild toggle enforcement (economy/tickets on/off)</li>
-          <li>Command logging to database</li>
-          <li>Auto-moderation engine (spam, links, caps, keywords)</li>
-          <li>Button-based ticket system with add/remove/close/rename</li>
-        </ul>
-      </div>
-      <div class="timeline-entry">
-        <h3>v6.2.0 — Redesign & QoL</h3>
-        <div class="date">May 2026</div>
-        <ul>
-          <li>Dashboard rebuilt with per-server sidebar navigation</li>
-          <li>New premium card accents across all pages</li>
-          <li>Economy odds buffed (gamble 55% win rate)</li>
-          <li>22 work jobs with flavor text</li>
-          <li>New shop items: Lucky Clover, XP Boost, Treasure Map</li>
-          <li>Daily/weekly streak milestones</li>
-          <li>Added /warn, /warnings, /clearwarns, /move, /vckick</li>
-          <li>Added /ticket add/remove/close/rename subcommands</li>
-          <li>Added /servericon, /roleinfo, /channelinfo, /invite</li>
-        </ul>
-      </div>
+  <div class="changelog-list" style="margin-top:24px">
+    <div class="changelog-entry">
+      <div><span class="version">v7.0.0</span><span class="date">June 2026</span></div>
+      <ul>
+        <li>Complete TypeScript rewrite — 45 slash commands</li>
+        <li>New economy system: daily streaks, blackjack, slots, fishing, mining</li>
+        <li>Moderation suite with warnings, mute, ban, purge, lockdown</li>
+        <li>Button-based ticket system with private channels</li>
+        <li>PostgreSQL database with Drizzle ORM</li>
+        <li>Express API server with real-time stats</li>
+        <li>Redesigned dashboard and website</li>
+      </ul>
+    </div>
+    <div class="changelog-entry">
+      <div><span class="version">v6.0.0</span><span class="date">May 2026</span></div>
+      <ul>
+        <li>Original Go version with basic moderation and ticket features</li>
+      </ul>
     </div>
   </div>
-</section>
+</div>
 
 <footer>
   <div class="container">
-    <span>&copy; <span id="footer-year"></span> PulseKeep</span>
+    <div><span class="copyright">&copy; <span id="footer-year"></span> PulseKeep</span></div>
     <div class="links">
-      <a href="/commands.html">Commands</a>
-      <a href="/dashboard.html">Dashboard</a>
-      <a href="/status.html">Status</a>
+      <a href="/team.html">Team</a>
       <a href="/changelog.html">Changelog</a>
     </div>
   </div>

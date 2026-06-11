@@ -4,6 +4,7 @@ export class Cache {
   private commandsRun = 0;
   private startedAt = new Date();
   private latencies: number[] = [];
+  private botGuilds: { id: string; name: string }[] = [];
 
   setGuildsCount(count: number) { this.guildsCount = count; }
   getGuildsCount(): number { return this.guildsCount; }
@@ -15,6 +16,9 @@ export class Cache {
   getCommandsRun(): number { return this.commandsRun; }
 
   getStartedAt(): Date { return this.startedAt; }
+
+  setBotGuilds(guilds: { id: string; name: string }[]) { this.botGuilds = guilds; }
+  getBotGuilds(): { id: string; name: string }[] { return this.botGuilds; }
 
   addLatency(ms: number) {
     this.latencies.push(ms);

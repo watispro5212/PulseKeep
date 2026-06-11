@@ -15,13 +15,13 @@
 <body>
 <header>
   <div class="container">
-    <a href="/" class="logo"><img src="/assets/logo.png" alt="">PulseKeep</a>
+    <a href="/" class="logo"><img src="/assets/logo.png" alt=""><span>PulseKeep</span></a>
     <nav>
       <a href="/">Home</a>
       <a href="/commands.html">Commands</a>
       <a href="/dashboard.html" class="active">Dashboard</a>
       <a href="/status.html">Status</a>
-      <a href="/privacy.html">Privacy</a>
+      <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary" style="height:34px;padding:0 14px;font-size:.8rem;margin-left:4px"><i class="fa-brands fa-discord"></i> Invite</a>
     </nav>
     <button class="mobile-toggle" id="mobile-toggle" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
   </div>
@@ -30,70 +30,60 @@
     <a href="/commands.html">Commands</a>
     <a href="/dashboard.html">Dashboard</a>
     <a href="/status.html">Status</a>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+    <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary" style="margin-top:12px"><i class="fa-brands fa-discord"></i> Invite</a>
   </nav>
 </header>
 
-<div class="dash-layout">
-  <aside class="dash-sidebar">
+<div class="dashboard-layout">
+  <aside class="dashboard-sidebar" id="dash-sidebar">
     <h3>Your Servers</h3>
-    <div class="dash-guild-list" id="guild-list">
-      <div style="color:var(--muted);font-size:.82rem;padding:8px" id="guild-loading">Loading...</div>
+    <div class="guild-list" id="guild-list">
+      <div style="color:var(--muted);font-size:.82rem;padding:8px"><div class="loading-spinner" style="margin-right:8px;vertical-align:middle"></div> Loading...</div>
+    </div>
+    <div style="margin-top:16px;padding:12px;text-align:center;border-top:1px solid var(--border)">
+      <a href="/auth/discord/login" class="btn btn-primary btn-block btn-large" id="dash-login-btn"><i class="fa-brands fa-discord"></i> Login with Discord</a>
     </div>
   </aside>
-  <main class="dash-main">
-    <div id="dash-select-prompt">
-      <h1>Dashboard</h1>
-      <p class="subtitle">Select a server from the sidebar to manage its configuration.</p>
-      <div style="padding:40px;text-align:center;border:2px dashed var(--border);border-radius:var(--radius-lg);color:var(--muted)">
-        <i class="fa-solid fa-arrow-left" style="font-size:2rem;display:block;margin-bottom:12px"></i>
-        <p>Choose a server to get started.</p>
-      </div>
+  <main class="dashboard-main">
+    <div id="dash-select-prompt" class="auth-required">
+      <i class="fa-solid fa-arrow-left"></i>
+      <h2>Select a server</h2>
+      <p>Choose a server from the sidebar to manage its configuration.</p>
     </div>
     <div id="dash-config" style="display:none">
       <h1 id="dash-guild-name">Server</h1>
       <p class="subtitle" id="dash-guild-id"></p>
 
-      <div style="display:flex;flex-direction:column;gap:16px;max-width:600px">
-        <div class="status-card">
-          <h3><i class="fa-solid fa-flag"></i> Features</h3>
-          <p class="mb-2">Toggle bot features on or off for this server.</p>
-          <label style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer">
-            <span style="font-size:.85rem">Economy System</span>
-            <input type="checkbox" id="toggle-economy" data-key="economyEnabled" checked>
-          </label>
-          <label style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer">
-            <span style="font-size:.85rem">Tickets</span>
-            <input type="checkbox" id="toggle-tickets" data-key="ticketsEnabled" checked>
-          </label>
-          <label style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer">
-            <span style="font-size:.85rem">Moderation Logs</span>
-            <input type="checkbox" id="toggle-modlogs" data-key="modlogsEnabled" checked>
-          </label>
-          <label style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;cursor:pointer">
-            <span style="font-size:.85rem">Welcome Messages</span>
-            <input type="checkbox" id="toggle-welcome" data-key="welcomeEnabled">
-          </label>
-        </div>
-
-        <div class="status-card">
-          <h3><i class="fa-solid fa-hashtag"></i> Ticket Category</h3>
-          <p class="mb-2">Set the category where ticket channels will be created.</p>
-          <input type="text" id="ticket-category" data-key="ticketCategoryId" placeholder="Category ID (leave blank for no category)" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-soft);color:var(--text);font-size:.85rem">
-        </div>
-
-        <div class="status-card">
-          <h3><i class="fa-solid fa-scroll"></i> Log Channel</h3>
-          <p class="mb-2">Set the channel where moderation logs will be sent.</p>
-          <input type="text" id="log-channel" data-key="logChannelId" placeholder="Channel ID" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-soft);color:var(--text);font-size:.85rem">
-        </div>
-
-        <button class="btn btn-primary" id="dash-save" style="align-self:flex-start">Save Changes</button>
-        <div id="dash-saved" style="display:none;color:var(--green);font-size:.85rem;font-weight:500"><i class="fa-solid fa-check"></i> Saved</div>
+      <div class="config-card">
+        <h3><i class="fa-solid fa-flag"></i> Features</h3>
+        <p class="card-desc">Toggle bot features on or off for this server.</p>
+        <div class="config-row"><label for="toggle-economy">Economy System</label><input type="checkbox" id="toggle-economy" data-key="economyEnabled" checked></div>
+        <div class="config-row"><label for="toggle-tickets">Tickets</label><input type="checkbox" id="toggle-tickets" data-key="ticketsEnabled" checked></div>
+        <div class="config-row"><label for="toggle-modlogs">Moderation Logs</label><input type="checkbox" id="toggle-modlogs" data-key="modlogsEnabled" checked></div>
+        <div class="config-row"><label for="toggle-welcome">Welcome Messages</label><input type="checkbox" id="toggle-welcome" data-key="welcomeEnabled"></div>
       </div>
+
+      <div class="config-card">
+        <h3><i class="fa-solid fa-hashtag"></i> Ticket Category</h3>
+        <p class="card-desc">Set the category where ticket channels will be created.</p>
+        <input type="text" class="config-input" id="ticket-category" data-key="ticketCategoryId" placeholder="Category ID (leave blank for no category)">
+      </div>
+
+      <div class="config-card">
+        <h3><i class="fa-solid fa-scroll"></i> Log Channel</h3>
+        <p class="card-desc">Set the channel where moderation logs will be sent.</p>
+        <input type="text" class="config-input" id="log-channel" data-key="logChannelId" placeholder="Channel ID">
+      </div>
+
+      <button class="btn btn-primary" id="dash-save"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+      <span id="dash-saved" style="display:none;color:var(--green);font-size:.85rem;margin-left:12px"><i class="fa-solid fa-check"></i> Saved</span>
     </div>
   </main>
 </div>
 
+<div class="toast" id="toast"></div>
 <script>window.API_BASE='https://pulsekeep.fly.dev'</script>
 <script src="/app.js"></script>
 </body>
