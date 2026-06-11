@@ -3,319 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Changelog - PulseKeep</title>
-<meta name="description" content="PulseKeep version history and release notes from v1.0.0 to v6.4.0.">
-<meta name="theme-color" content="#070a14">
+<title>Changelog — PulseKeep</title>
+<meta name="theme-color" content="#7c5cfc">
 <link rel="icon" href="/assets/logo.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link rel="stylesheet" href="/style.css">
+<style>
+.timeline{position:relative;padding-left:32px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--primary),var(--cyan),transparent)}
+.timeline-entry{position:relative;padding:0 0 32px 24px}
+.timeline-entry::before{content:'';position:absolute;left:-28px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--primary);border:3px solid var(--bg)}
+.timeline-entry h3{font-size:1rem;font-weight:600;margin-bottom:4px}
+.timeline-entry .date{font-size:.78rem;color:var(--muted);margin-bottom:8px}
+.timeline-entry ul{padding-left:16px;color:var(--muted);font-size:.85rem}
+.timeline-entry ul li{margin-bottom:4px}
+.timeline-entry ul li strong{color:var(--text)}
+</style>
 </head>
 <body>
-<header class="header">
-  <div class="container nav-container">
-    <a href="/" class="logo-area" aria-label="PulseKeep home">
-      <img src="/assets/logo.png" alt="" class="nav-logo">
-      <span class="logo-text">PulseKeep</span>
-    </a>
-    <nav class="nav-links" aria-label="Primary navigation">
+<header>
+  <div class="container">
+    <a href="/" class="logo"><img src="/assets/logo.png" alt="">PulseKeep</a>
+    <nav>
       <a href="/">Home</a>
       <a href="/commands.html">Commands</a>
       <a href="/dashboard.html">Dashboard</a>
       <a href="/status.html">Status</a>
-      <a href="/team.html">Team</a>
       <a href="/changelog.html" class="active">Changelog</a>
     </nav>
-    <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary"><i class="fa-brands fa-discord" aria-hidden="true"></i> Invite</a>
-    <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
+    <button class="mobile-toggle" id="mobile-toggle" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
   </div>
-  <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
-    <div class="mobile-nav-close"><button id="mobile-nav-close-btn" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button></div>
+  <nav class="mobile-nav" id="mobile-nav">
     <a href="/">Home</a>
     <a href="/commands.html">Commands</a>
     <a href="/dashboard.html">Dashboard</a>
     <a href="/status.html">Status</a>
-    <a href="/team.html">Team</a>
     <a href="/changelog.html">Changelog</a>
   </nav>
 </header>
 
-<main>
-  <section class="hero-small section-band">
-    <div class="hero-gradient"></div>
-    <div class="container">
-      <span class="hero-eyebrow"><i class="fa-solid fa-clock-rotate-left"></i> 10 releases - Jan to Jun 2026</span>
-      <h1 class="hero-title">Changelog</h1>
-      <p class="hero-subtitle">Every PulseKeep release, from the initial prototype to the latest economy audit and website rebuild.</p>
+<section class="section">
+  <div class="container" style="max-width:700px">
+    <div class="section-header">
+      <span class="eyebrow"><i class="fa-solid fa-clock-rotate-left"></i> Changelog</span>
+      <h2>Release history.</h2>
+      <p>Every update to PulseKeep, documented.</p>
     </div>
-  </section>
 
-  <section class="container content-section">
-    <div class="changelog-bar glass" style="padding:20px;margin-bottom:28px">
-      <div class="search-wrap">
-        <i class="fa-solid fa-search search-icon"></i>
-        <input type="text" id="changelog-search" placeholder="Search releases..." aria-label="Search changelog">
+    <div class="timeline">
+      <div class="timeline-entry">
+        <h3>v7.0.0 — TypeScript Rewrite</h3>
+        <div class="date">June 2025</div>
+        <ul>
+          <li><strong>Complete rewrite</strong> from Go to TypeScript</li>
+          <li>30+ slash commands across Economy, Moderation, Tickets, and Utility</li>
+          <li>New dashboard with per-server toggle controls</li>
+          <li>Live status page with real-time metrics</li>
+          <li>Guild toggle enforcement (economy/tickets on/off)</li>
+          <li>Command logging to database</li>
+          <li>Auto-moderation engine (spam, links, caps, keywords)</li>
+          <li>Button-based ticket system with add/remove/close/rename</li>
+        </ul>
       </div>
-      <div class="filter-group" id="changelog-filters">
-        <button class="filter-btn active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="major">Major</button>
-        <button class="filter-btn" data-filter="minor">Minor</button>
+      <div class="timeline-entry">
+        <h3>v6.2.0 — Redesign & QoL</h3>
+        <div class="date">May 2026</div>
+        <ul>
+          <li>Dashboard rebuilt with per-server sidebar navigation</li>
+          <li>New premium card accents across all pages</li>
+          <li>Economy odds buffed (gamble 55% win rate)</li>
+          <li>22 work jobs with flavor text</li>
+          <li>New shop items: Lucky Clover, XP Boost, Treasure Map</li>
+          <li>Daily/weekly streak milestones</li>
+          <li>Added /warn, /warnings, /clearwarns, /move, /vckick</li>
+          <li>Added /ticket add/remove/close/rename subcommands</li>
+          <li>Added /servericon, /roleinfo, /channelinfo, /invite</li>
+        </ul>
       </div>
     </div>
-    <div class="changelog-list" id="changelog-list"></div>
-    <div id="no-results-changelog">
-      <i class="fa-solid fa-search" style="font-size:2rem;margin-bottom:12px;opacity:0.3"></i>
-      <p>No releases match your search or filter.</p>
-    </div>
-  </section>
-</main>
+  </div>
+</section>
 
-<footer class="footer">
-  <div class="container footer-container">
-    <div class="footer-brand">
-      <span class="logo-text">PulseKeep</span>
-      <p>Version history and release notes.</p><br>
-      <span style="font-size:0.8rem;color:var(--muted)">&copy; <span id="footer-year"></span> PulseKeep. All rights reserved.</span>
-    </div>
-    <div class="footer-links">
+<footer>
+  <div class="container">
+    <span>&copy; <span id="footer-year"></span> PulseKeep</span>
+    <div class="links">
       <a href="/commands.html">Commands</a>
       <a href="/dashboard.html">Dashboard</a>
       <a href="/status.html">Status</a>
-      <a href="/team.html">Team</a>
       <a href="/changelog.html">Changelog</a>
-      <a href="/privacy.html">Privacy</a>
-      <a href="/terms.html">Terms</a>
     </div>
   </div>
 </footer>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const releases = [
-    {
-      version: 'v6.4.0', type: 'minor', date: 'June 7, 2026',
-      title: 'Massive command overhaul - guided options, safer caps, richer economy feedback',
-      changes: [
-        { kind: 'changed', text: '<strong>Slash command UX pass</strong> - added public/private toggles, wager caps, transfer caps, Discord-side length limits, and clearer choices across economy and moderation commands', highlight: true },
-        { kind: 'changed', text: '<strong>Balance/profile upgraded</strong> - /balance now shows rank tier, net worth, lifetime totals, and quick actions; /profile now includes weekly streaks and blackjack stats', highlight: true },
-        { kind: 'changed', text: '<strong>Reward commands upgraded</strong> - /daily and /weekly now show streak bonus breakdowns; /work now exposes base pay, rare bonus events, and XP Boost doubling' },
-        { kind: 'changed', text: '<strong>Fishing and mining upgraded</strong> - /fish and /mine now support public result toggles, rarity titles, rarity bonus callouts, Treasure Map doubling, and passive interest callouts' },
-        { kind: 'changed', text: '<strong>Gambling commands upgraded</strong> - /coinflip, /slots, /gamble, and /blackjack now enforce safer wager caps and show clearer payout, record, boost, and outcome details' },
-        { kind: 'changed', text: '<strong>Shop/inventory upgraded</strong> - item choices now match live shop IDs, lottery ticket tiers are selectable, and /inventory includes estimated item value' },
-        { kind: 'fixed', text: '<strong>Polls hardened</strong> - questions and options are trimmed, empty values are blocked, and duplicate options are rejected before a public poll is posted' },
-        { kind: 'fixed', text: '<strong>Command safety pass</strong> - moderation text inputs now have length limits and announce permission checks handle non-guild contexts safely' },
-      ]
-    },
-    {
-      version: 'v6.3.0', type: 'minor', date: 'June 6, 2026',
-      title: 'Dual-Tier Lottery & Economy Content Upgrade',
-      changes: [
-        { kind: 'added', text: '<strong>Dual-Tier Lottery</strong> — Separate Low (500 Pulses) and High (5,000 Pulses) tier weekly lotteries.', highlight: true },
-        { kind: 'changed', text: '<strong>/lottery</strong> — Redesigned embed to display jackpot, entries, and last winner for both tiers simultaneously.' },
-        { kind: 'added', text: '<strong>/lottery-claim</strong> — Now accepts a tier parameter to claim prizes from specific pools.' },
-        { kind: 'added', text: '<strong>/lottery-config</strong> — Owner command to independently toggle auto-draws for each tier.' },
-        { kind: 'added', text: '<strong>New Shop Items</strong> — High Lottery Ticket added to the item shop.' },
-        { kind: 'added', text: '<strong>Legendary & Mythic Drops</strong> — Added Great White Shark, Kraken Tentacle, Dragonstone, and Star Fragment to /fish and /mine.', highlight: true },
-        { kind: 'changed', text: '<strong>Dynamic Economy Embeds</strong> — /fish and /mine now feature dynamic embed colors based on the rarity of the drop, with clean markdown layouts and larger emojis.' },
-      ]
-    },
-    {
-      version: 'v6.2.0', type: 'minor', date: 'June 1, 2026',
-      title: 'Premium dashboard redesign — server grid, sidebar nav, overview cards, global card accents',
-      changes: [
-        { kind: 'changed', text: '<strong>Dashboard completely rebuilt</strong> — MEE6/Dyno-style server selection grid replaces the old sidebar guild list; per-server dashboard with icon-based sidebar navigation (Overview, Moderation, Economy, Tickets, Configuration)', highlight: true },
-        { kind: 'added', text: '<strong>Server selection grid</strong> — glass cards with bot presence badges, search bar, smooth hover animations' },
-        { kind: 'added', text: '<strong>Sidebar navigation</strong> — per-server dashboard has a 220px sidebar with section icons, active indicator, guild info header, and back-to-servers button' },
-        { kind: 'added', text: '<strong>Overview section</strong> — stats dashboard showing auto-mod status, economy, tickets, mod logs, and welcome message state at a glance; click-through to full config' },
-        { kind: 'added', text: '<strong>Split config sections</strong> — Moderation, Economy, and Tickets each have their own dedicated form panels with lazy loading; full Configuration page still available' },
-        { kind: 'changed', text: '<strong>Premium card accents</strong> — every card type (stats, features, commands, metrics, team, tech, changelog, status, legal, support, signal rows) now has a top gradient accent bar that fades in on hover' },
-        { kind: 'changed', text: '<strong>Hover animations unified</strong> — all cards use cubic-bezier(0.16, 1, 0.3, 1) easing for lift, glow, and border transitions' },
-        { kind: 'changed', text: '<strong>Changelog timeline enhanced</strong> — thicker gradient timeline, bigger node dots with glow-on-hover, richer borders' },
-        { kind: 'changed', text: '<strong>Footer updated</strong> — increased padding, darker background, hover states for links' },
-        { kind: 'changed', text: '<strong>Global CSS polish</strong> — all input fields have inner shadow; all focus states use box-shadow rings; selects use custom SVG arrows; smoother section header underlines' },
-      ]
-    },
-    {
-      version: 'v6.1.0', type: 'minor', date: 'June 1, 2026',
-      title: 'Dashboard config redesign, guild toggles, command persistence',
-      changes: [
-        { kind: 'added', text: '<strong>/tip</strong> — 20 rotating tips about economy, commands, and features', highlight: true },
-        { kind: 'added', text: '<strong>/vote</strong> — link to vote for PulseKeep on Top.gg' },
-        { kind: 'changed', text: '<strong>/stats enhanced</strong> — shows version, language, database, command count' },
-        { kind: 'added', text: '<strong>Public options</strong> — /daily, /work, /weekly, /fish, /mine now accept public: true to show off in chat' },
-        { kind: 'changed', text: '<strong>Rotating economy tips</strong> — every economy embed footer (balance, daily, shop, etc.) shows a random tip from 12 curated tips', highlight: true },
-        { kind: 'changed', text: '<strong>Better error messages</strong> — all economy errors now give specific guidance ("Use /daily, /work, or /fish to earn more")' },
-        { kind: 'added', text: '<strong>Balance in shop</strong> — /shop now shows your current balance in the embed' },
-        { kind: 'changed', text: '<strong>Daily streak progress</strong> — shows milestone progress (3/7 days → 14 → 21 → 30)' },
-        { kind: 'changed', text: '<strong>Embeds overhaul</strong> — all 40+ embeds have consistent footers, proper category colors, and better formatting' },
-        { kind: 'changed', text: '<strong>Gamble odds improved</strong> — lose on ≤35 (was ≤39), push 36-45 (refund), win 46-100 (2x-10x)', highlight: true },
-        { kind: 'changed', text: '<strong>Blackjack Easy</strong> — dealer stands on 16 (was 14), slightly more dealer busts' },
-        { kind: 'changed', text: '<strong>Rob success rate</strong> — raised from 40% to 45%' },
-        { kind: 'added', text: '<strong>Slots</strong> — 10% chance to convert a non-win into a pair match (1x payout)' },
-        { kind: 'changed', text: '<strong>Fish/Mine</strong> — 15% chance to reroll Junk, giving ~2-3% more rare+ catches' },
-        { kind: 'added', text: '<strong>New shop items</strong> — Lucky Clover (reroll one gamble loss), XP Boost (30min double earnings), Treasure Map (instant 2500-7500 Pulses)' },
-        { kind: 'added', text: '<strong>22 job titles</strong> for /work (was 6) with flavor text and rare events' },
-        { kind: 'added', text: '<strong>Streak milestones</strong> — daily/weekly messages at 7, 14, 21, 30, 50, 100 days' },
-        { kind: 'added', text: '<strong>Net worth</strong> in /profile — shows balance + inventory value' },
-        { kind: 'changed', text: '<strong>Website redesigned</strong> — glassmorphism cards, animated gradient heroes, floating shapes, glow effects, slide-in mobile nav' },
-        { kind: 'changed', text: '<strong>style.css rewritten</strong> — 440+ lines with glass utility, shimmer skeletons, smooth animations' },
-        { kind: 'added', text: '<strong>Scroll-to-top button</strong> — floating button appears after 400px scroll on every page' },
-        { kind: 'fixed', text: '<strong>Dashboard auth fix</strong> — OAuth state cookie now uses Secure=true; login link and API origin both point to Fly.io directly; human-readable auth error messages', highlight: true },
-        { kind: 'fixed', text: '<strong>Auth redirect</strong> — login URL changed to absolute Fly.io path to avoid workers.dev 404' },
-        { kind: 'changed', text: '<strong>.env.example</strong> — DISCORD_REDIRECT_URI updated to Fly.io domain' },
-        { kind: 'changed', text: '<strong>Dashboard configs redesigned</strong> — bigger toggle switches, polished input fields with glow focus, color-coded group sections, sticky save bar, hover badges on dependency-linked cards, smoother animations', highlight: true },
-        { kind: 'changed', text: '<strong>Guild toggles enforced</strong> — economy and tickets toggles now block commands at runtime (economy commands, /ticketpanel, ticket open button all respect the toggle)' },
-        { kind: 'fixed', text: '<strong>Commands now logged to DB</strong> — every slash command is inserted into the command_logs table for persistent run tracking across restarts' },
-        { kind: 'fixed', text: '<strong>command_logs migration added</strong> — the table was used by GetCommandsRunCount/IncrementCommandRun but never created' },
-        { kind: 'fixed', text: '<strong>Version bumped to v6.1.0</strong> — bot.Version and commands.PulseKeepVersion both updated from v6.0.0' },
-      ]
-    },
-    {
-      version: 'v6.0.0', type: 'major', date: 'May 30, 2026',
-      title: 'Economy audit, frontend rebuild, graceful degradation',
-      changes: [
-        { kind: 'fixed', text: '<strong>Gamble EV</strong> - 5% house edge (lose on &le;39, push on 40+; was losing on &le;60)', highlight: true },
-        { kind: 'fixed', text: '<strong>Rob shield</strong> - fine no longer transfers money to the target; shield purely blocks the robbery' },
-        { kind: 'fixed', text: '<strong>Sell refund</strong> - refund no longer added to the Earned stat', highlight: true },
-        { kind: 'fixed', text: '<strong>Inventory race</strong> - replaced RLock with full Lock in the Inventory() method' },
-        { kind: 'changed', text: '<strong>Blackjack rewritten</strong> - button-based Hit/Stand interaction with 90-second timeout cleanup goroutine' },
-        { kind: 'added', text: '<strong>Moderation guards</strong> - kick/ban reject self-targeting; announce rejects @everyone without MentionEveryone permission' },
-        { kind: 'added', text: '<strong>API OAuth CSRF protection</strong> - random state parameter stored in cookie, validated on callback' },
-        { kind: 'added', text: '<strong>API guild config permission check</strong> - ManageGuild permission verified via Discord API before read/write' },
-        { kind: 'changed', text: '<strong>Health check</strong> - always returns 200 OK; database status reported in body only (was 503 on DB failure)' },
-        { kind: 'changed', text: '<strong>Graceful degradation</strong> - log.Fatalf replaced with log.Printf in database connection, migration, and bot init; web server stays running' },
-        { kind: 'added', text: '<strong>FlushAll</strong> - saves all economy records on graceful shutdown via SIGTERM' },
-        { kind: 'fixed', text: '<strong>Inventory UPSERT</strong> - replaced DELETE+INSERT with ON CONFLICT DO UPDATE to eliminate data-loss window' },
-        { kind: 'changed', text: '<strong>Website completely rebuilt</strong> - all 11 HTML pages rewritten, style.css modernized, status page with live API polling' },
-        { kind: 'changed', text: '<strong>Dockerfile updated</strong> - Go 1.26, Alpine 3.21, added COPY web /web' },
-        { kind: 'fixed', text: '<strong>fly.toml cleaned</strong> - removed duplicate sections from bad merge (port 8080 vs 7860 conflict)' },
-      ]
-    },
-    {
-      version: 'v5.0.0', type: 'minor', date: 'May 2026',
-      title: 'API server, OAuth dashboard, status page',
-      changes: [
-        { kind: 'added', text: 'Gin-based API server with /health, /stats, and /api/dashboard endpoints' },
-        { kind: 'added', text: 'Discord OAuth2 login flow with state validation for dashboard access' },
-        { kind: 'added', text: 'Guild configuration read/write via API with ManageGuild permission check' },
-        { kind: 'added', text: 'Status page with live metrics through the Cloudflare Worker gateway' },
-        { kind: 'added', text: 'Dashboard HTML with guild selector dropdown and config form' },
-        { kind: 'changed', text: 'CORS middleware to allow cross-origin requests from Cloudflare Pages' },
-      ]
-    },
-    {
-      version: 'v4.0.0', type: 'minor', date: 'April 2026',
-      title: 'Tickets, economy items, lottery system',
-      changes: [
-        { kind: 'added', text: 'Button-based ticket panel with private channel creation and auto-close' },
-        { kind: 'added', text: 'Item shop system with buy, sell (60% refund), use, and gift commands' },
-        { kind: 'added', text: 'Weekly lottery with automatic draw and claim command' },
-        { kind: 'added', text: 'Fishing activity with 13 species across 7 rarities (requires Fishing Rod)' },
-        { kind: 'added', text: 'Mining activity with 13 ores across 7 rarities (requires Iron Pickaxe)' },
-        { kind: 'added', text: 'Inventory system with PostgreSQL-backed item persistence' },
-      ]
-    },
-    {
-      version: 'v3.0.0', type: 'minor', date: 'March 2026',
-      title: 'Economy system, blackjack, leaderboards',
-      changes: [
-        { kind: 'added', text: 'Full economy system with balances, daily rewards (streak-based), work, and pay' },
-        { kind: 'added', text: 'Blackjack game with CPU dealer and difficulty tiers' },
-        { kind: 'added', text: 'Slots machine (3-reel, up to 10x), coinflip (50/50), and gamble (1-100 roll) commands' },
-        { kind: 'added', text: 'Robbery system with shield protection item and 4-hour cooldown' },
-        { kind: 'added', text: 'Leaderboard command (/rich) with top-10 rankings and rank badges' },
-        { kind: 'added', text: 'Passive 0.1% interest applied every 6 hours on wallet balances' },
-      ]
-    },
-    {
-      version: 'v2.0.0', type: 'minor', date: 'February 2026',
-      title: 'Moderation toolkit, audit logging, command framework',
-      changes: [
-        { kind: 'added', text: 'Slash command framework with Discord-native permission checks and error messages' },
-        { kind: 'added', text: 'Purge, kick, ban, unban, timeout, nick, and slowmode moderation commands' },
-        { kind: 'added', text: 'Channel lock/unlock, embedded announce, and role management commands' },
-        { kind: 'added', text: 'Audit logging system - sends formatted logs to a designated log channel' },
-        { kind: 'added', text: 'Serverinfo, userinfo, avatar, and poll utility commands' },
-      ]
-    },
-    {
-      version: 'v1.0.0', type: 'major', date: 'January 2026',
-      title: 'Initial release',
-      changes: [
-        { kind: 'added', text: 'Basic ping, help, and about commands for gateway verification' },
-        { kind: 'added', text: 'PostgreSQL database layer with automated migration system (Drizzle schema)' },
-        { kind: 'added', text: 'Dockerized deployment pipeline targeting production hosting with multi-stage build' },
-        { kind: 'added', text: 'Thread-safe in-memory cache for live guild/user/command counters' },
-        { kind: 'added', text: 'Graceful shutdown handling for SIGTERM (clean disconnect from Discord gateway)' },
-      ]
-    }
-  ];
-
-  const container = document.getElementById('changelog-list');
-  const searchInput = document.getElementById('changelog-search');
-  const noResults = document.getElementById('no-results-changelog');
-  const filterBtns = document.querySelectorAll('#changelog-filters .filter-btn');
-  const footerYear = document.getElementById('footer-year');
-
-  let filterType = 'all';
-  let searchQuery = '';
-
-  const icons = { added: 'fa-plus-circle', fixed: 'fa-check-circle', changed: 'fa-arrow-right-arrow-left', removed: 'fa-circle-minus', security: 'fa-shield' };
-
-  function render() {
-    const q = searchQuery.toLowerCase().trim();
-    const filtered = releases.filter(r => {
-      if (filterType !== 'all' && r.type !== filterType) return false;
-      if (q && !r.version.toLowerCase().includes(q) && !r.title.toLowerCase().includes(q) && !r.changes.some(c => c.text.toLowerCase().includes(q))) return false;
-      return true;
-    });
-
-    if (!filtered.length) { container.innerHTML = ''; noResults.style.display = ''; return; }
-    noResults.style.display = 'none';
-
-    container.innerHTML = filtered.map(r => {
-      const changesHtml = r.changes.map(c => {
-        const cls = c.kind + (c.highlight ? ' highlight' : '');
-        return '<li class="' + cls + '"><span class="li-icon"><i class="fa-solid ' + (icons[c.kind] || 'fa-circle') + '"></i></span><span>' + c.text + '</span></li>';
-      }).join('');
-      return '<article class="changelog-entry ' + r.type + '">' +
-        '<div class="changelog-card">' +
-        '<div class="changelog-header">' +
-        '<div class="changelog-version-tag"><span class="version-badge ' + r.type + '">' + r.version + '</span></div>' +
-        '<span class="changelog-date">' + r.date + '</span>' +
-        '</div>' +
-        '<h2>' + r.title + '</h2>' +
-        '<ul>' + changesHtml + '</ul>' +
-        '</div></article>';
-    }).join('');
-  }
-
-  searchInput.addEventListener('input', () => { searchQuery = searchInput.value; render(); });
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      filterType = btn.dataset.filter;
-      render();
-    });
-  });
-
-  document.addEventListener('keydown', e => {
-    if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
-      e.preventDefault();
-      searchInput.focus();
-    }
-    if (e.key === 'Escape' && document.activeElement === searchInput) searchInput.blur();
-  });
-
-  if (footerYear) footerYear.textContent = new Date().getFullYear().toString();
-  render();
-});
-</script>
-<button class="scroll-top" id="scroll-top" aria-label="Scroll to top"><i class="fa-solid fa-chevron-up"></i></button>
-<script>!function(){var b=document.getElementById('scroll-top');if(b){window.addEventListener('scroll',function(){b.classList.toggle('visible',window.scrollY>400)});b.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})})}}();</script>
-<script>!function(){var t=document.getElementById('mobile-menu-toggle'),n=document.getElementById('mobile-nav'),c=document.getElementById('mobile-nav-close-btn');t&&n&&(t.addEventListener('click',function(){n.classList.toggle('open');t.setAttribute('aria-expanded',n.classList.contains('open'))}),c&&c.addEventListener('click',function(){n.classList.remove('open');t.setAttribute('aria-expanded','false')}),document.addEventListener('click',function(e){!n.contains(e.target)&&!t.contains(e.target)&&n.classList.contains('open')&&(n.classList.remove('open'),t.setAttribute('aria-expanded','false'))}))}();</script>
+<script>window.API_BASE='https://pulsekeep.fly.dev'</script>
+<script src="/app.js"></script>
 </body>
 </html>

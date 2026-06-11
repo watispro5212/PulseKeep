@@ -14,6 +14,7 @@ import { inventoryCommand } from './inventory.js';
 import { leaderboardCommand } from './leaderboard.js';
 import { tipCommand } from './tip.js';
 import { voteCommand } from './vote.js';
+import { payCommand } from './pay.js';
 
 export const economyCommands = [
   balanceCommand,
@@ -32,4 +33,5 @@ export const economyCommands = [
   leaderboardCommand,
   tipCommand,
   voteCommand,
+  payCommand,
 ];

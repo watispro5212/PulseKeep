@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Status - PulseKeep</title>
-<meta name="description" content="Live PulseKeep bot, database, and API status.">
-<meta name="theme-color" content="#070a14">
+<title>Status — PulseKeep</title>
+<meta name="theme-color" content="#7c5cfc">
 <link rel="icon" href="/assets/logo.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,216 +13,73 @@
 <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<header class="header">
-  <div class="container nav-container">
-    <a href="/" class="logo-area" aria-label="PulseKeep home">
-      <img src="/assets/logo.png" alt="" class="nav-logo">
-      <span class="logo-text">PulseKeep</span>
-    </a>
-    <nav class="nav-links" aria-label="Primary navigation">
+<header>
+  <div class="container">
+    <a href="/" class="logo"><img src="/assets/logo.png" alt="">PulseKeep</a>
+    <nav>
       <a href="/">Home</a>
       <a href="/commands.html">Commands</a>
       <a href="/dashboard.html">Dashboard</a>
       <a href="/status.html" class="active">Status</a>
-      <a href="/team.html">Team</a>
-      <a href="/changelog.html">Changelog</a>
     </nav>
-    <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary"><i class="fa-brands fa-discord" aria-hidden="true"></i> Invite</a>
-    <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
+    <button class="mobile-toggle" id="mobile-toggle" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
   </div>
-  <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
-    <div class="mobile-nav-close"><button id="mobile-nav-close-btn" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button></div>
+  <nav class="mobile-nav" id="mobile-nav">
     <a href="/">Home</a>
     <a href="/commands.html">Commands</a>
     <a href="/dashboard.html">Dashboard</a>
     <a href="/status.html">Status</a>
-    <a href="/team.html">Team</a>
-    <a href="/changelog.html">Changelog</a>
   </nav>
 </header>
 
-<main>
-  <section class="hero-small section-band">
-    <div class="hero-gradient"></div>
-    <div class="container">
-      <span class="hero-eyebrow"><i class="fa-solid fa-heart-pulse"></i> Live service status</span>
-      <h1 class="hero-title">Status center</h1>
-      <p class="hero-subtitle">Live health, runtime, database, and command metrics are checked through the Cloudflare Worker gateway.</p>
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="eyebrow"><i class="fa-solid fa-heart-pulse"></i> Live Status</span>
+      <h2>Service health.</h2>
+      <p>Real-time status of all PulseKeep services.</p>
     </div>
-  </section>
-
-  <section class="container content-section">
-    <div class="status-board">
-      <div class="status-row">
-        <div class="status-badge online" id="bot-status-badge">
-          <span class="pulse-dot" aria-hidden="true"></span>
-          <span class="badge-text" data-status-text>Checking service...</span>
-        </div>
-        <div class="status-controls">
-          <button class="btn btn-sm" id="btn-refresh" type="button"><i class="fa-solid fa-rotate"></i> Refresh</button>
-        </div>
-        <span class="status-updated" id="status-updated"></span>
+    <div class="status-grid">
+      <div class="status-card">
+        <h3><span class="dot dot-green" id="st-bot"></span> Discord Bot</h3>
+        <p id="st-bot-text">Checking...</p>
       </div>
-      <div id="status-error" class="status-error" style="display:none"></div>
-      <div class="status-metrics" id="status-metrics"></div>
-      <div class="status-footer">
-        <div class="response-sparkline-wrap">
-          <span class="sparkline-label">Response trend</span>
-          <div class="sparkline" id="sparkline"></div>
-        </div>
-        <div class="status-footer-info">
-          <span id="uptime-tracking"></span>
-          <span id="poll-count"></span>
-        </div>
+      <div class="status-card">
+        <h3><span class="dot dot-green" id="st-api"></span> API Server</h3>
+        <p id="st-api-text">Checking...</p>
+      </div>
+      <div class="status-card">
+        <h3><span class="dot dot-green" id="st-db"></span> Database</h3>
+        <p id="st-db-text">Checking...</p>
+      </div>
+      <div class="status-card">
+        <h3><span class="dot dot-amber" id="st-latency"></span> Avg Latency</h3>
+        <p id="st-latency-text">--</p>
       </div>
     </div>
-  </section>
-</main>
-
-<footer class="footer">
-  <div class="container footer-container">
-    <div class="footer-brand">
-      <span class="logo-text">PulseKeep</span>
-      <p>Live bot status and API metrics.</p><br>
-      <span style="font-size:0.8rem;color:var(--muted)">&copy; <span id="footer-year"></span> PulseKeep. All rights reserved.</span>
+    <div class="stats-bar mt-3" id="stats-bar">
+      <div class="stat-item"><i class="fa-solid fa-server"></i><strong id="stat-servers">--</strong><span>Servers</span></div>
+      <div class="stat-item"><i class="fa-solid fa-users"></i><strong id="stat-users">--</strong><span>Users</span></div>
+      <div class="stat-item"><i class="fa-solid fa-bolt"></i><strong id="stat-commands">--</strong><span>Commands Run</span></div>
+      <div class="stat-item"><i class="fa-solid fa-clock"></i><strong id="stat-uptime">--</strong><span>Uptime</span></div>
     </div>
-    <div class="footer-links">
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <span>&copy; <span id="footer-year"></span> PulseKeep</span>
+    <div class="links">
       <a href="/commands.html">Commands</a>
       <a href="/dashboard.html">Dashboard</a>
-      <a href="/team.html">Team</a>
-      <a href="/changelog.html">Changelog</a>
+      <a href="/status.html">Status</a>
       <a href="/privacy.html">Privacy</a>
       <a href="/terms.html">Terms</a>
     </div>
   </div>
 </footer>
 
+<script>window.API_BASE='https://pulsekeep.fly.dev'</script>
 <script src="/app.js"></script>
-<script>
-(function () {
-  const INTERVAL = 30000;
-  const metrics = document.getElementById('status-metrics');
-  const badge = document.getElementById('bot-status-badge');
-  const badgeText = badge.querySelector('.badge-text');
-  const updated = document.getElementById('status-updated');
-  const errorDiv = document.getElementById('status-error');
-  const sparklineEl = document.getElementById('sparkline');
-  const uptimeTracking = document.getElementById('uptime-tracking');
-  const pollCount = document.getElementById('poll-count');
-  const latencies = [];
-  let healthyPolls = 0;
-  let totalPolls = 0;
-
-  const cards = [
-    { key: 'status', label: 'API', icon: 'fa-heart-pulse', cls: 'green' },
-    { key: 'database', label: 'Database', icon: 'fa-database', cls: 'green' },
-    { key: 'servers', label: 'Guilds', icon: 'fa-server' },
-    { key: 'users', label: 'Users', icon: 'fa-users' },
-    { key: 'commands', label: 'Commands run', icon: 'fa-bolt' },
-    { key: 'uptime', label: 'API uptime', icon: 'fa-clock' },
-    { key: 'bot_uptime', label: 'Bot uptime', icon: 'fa-robot', cls: 'cyan' },
-    { key: 'response', label: 'Response time', icon: 'fa-gauge-high' },
-    { key: 'version', label: 'Version', icon: 'fa-code-branch' },
-    { key: 'memory', label: 'Memory', icon: 'fa-microchip', cls: 'amber' },
-    { key: 'goroutines', label: 'Goroutines', icon: 'fa-tasks' },
-    { key: 'runtime', label: 'Runtime', icon: 'fa-cloud', cls: 'cyan' },
-  ];
-
-  function setStatus(state, msg) {
-    badge.className = 'status-badge ' + state;
-    badgeText.textContent = msg;
-  }
-
-  function renderSkeleton() {
-    metrics.innerHTML = cards.map(function (card) {
-      return '<article class="metric-card skeleton"><div class="metric-icon"><i class="fa-solid ' + card.icon + '"></i></div><span class="stat-label">' + card.label + '</span><strong class="stat-value">--</strong></article>';
-    }).join('');
-  }
-
-  function renderSparkline() {
-    if (!latencies.length) return;
-    const max = Math.max.apply(null, latencies.concat([1]));
-    const w = 200;
-    const h = 40;
-    const step = (w - 4) / Math.max(latencies.length - 1, 1);
-    const points = latencies.map(function (value, index) {
-      const x = 2 + index * step;
-      const y = h - 2 - ((value / max) * 36);
-      return x + ',' + y;
-    }).join(' ');
-    sparklineEl.innerHTML = '<svg viewBox="0 0 200 40" preserveAspectRatio="none" style="width:100%;height:100%"><polyline points="' + points + '" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="' + points + '" fill="none" stroke="var(--primary)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".14"/></svg>';
-  }
-
-  function valueHtml(data, responseMs) {
-    const dbOk = data.database === 'ok';
-    return {
-      status: data.status === 'ok' ? '<span style="color:var(--green)">Healthy</span>' : '<span style="color:var(--rose)">' + (data.status || 'Unknown') + '</span>',
-      database: dbOk ? '<span style="color:var(--green)">Connected</span>' : '<span style="color:var(--rose)">' + (data.database || 'Unavailable') + '</span>',
-      servers: Number(data.servers || 0).toLocaleString(),
-      users: Number(data.users || 0).toLocaleString(),
-      commands: Number(data.commands || data.commands_run || 0).toLocaleString(),
-      uptime: data.uptime || '--',
-      bot_uptime: data.bot_uptime || '--',
-      response: responseMs + ' ms',
-      version: data.version || 'v6.4.0',
-      memory: data.memory_mb ? Number(data.memory_mb).toFixed(1) + ' MB' : '--',
-      goroutines: data.goroutines != null ? Number(data.goroutines).toLocaleString() : '--',
-      runtime: data.go_version || '--',
-    };
-  }
-
-  function renderCards(data, responseMs) {
-    const vals = valueHtml(data, responseMs);
-    metrics.innerHTML = cards.map(function (card) {
-      return '<article class="metric-card"><div class="metric-icon ' + (card.cls || '') + '"><i class="fa-solid ' + card.icon + '"></i></div><span class="stat-label">' + card.label + '</span><strong class="stat-value">' + (vals[card.key] || '--') + '</strong></article>';
-    }).join('');
-  }
-
-  async function fetchStatus() {
-    const started = performance.now();
-    totalPolls++;
-    try {
-      const healthResp = await fetch('/health', { headers: { Accept: 'application/json' }, cache: 'no-store' });
-      const health = await healthResp.json().catch(function () { return {}; });
-      if (!healthResp.ok) {
-        const details = health.error ? ': ' + health.error : '';
-        throw Object.assign(new Error('Health returned HTTP ' + healthResp.status + details), { health: health });
-      }
-      const ms = Math.round(performance.now() - started);
-      latencies.push(ms);
-      if (latencies.length > 40) latencies.shift();
-
-      const botOnline = health.bot_uptime && health.bot_uptime !== 'unknown' && health.bot_uptime !== 'N/A';
-      const healthy = health.status === 'ok' && health.database === 'ok' && botOnline;
-      healthyPolls += healthy ? 1 : 0;
-      setStatus(healthy ? 'online' : 'degraded', healthy ? 'All systems online' : 'Service degraded');
-      renderCards(health, ms);
-      renderSparkline();
-      errorDiv.style.display = 'none';
-      updated.textContent = 'Updated ' + new Date().toLocaleTimeString();
-    } catch (error) {
-      setStatus('offline', 'Service unreachable');
-      const fallback = error.health || { status: 'offline', database: 'unavailable', servers: 0, users: 0, commands: 0, uptime: 'unknown', bot_uptime: 'unknown', go_version: 'unknown' };
-      renderCards(fallback, Math.round(performance.now() - started));
-      renderSparkline();
-      errorDiv.textContent = error.message || 'Status request failed.';
-      errorDiv.style.display = '';
-      updated.textContent = 'Last attempt ' + new Date().toLocaleTimeString();
-    }
-
-    const pct = totalPolls ? Math.round((healthyPolls / totalPolls) * 100) : 100;
-    uptimeTracking.textContent = 'Session uptime: ' + pct + '%';
-    pollCount.textContent = 'Polls: ' + totalPolls;
-  }
-
-  document.getElementById('btn-refresh').addEventListener('click', fetchStatus);
-  renderSkeleton();
-  fetchStatus();
-  setInterval(fetchStatus, INTERVAL);
-})();
-</script>
-<button class="scroll-top" id="scroll-top" aria-label="Scroll to top"><i class="fa-solid fa-chevron-up"></i></button>
-<script>!function(){var b=document.getElementById('scroll-top');if(b){window.addEventListener('scroll',function(){b.classList.toggle('visible',window.scrollY>400)});b.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})})}}();</script>
-<script>!function(){var t=document.getElementById('mobile-menu-toggle'),n=document.getElementById('mobile-nav'),c=document.getElementById('mobile-nav-close-btn');t&&n&&(t.addEventListener('click',function(){n.classList.toggle('open');t.setAttribute('aria-expanded',n.classList.contains('open'))}),c&&c.addEventListener('click',function(){n.classList.remove('open');t.setAttribute('aria-expanded','false')}),document.addEventListener('click',function(e){!n.contains(e.target)&&!t.contains(e.target)&&n.classList.contains('open')&&(n.classList.remove('open'),t.setAttribute('aria-expanded','false'))}))}();</script>
 </body>
 </html>

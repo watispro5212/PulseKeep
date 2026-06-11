@@ -2,7 +2,6 @@
 .gitignore
 .vscode
 node_modules
-src
 *.md
-Dockerfile
 wrangler.toml
+legacy

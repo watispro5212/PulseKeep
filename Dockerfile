@@ -1,24 +1,27 @@
-FROM golang:1.26-alpine AS builder
-
-RUN apk add --no-cache git ca-certificates
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download
+COPY package.json package-lock.json ./
+RUN npm ci --include=dev
 
-COPY . .
+COPY tsconfig.json ./
+COPY src/ src/
+RUN npx tsc
 
-RUN CGO_ENABLED=0 go build -o /app/pulsekeep ./cmd/pulsekeep
-
-FROM alpine:3.21
+FROM node:22-alpine
 
 RUN apk add --no-cache ca-certificates tzdata
 
-COPY --from=builder /app/pulsekeep /pulsekeep
-COPY web /web
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+COPY --from=builder /app/dist/ dist/
+COPY web/ web/
 
 EXPOSE 8080
 ENV PORT=8080
 
-ENTRYPOINT ["/pulsekeep"]
+CMD ["node", "dist/index.js"]
