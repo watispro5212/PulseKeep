@@ -16,7 +16,7 @@ export const banCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     const target = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
     const days = interaction.options.getInteger('days') ?? 0;
@@ -42,9 +42,21 @@ export const banCommand: SlashCommand = {
           { name: 'Moderator', value: `${interaction.user}`, inline: true },
         )
         .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+
+      const log = new EmbedBuilder()
+        .setTitle('Moderation: Ban')
+        .setDescription(`**${target.tag}** was banned by ${interaction.user}`)
+        .addFields(
+          { name: 'Reason', value: reason },
+          { name: 'User ID', value: target.id, inline: true },
+          { name: 'Deleted Days', value: `${days}`, inline: true },
+        )
+        .setColor(Colors.Moderation)
+        .setTimestamp();
+      bot.logToChannel(interaction.guildId!, log);
     } catch {
-      await interaction.reply({ content: '❌ Failed to ban that user.', ephemeral: true });
+      await interaction.reply({ content: '❌ Failed to ban that user.', flags: 64 });
     }
   },
 };

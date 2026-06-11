@@ -16,7 +16,7 @@ export const payCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -25,11 +25,11 @@ export const payCommand: SlashCommand = {
     const amount = interaction.options.getInteger('amount', true);
 
     if (recipient.id === senderId) {
-      await interaction.reply({ content: '❌ You cannot pay yourself.', ephemeral: true });
+      await interaction.reply({ content: '❌ You cannot pay yourself.', flags: 64 });
       return;
     }
     if (recipient.bot) {
-      await interaction.reply({ content: '❌ You cannot pay a bot.', ephemeral: true });
+      await interaction.reply({ content: '❌ You cannot pay a bot.', flags: 64 });
       return;
     }
 
@@ -40,7 +40,7 @@ export const payCommand: SlashCommand = {
       .limit(1);
     const sender = senderRows[0];
     if (!sender || sender.balance < amount) {
-      await interaction.reply({ content: '❌ You don\'t have enough Pulses.', ephemeral: true });
+      await interaction.reply({ content: '❌ You don\'t have enough Pulses.', flags: 64 });
       return;
     }
 
@@ -82,6 +82,6 @@ export const payCommand: SlashCommand = {
       )
       .setColor(Colors.Economy);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

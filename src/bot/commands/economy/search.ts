@@ -3,12 +3,12 @@ import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
 import { userEconomy } from '../../../db/schema.js';
 import { eq } from 'drizzle-orm';
-import { COOLDOWNS, WORK_JOBS, WORK_FLAVOR, hasXpBoost, applyXpBoost } from '../../economy/store.js';
+import { search, hasXpBoost, applyXpBoost } from '../../economy/store.js';
 
-export const workCommand: SlashCommand = {
+export const searchCommand: SlashCommand = {
   data: new SlashCommandBuilder()
-    .setName('work')
-    .setDescription('Work to earn Pulses')
+    .setName('search')
+    .setDescription('Search for hidden Pulses around town')
     .addBooleanOption((o) => o.setName('public').setDescription('Show publicly'))
     .toJSON(),
 
@@ -19,8 +19,6 @@ export const workCommand: SlashCommand = {
     }
 
     const userId = interaction.user.id;
-    const now = new Date();
-
     const rows = await db
       .select()
       .from(userEconomy)
@@ -28,20 +26,8 @@ export const workCommand: SlashCommand = {
       .limit(1);
 
     const rec = rows[0];
-
-    if (rec?.lastWork) {
-      const elapsed = now.getTime() - new Date(rec.lastWork).getTime();
-      if (elapsed < COOLDOWNS.work) {
-        const remaining = Math.ceil((COOLDOWNS.work - elapsed) / 60000);
-        await interaction.reply({ content: `⏳ You're tired! Come back in **${remaining}m**.`, flags: 64 });
-        return;
-      }
-    }
-
-    const job = WORK_JOBS[Math.floor(Math.random() * WORK_JOBS.length)]!;
-    const earned = job.pay[0]! + Math.floor(Math.random() * (job.pay[1]! - job.pay[0]!));
-    const boosted = hasXpBoost(rec) ? applyXpBoost(earned, rec) : earned;
-    const flavor = WORK_FLAVOR[Math.floor(Math.random() * WORK_FLAVOR.length)];
+    const { name, value } = search();
+    const boosted = hasXpBoost(rec) ? applyXpBoost(value, rec) : value;
     const ephemeral = !interaction.options.getBoolean('public');
 
     if (rec) {
@@ -49,7 +35,6 @@ export const workCommand: SlashCommand = {
         .update(userEconomy)
         .set({
           balance: rec.balance + boosted,
-          lastWork: now,
           totalEarned: (rec.totalEarned ?? 0) + boosted,
           transactions: (rec.transactions ?? 0) + 1,
         })
@@ -57,16 +42,16 @@ export const workCommand: SlashCommand = {
     } else {
       await db
         .insert(userEconomy)
-        .values({ userId, balance: boosted, lastWork: now, totalEarned: boosted, transactions: 1 });
+        .values({ userId, balance: boosted, totalEarned: boosted, transactions: 1 });
     }
 
-    const titleDesc = boosted !== earned
-      ? `⚡ XP Boost active! You ${flavor} **${boosted.toLocaleString()}** Pulses (${earned.toLocaleString()} ×2)!`
-      : `You ${flavor} **${boosted.toLocaleString()}** Pulses!`;
+    const desc = boosted !== value
+      ? `⚡ XP Boost! You searched **${name}** and found **${boosted.toLocaleString()}** Pulses (${value.toLocaleString()} ×2)!`
+      : `You searched **${name}** and found **${boosted.toLocaleString()}** Pulses!`;
 
     const emb = new EmbedBuilder()
-      .setTitle(`💼 ${job.title}`)
-      .setDescription(titleDesc)
+      .setTitle('🔍 Search')
+      .setDescription(desc)
       .setColor(Colors.Economy);
 
     await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral });

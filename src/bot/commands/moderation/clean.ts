@@ -30,11 +30,11 @@ export const cleanCommand: SlashCommand = {
 
     const channel = interaction.channel;
     if (!channel || !channel.isTextBased()) {
-      await interaction.reply({ content: 'This command can only be used in a text channel.', ephemeral: true });
+      await interaction.reply({ content: 'This command can only be used in a text channel.', flags: 64 });
       return;
     }
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: 64 });
 
     try {
       const messages = await channel.messages.fetch({ limit: amount });

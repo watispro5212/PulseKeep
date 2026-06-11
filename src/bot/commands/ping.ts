@@ -19,7 +19,7 @@ export const pingCommand: SlashCommand = {
         color: Colors.Utility,
         timestamp: new Date().toISOString(),
       }],
-      ephemeral: true,
+      flags: 64,
     });
   },
 };

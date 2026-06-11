@@ -20,7 +20,7 @@ export const purgeCommand: SlashCommand = {
     const amount = interaction.options.getInteger('amount', true);
     const channel = interaction.channel;
     if (!channel || !channel.isTextBased()) {
-      await interaction.reply({ content: 'This command can only be used in a text channel.', ephemeral: true });
+      await interaction.reply({ content: 'This command can only be used in a text channel.', flags: 64 });
       return;
     }
 
@@ -30,9 +30,9 @@ export const purgeCommand: SlashCommand = {
         .setTitle('Messages Purged')
         .setDescription(`Deleted **${messages.size}** messages in ${channel}.`)
         .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
     } catch {
-      await interaction.reply({ content: '❌ Failed to purge messages. Messages may be too old (older than 14 days).', ephemeral: true });
+      await interaction.reply({ content: '❌ Failed to purge messages. Messages may be too old (older than 14 days).', flags: 64 });
     }
   },
 };

@@ -1,10 +1,12 @@
 import type { Cache } from '../cache/index.js';
 import type { Bot } from './client.js';
+import type { Config } from '../config.js';
 
 export interface CommandContext {
   bot: Bot;
   cache: Cache;
   db: any;
+  config: Config;
 }
 
 export interface SlashCommand {

@@ -3,7 +3,7 @@ import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
 import { userEconomy, userInventory } from '../../../db/schema.js';
 import { eq, and } from 'drizzle-orm';
-import { COOLDOWNS, mine } from '../../economy/store.js';
+import { COOLDOWNS, mine, hasXpBoost, applyXpBoost } from '../../economy/store.js';
 
 export const mineCommand: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -14,7 +14,7 @@ export const mineCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -27,7 +27,7 @@ export const mineCommand: SlashCommand = {
       .limit(1);
 
     if (inv.length === 0) {
-      await interaction.reply({ content: '❌ You need a **Mining Pick**! Buy one from /shop.', ephemeral: true });
+      await interaction.reply({ content: '❌ You need a **Mining Pick**! Buy one from /shop.', flags: 64 });
       return;
     }
 
@@ -42,33 +42,38 @@ export const mineCommand: SlashCommand = {
     if (rec?.lastMine) {
       const elapsed = now.getTime() - new Date(rec.lastMine).getTime();
       if (elapsed < COOLDOWNS.mine) {
-        await interaction.reply({ content: '⏳ Wait a moment before mining again.', ephemeral: true });
+        await interaction.reply({ content: '⏳ Wait a moment before mining again.', flags: 64 });
         return;
       }
     }
 
     const { name, value } = mine();
+    const boosted = hasXpBoost(rec) ? applyXpBoost(value, rec) : value;
     const ephemeral = !interaction.options.getBoolean('public');
 
     if (rec) {
       await db
         .update(userEconomy)
         .set({
-          balance: rec.balance + value,
+          balance: rec.balance + boosted,
           lastMine: now,
-          totalEarned: (rec.totalEarned ?? 0) + value,
+          totalEarned: (rec.totalEarned ?? 0) + boosted,
           transactions: (rec.transactions ?? 0) + 1,
         })
         .where(eq(userEconomy.userId, userId));
     } else {
       await db
         .insert(userEconomy)
-        .values({ userId, balance: value, lastMine: now, totalEarned: value, transactions: 1 });
+        .values({ userId, balance: boosted, lastMine: now, totalEarned: boosted, transactions: 1 });
     }
+
+    const desc = boosted !== value
+      ? `⚡ XP Boost! You found **${name}** worth **${boosted.toLocaleString()}** Pulses (${value.toLocaleString()} ×2)!`
+      : `You found **${name}** worth **${boosted.toLocaleString()}** Pulses!`;
 
     const emb = new EmbedBuilder()
       .setTitle('⛏️ Mining')
-      .setDescription(`You found **${name}** worth **${value.toLocaleString()}** Pulses!`)
+      .setDescription(desc)
       .setColor(Colors.Economy);
 
     await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral });

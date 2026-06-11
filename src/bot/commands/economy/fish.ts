@@ -3,7 +3,7 @@ import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
 import { userEconomy, userInventory } from '../../../db/schema.js';
 import { eq, and } from 'drizzle-orm';
-import { COOLDOWNS, fish } from '../../economy/store.js';
+import { COOLDOWNS, fish, hasXpBoost, applyXpBoost } from '../../economy/store.js';
 
 export const fishCommand: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -14,7 +14,7 @@ export const fishCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -27,7 +27,7 @@ export const fishCommand: SlashCommand = {
       .limit(1);
 
     if (inv.length === 0) {
-      await interaction.reply({ content: '❌ You need a **Fishing Rod**! Buy one from /shop.', ephemeral: true });
+      await interaction.reply({ content: '❌ You need a **Fishing Rod**! Buy one from /shop.', flags: 64 });
       return;
     }
 
@@ -42,33 +42,38 @@ export const fishCommand: SlashCommand = {
     if (rec?.lastFish) {
       const elapsed = now.getTime() - new Date(rec.lastFish).getTime();
       if (elapsed < COOLDOWNS.fish) {
-        await interaction.reply({ content: '⏳ Wait a moment before fishing again.', ephemeral: true });
+        await interaction.reply({ content: '⏳ Wait a moment before fishing again.', flags: 64 });
         return;
       }
     }
 
     const { name, value } = fish();
+    const boosted = hasXpBoost(rec) ? applyXpBoost(value, rec) : value;
     const ephemeral = !interaction.options.getBoolean('public');
 
     if (rec) {
       await db
         .update(userEconomy)
         .set({
-          balance: rec.balance + value,
+          balance: rec.balance + boosted,
           lastFish: now,
-          totalEarned: (rec.totalEarned ?? 0) + value,
+          totalEarned: (rec.totalEarned ?? 0) + boosted,
           transactions: (rec.transactions ?? 0) + 1,
         })
         .where(eq(userEconomy.userId, userId));
     } else {
       await db
         .insert(userEconomy)
-        .values({ userId, balance: value, lastFish: now, totalEarned: value, transactions: 1 });
+        .values({ userId, balance: boosted, lastFish: now, totalEarned: boosted, transactions: 1 });
     }
+
+    const desc = boosted !== value
+      ? `⚡ XP Boost! You caught a **${name}** worth **${boosted.toLocaleString()}** Pulses (${value.toLocaleString()} ×2)!`
+      : `You caught a **${name}** worth **${boosted.toLocaleString()}** Pulses!`;
 
     const emb = new EmbedBuilder()
       .setTitle('🎣 Fishing')
-      .setDescription(`You caught a **${name}** worth **${value.toLocaleString()}** Pulses!`)
+      .setDescription(desc)
       .setColor(Colors.Economy);
 
     await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral });

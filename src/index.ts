@@ -17,7 +17,7 @@ async function main() {
   const database = connect(cfg.databaseURL);
   const memCache = new Cache();
 
-  const discordBot = new Bot(cfg.discordToken, memCache, database, cfg.statusWebhookURL);
+  const discordBot = new Bot(cfg.discordToken, memCache, database, cfg.statusWebhookURL, cfg);
 
   for (const cmd of commands) {
     discordBot.registerCommand(cmd);
@@ -30,7 +30,7 @@ async function main() {
     console.log('Bot disabled; API server will run standalone.');
   }
 
-  const server = new ApiServer(cfg, database, memCache);
+  const server = new ApiServer(cfg, database, memCache, discordBot);
   server.start();
 
   console.log('PulseKeep is running.');

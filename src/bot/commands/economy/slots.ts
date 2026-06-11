@@ -16,7 +16,7 @@ export const slotsCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -31,7 +31,7 @@ export const slotsCommand: SlashCommand = {
 
     const rec = rows[0];
     if (!rec || rec.balance < bet) {
-      await interaction.reply({ content: '❌ You don\'t have enough Pulses.', ephemeral: true });
+      await interaction.reply({ content: '❌ You don\'t have enough Pulses.', flags: 64 });
       return;
     }
 
@@ -69,6 +69,6 @@ export const slotsCommand: SlashCommand = {
       .addFields({ name: 'New Balance', value: `💰 ${newBalance.toLocaleString()}`, inline: true })
       .setColor(color);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

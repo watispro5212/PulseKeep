@@ -30,7 +30,7 @@ export const blackjackCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -45,7 +45,7 @@ export const blackjackCommand: SlashCommand = {
 
     const rec = rows[0];
     if (!rec || rec.balance < bet) {
-      await interaction.reply({ content: '❌ You don\'t have enough Pulses.', ephemeral: true });
+      await interaction.reply({ content: '❌ You don\'t have enough Pulses.', flags: 64 });
       return;
     }
 
@@ -114,6 +114,6 @@ export const blackjackCommand: SlashCommand = {
       )
       .setColor(change >= 0 ? Colors.Economy : Colors.Error);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

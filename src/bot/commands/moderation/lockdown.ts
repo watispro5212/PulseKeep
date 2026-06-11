@@ -17,7 +17,7 @@ export const lockCommand: SlashCommand = {
   async execute(_ctx, interaction) {
     const channel = interaction.channel;
     if (!channel || !('permissionOverwrites' in channel)) {
-      await interaction.reply({ content: 'This channel cannot be locked.', ephemeral: true });
+      await interaction.reply({ content: 'This channel cannot be locked.', flags: 64 });
       return;
     }
 
@@ -31,7 +31,7 @@ export const lockCommand: SlashCommand = {
         .setColor(Colors.Moderation);
       await interaction.reply({ embeds: [footer(timestamp(emb))] });
     } catch {
-      await interaction.reply({ content: '❌ Failed to lock channel.', ephemeral: true });
+      await interaction.reply({ content: '❌ Failed to lock channel.', flags: 64 });
     }
   },
 };
@@ -46,7 +46,7 @@ export const unlockCommand: SlashCommand = {
   async execute(_ctx, interaction) {
     const channel = interaction.channel;
     if (!channel || !('permissionOverwrites' in channel)) {
-      await interaction.reply({ content: 'This channel cannot be unlocked.', ephemeral: true });
+      await interaction.reply({ content: 'This channel cannot be unlocked.', flags: 64 });
       return;
     }
 
@@ -60,7 +60,7 @@ export const unlockCommand: SlashCommand = {
         .setColor(Colors.Moderation);
       await interaction.reply({ embeds: [footer(timestamp(emb))] });
     } catch {
-      await interaction.reply({ content: '❌ Failed to unlock channel.', ephemeral: true });
+      await interaction.reply({ content: '❌ Failed to unlock channel.', flags: 64 });
     }
   },
 };

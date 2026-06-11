@@ -33,13 +33,21 @@ export const configureCommand: SlashCommand = {
         .addChannelOption((o) => o.setName('category').setDescription('The category for tickets').setRequired(true)),
     )
     .addSubcommand((s) =>
+      s.setName('welcome_channel').setDescription('Set the welcome message channel')
+        .addChannelOption((o) => o.setName('channel').setDescription('The channel for welcome messages').setRequired(true)),
+    )
+    .addSubcommand((s) =>
+      s.setName('vote_channel').setDescription('Set the vote announcement channel')
+        .addChannelOption((o) => o.setName('channel').setDescription('The channel for vote announcements').setRequired(true)),
+    )
+    .addSubcommand((s) =>
       s.setName('show').setDescription('Show current server configuration'),
     )
     .toJSON(),
 
   async execute({ db }, interaction) {
     if (!interaction.guildId) {
-      await interaction.reply({ content: 'This command can only be used in a server.', ephemeral: true });
+      await interaction.reply({ content: 'This command can only be used in a server.', flags: 64 });
       return;
     }
 
@@ -48,7 +56,7 @@ export const configureCommand: SlashCommand = {
 
     if (sub === 'show') {
       if (!db) {
-        await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+        await interaction.reply({ content: 'Database unavailable.', flags: 64 });
         return;
       }
       const { guildConfigs } = await import('../../db/schema.js');
@@ -67,6 +75,8 @@ export const configureCommand: SlashCommand = {
           { name: 'Tickets', value: cfg.ticketsEnabled !== false ? '✅ Enabled' : '❌ Disabled', inline: true },
           { name: 'Mod Logs', value: cfg.modlogsEnabled !== false ? '✅ Enabled' : '❌ Disabled', inline: true },
           { name: 'Welcome', value: cfg.welcomeEnabled === true ? '✅ Enabled' : '❌ Disabled', inline: true },
+          { name: 'Welcome Channel', value: cfg.welcomeChannelId ? `<#${cfg.welcomeChannelId}>` : 'Not set', inline: true },
+          { name: 'Vote Channel', value: cfg.voteChannelId ? `<#${cfg.voteChannelId}>` : 'Not set', inline: true },
           { name: 'Log Channel', value: cfg.logChannelId ? `<#${cfg.logChannelId}>` : 'Not set', inline: true },
           { name: 'Ticket Category', value: cfg.ticketCategoryId ? `<#${cfg.ticketCategoryId}>` : 'Not set', inline: true },
         )
@@ -76,7 +86,7 @@ export const configureCommand: SlashCommand = {
     }
 
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -113,6 +123,16 @@ export const configureCommand: SlashCommand = {
         updateData.ticketCategoryId = category.id;
         break;
       }
+      case 'welcome_channel': {
+        const wc = interaction.options.getChannel('channel', true);
+        updateData.welcomeChannelId = wc.id;
+        break;
+      }
+      case 'vote_channel': {
+        const vc = interaction.options.getChannel('channel', true);
+        updateData.voteChannelId = vc.id;
+        break;
+      }
     }
 
     if (existing.length > 0) {
@@ -126,6 +146,6 @@ export const configureCommand: SlashCommand = {
         .values({ guildId, ...updateData });
     }
 
-    await interaction.reply({ content: '✅ Configuration updated. Use `/configure show` to view current settings.', ephemeral: true });
+    await interaction.reply({ content: '✅ Configuration updated. Use `/configure show` to view current settings.', flags: 64 });
   },
 };

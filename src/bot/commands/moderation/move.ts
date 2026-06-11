@@ -22,13 +22,13 @@ export const moveCommand: SlashCommand = {
     const channel = interaction.options.getChannel('channel', true);
 
     if (channel.type !== 2) {
-      await interaction.reply({ content: '❌ Please select a voice channel.', ephemeral: true });
+      await interaction.reply({ content: '❌ Please select a voice channel.', flags: 64 });
       return;
     }
 
     const member = interaction.guild?.members.cache.get(target.id);
     if (!member) {
-      await interaction.reply({ content: '❌ Could not find that member.', ephemeral: true });
+      await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });
       return;
     }
 
@@ -36,7 +36,7 @@ export const moveCommand: SlashCommand = {
     try {
       await member.voice.setChannel(channel.id);
     } catch {
-      await interaction.reply({ content: '❌ Failed to move the member.', ephemeral: true });
+      await interaction.reply({ content: '❌ Failed to move the member.', flags: 64 });
       return;
     }
 
@@ -51,6 +51,6 @@ export const moveCommand: SlashCommand = {
       )
       .setColor(Colors.Moderation);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

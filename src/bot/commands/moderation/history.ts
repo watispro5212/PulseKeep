@@ -18,7 +18,7 @@ export const historyCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -51,6 +51,6 @@ export const historyCommand: SlashCommand = {
       emb.addFields({ name: 'Recent Warnings', value: recent.join('\n'), inline: false });
     }
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

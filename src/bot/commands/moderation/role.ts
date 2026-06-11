@@ -30,19 +30,19 @@ export const roleCommand: SlashCommand = {
     const member = interaction.guild?.members.cache.get(target.id);
 
     if (!member) {
-      await interaction.reply({ content: '❌ Could not find that member.', ephemeral: true });
+      await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });
       return;
     }
     if (!member.moderatable) {
-      await interaction.reply({ content: '❌ I cannot manage roles for that member.', ephemeral: true });
+      await interaction.reply({ content: '❌ I cannot manage roles for that member.', flags: 64 });
       return;
     }
     if (role.managed) {
-      await interaction.reply({ content: '❌ That role is managed by an integration and cannot be manually assigned.', ephemeral: true });
+      await interaction.reply({ content: '❌ That role is managed by an integration and cannot be manually assigned.', flags: 64 });
       return;
     }
     if (role.comparePositionTo(interaction.guild?.members.me?.roles.highest ?? role) >= 0) {
-      await interaction.reply({ content: '❌ That role is higher than my highest role.', ephemeral: true });
+      await interaction.reply({ content: '❌ That role is higher than my highest role.', flags: 64 });
       return;
     }
 
@@ -53,17 +53,17 @@ export const roleCommand: SlashCommand = {
           .setTitle('Role Added')
           .setDescription(`Added ${role} to ${target}.`)
           .setColor(Colors.Moderation);
-        await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+        await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
       } else {
         await member.roles.remove(role);
         const emb = new EmbedBuilder()
           .setTitle('Role Removed')
           .setDescription(`Removed ${role} from ${target}.`)
           .setColor(Colors.Moderation);
-        await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+        await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
       }
     } catch {
-      await interaction.reply({ content: `❌ Failed to ${sub} role.`, ephemeral: true });
+      await interaction.reply({ content: `❌ Failed to ${sub} role.`, flags: 64 });
     }
   },
 };

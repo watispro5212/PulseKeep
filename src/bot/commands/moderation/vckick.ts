@@ -18,14 +18,14 @@ export const vckickCommand: SlashCommand = {
     const target = interaction.options.getUser('user', true);
     const member = interaction.guild?.members.cache.get(target.id);
     if (!member?.voice.channelId) {
-      await interaction.reply({ content: '❌ That user is not in a voice channel.', ephemeral: true });
+      await interaction.reply({ content: '❌ That user is not in a voice channel.', flags: 64 });
       return;
     }
 
     try {
       await member.voice.disconnect();
     } catch {
-      await interaction.reply({ content: '❌ Failed to disconnect the user.', ephemeral: true });
+      await interaction.reply({ content: '❌ Failed to disconnect the user.', flags: 64 });
       return;
     }
 
@@ -34,6 +34,6 @@ export const vckickCommand: SlashCommand = {
       .setDescription(`Disconnected **${target.tag}** from voice chat.`)
       .setColor(Colors.Moderation);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

@@ -17,14 +17,14 @@ export const buyCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
     const itemId = interaction.options.getString('item', true);
     const item = SHOP_ITEMS.find((i) => i.id === itemId);
     if (!item) {
-      await interaction.reply({ content: '❌ Item not found.', ephemeral: true });
+      await interaction.reply({ content: '❌ Item not found.', flags: 64 });
       return;
     }
 
@@ -37,7 +37,7 @@ export const buyCommand: SlashCommand = {
     const rec = rows[0];
 
     if (!rec || rec.balance < item.price) {
-      await interaction.reply({ content: `❌ You need **${item.price.toLocaleString()}** Pulses for ${item.name}.`, ephemeral: true });
+      await interaction.reply({ content: `❌ You need **${item.price.toLocaleString()}** Pulses for ${item.name}.`, flags: 64 });
       return;
     }
 
@@ -72,6 +72,6 @@ export const buyCommand: SlashCommand = {
       .setDescription(`You bought **${item.name}** for **${item.price.toLocaleString()}** Pulses!`)
       .setColor(Colors.Economy);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

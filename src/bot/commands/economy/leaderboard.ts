@@ -12,7 +12,7 @@ export const leaderboardCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -28,7 +28,7 @@ export const leaderboardCommand: SlashCommand = {
           .setTitle('🏆 Leaderboard')
           .setDescription('No data yet! Start earning with /daily and /work.')
           .setColor(Colors.Economy)))],
-        ephemeral: true,
+        flags: 64,
       });
       return;
     }
@@ -40,6 +40,6 @@ export const leaderboardCommand: SlashCommand = {
       .setDescription(entries.join('\n'))
       .setColor(Colors.Economy);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

@@ -16,10 +16,10 @@ PulseKeep Support should exist for these core purposes:
 - 🎫 **Private tickets** - Lets users share server-specific issues without exposing private IDs or screenshots publicly.
 - 🤖 **Bot command help** - Explains every major command category and where commands should be tested.
 - 🧪 **Safe testing** - Gives testers a controlled place to try moderation, economy, ticket, and dashboard features.
-- 📣 **Announcements** - Publishes releases, outages, Top.gg news, and major updates.
+- 📣 **Announcements** - Publishes releases, outages, DiscordBotList news, and major updates.
 - 📊 **Status updates** - Tells users whether the bot, website, dashboard, or API is healthy.
 - 🔐 **Security handling** - Gives staff a private path for token leaks, abuse reports, and vulnerability reports.
-- ✅ **Top.gg readiness** - Gives Top.gg reviewers a visible support server, command guide, status flow, privacy links, and owner identity.
+- ✅ **DiscordBotList readiness** - Gives DiscordBotList reviewers a visible support server, command guide, status flow, privacy links, and owner identity.
 
 ## 🧠 Server Style
 
@@ -615,7 +615,7 @@ Purpose:
 
 - Major updates
 - Outages
-- Top.gg approval updates
+- DiscordBotList approval updates
 - New feature releases
 
 Permissions:
@@ -959,7 +959,7 @@ Purpose:
 
 Purpose:
 
-- Improve README, support docs, command descriptions, Top.gg text, and website copy.
+- Improve README, support docs, command descriptions, DiscordBotList text, and website copy.
 
 ### 🌐 `#translation-help`
 
@@ -995,7 +995,7 @@ Track:
 
 - 🐞 open bugs
 - 💡 pending features
-- ✅ Top.gg tasks
+- ✅ DiscordBotList tasks
 - 🖥️ dashboard issues
 - 🎫 support escalations
 
@@ -1038,6 +1038,14 @@ Log:
 - ticket closed
 - ticket creator
 - staff actions
+
+### 📊 `#vote-logs`
+
+Log:
+
+- DiscordBotList vote events
+- voter announcement
+- vote reward summary
 
 ### 🚧 `#automod-logs`
 
@@ -1289,7 +1297,7 @@ If status shows offline:
 4. Check deploy logs.
 5. Check bot logs.
 
-## ✅ Top.gg Readiness Checklist
+## ✅ DiscordBotList Readiness Checklist
 
 Before submitting:
 

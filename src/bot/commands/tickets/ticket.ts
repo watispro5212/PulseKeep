@@ -33,11 +33,11 @@ export const ticketCommand: SlashCommand = {
 
     const channel = interaction.channel;
     if (!channel || !channel.name.startsWith('ticket-')) {
-      await interaction.reply({ content: '❌ This command must be used inside a ticket channel.', ephemeral: true });
+      await interaction.reply({ content: '❌ This command must be used inside a ticket channel.', flags: 64 });
       return;
     }
     if (!channel.isTextBased() || !('permissionOverwrites' in channel)) {
-      await interaction.reply({ content: '❌ Invalid channel type.', ephemeral: true });
+      await interaction.reply({ content: '❌ Invalid channel type.', flags: 64 });
       return;
     }
 
@@ -53,14 +53,14 @@ export const ticketCommand: SlashCommand = {
           .setTitle('User Added')
           .setDescription(`Added ${user} to the ticket.`)
           .setColor(Colors.Tickets);
-        await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+        await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
         break;
       }
       case 'remove': {
         const user = interaction.options.getUser('user', true);
         const overwrite = channel.permissionOverwrites.cache.get(user.id);
         if (!overwrite) {
-          await interaction.reply({ content: '❌ That user does not have access to this ticket.', ephemeral: true });
+          await interaction.reply({ content: '❌ That user does not have access to this ticket.', flags: 64 });
           return;
         }
         await overwrite.delete();
@@ -68,7 +68,7 @@ export const ticketCommand: SlashCommand = {
           .setTitle('User Removed')
           .setDescription(`Removed ${user} from the ticket.`)
           .setColor(Colors.Tickets);
-        await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+        await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
         break;
       }
       case 'close': {
@@ -87,7 +87,7 @@ export const ticketCommand: SlashCommand = {
           .setTitle('Ticket Renamed')
           .setDescription(`Renamed to **${name}**.`)
           .setColor(Colors.Tickets);
-        await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+        await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
         break;
       }
     }

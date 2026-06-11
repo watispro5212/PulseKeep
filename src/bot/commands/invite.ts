@@ -17,11 +17,11 @@ export const inviteCommand: SlashCommand = {
         fields: [
           { name: 'Invite Bot', value: '[Click here](https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands)', inline: false },
           { name: 'Support Server', value: '[Click here](https://discord.gg/pulsekeep)', inline: false },
-          { name: 'Top.gg', value: '[Vote for us](https://top.gg/bot/1507498795569512598/vote)', inline: false },
+          { name: 'DiscordBotList', value: '[Vote for us](https://discordbotlist.com/bots/1507498795569512598)', inline: false },
         ],
         timestamp: new Date().toISOString(),
       }],
-      ephemeral: true,
+      flags: 64,
     });
   },
 };

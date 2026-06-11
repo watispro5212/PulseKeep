@@ -28,6 +28,6 @@ export const statsCommand: SlashCommand = {
         { name: 'Runtime', value: `Node.js ${process.version}`, inline: true },
       );
 
-    await interaction.reply({ embeds: [footer(emb).setTimestamp(new Date())], ephemeral: true });
+    await interaction.reply({ embeds: [footer(emb).setTimestamp(new Date())], flags: 64 });
   },
 };

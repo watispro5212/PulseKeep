@@ -21,11 +21,11 @@ export const softbanCommand: SlashCommand = {
     const member = interaction.guild?.members.cache.get(target.id);
 
     if (!member) {
-      await interaction.reply({ content: '❌ Could not find that member.', ephemeral: true });
+      await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });
       return;
     }
     if (!member.bannable) {
-      await interaction.reply({ content: '❌ I cannot ban that member. Check role hierarchy.', ephemeral: true });
+      await interaction.reply({ content: '❌ I cannot ban that member. Check role hierarchy.', flags: 64 });
       return;
     }
 
@@ -41,9 +41,9 @@ export const softbanCommand: SlashCommand = {
           { name: 'Moderator', value: `${interaction.user}`, inline: true },
         )
         .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
     } catch {
-      await interaction.reply({ content: '❌ Failed to softban that member.', ephemeral: true });
+      await interaction.reply({ content: '❌ Failed to softban that member.', flags: 64 });
     }
   },
 };

@@ -16,9 +16,9 @@ export const warnCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
     .toJSON(),
 
-  async execute({ db }, interaction) {
+  async execute({ db, bot }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -54,6 +54,19 @@ export const warnCommand: SlashCommand = {
       )
       .setColor(Colors.Moderation);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+
+    // Log to mod channel
+    const log = new EmbedBuilder()
+      .setTitle('Moderation: Warn')
+      .setDescription(`**${user.tag}** was warned by ${interaction.user}`)
+      .addFields(
+        { name: 'Reason', value: reason },
+        { name: 'User ID', value: user.id, inline: true },
+        { name: 'Moderator ID', value: moderatorId, inline: true },
+      )
+      .setColor(Colors.Moderation)
+      .setTimestamp();
+    bot.logToChannel(interaction.guildId!, log);
   },
 };

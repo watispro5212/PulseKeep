@@ -2,8 +2,10 @@ import express from 'express';
 import crypto from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { EmbedBuilder } from 'discord.js';
 import type { Config } from '../config.js';
 import type { Cache } from '../cache/index.js';
+import type { Bot } from '../bot/client.js';
 import { getOAuthURL, exchangeCode, fetchUser, fetchGuilds, fetchMutualGuilds } from './oauth.js';
 import { eq } from 'drizzle-orm';
 
@@ -31,13 +33,15 @@ export class ApiServer {
   private config: Config;
   private cache: Cache;
   private db: any;
+  private bot: Bot | null;
   private server: any;
 
-  constructor(config: Config, db: any, cache: Cache) {
+  constructor(config: Config, db: any, cache: Cache, bot: Bot | null = null) {
     this.app = express();
     this.config = config;
     this.cache = cache;
     this.db = db;
+    this.bot = bot;
 
     this.setupMiddleware();
     this.setupRoutes();
@@ -47,7 +51,8 @@ export class ApiServer {
     this.app.use(express.json());
     this.app.use((req, res, next) => {
       const origin = req.headers.origin as string;
-      if (origin && this.config.allowedOrigins.split(',').map(s => s.trim()).includes(origin)) {
+      const allowed = [...this.config.allowedOrigins.split(',').map(s => s.trim()), 'https://discordbotlist.com'];
+      if (origin && allowed.includes(origin)) {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Vary', 'Origin');
       }
@@ -98,7 +103,7 @@ export class ApiServer {
         library: 'discord.js v14',
         website: 'https://pulsekeep.fly.dev',
         support: 'https://discord.gg/pulsekeep',
-        topgg: 'https://top.gg/bot/1507498795569512598',
+        dbl: 'https://discordbotlist.com/bots/1507498795569512598',
       });
     });
 
@@ -109,7 +114,7 @@ export class ApiServer {
       res.redirect(url);
     });
 
-    // OAuth callback
+    // OAuth callback — redirect through a proxy page so token never hits dashboard URL
     this.app.get('/auth/discord/callback', async (req, res) => {
       const { code } = req.query;
       if (!code || typeof code !== 'string') {
@@ -120,11 +125,25 @@ export class ApiServer {
       try {
         const tokens = await exchangeCode(this.config, code);
         const accessToken = tokens.access_token;
-        res.redirect('/dashboard.html?token=' + encodeURIComponent(accessToken));
+        res.redirect('/auth/callback?token=' + encodeURIComponent(accessToken));
       } catch (err: any) {
         console.error('OAuth callback error:', err);
         res.status(500).send('Authentication failed.');
       }
+    });
+
+    // Auth callback proxy page — stores token in localStorage and redirects cleanly
+    this.app.get('/auth/callback', (req, res) => {
+      const token = req.query.token as string;
+      if (!token) {
+        res.redirect('/dashboard.html');
+        return;
+      }
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(`<!DOCTYPE html><html><body><script>
+localStorage.setItem('pk_token',${JSON.stringify(token)});
+window.location.replace('/dashboard.html');
+</script></body></html>`);
     });
 
     // User guilds (requires Bearer token from OAuth)
@@ -224,6 +243,77 @@ export class ApiServer {
       }
 
       res.json({ status: 'ok' });
+    });
+
+    // DiscordBotList vote webhook
+    const dblCors = (req: any, res: any, next: any) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+      if (req.method === 'OPTIONS') { res.sendStatus(204); return; }
+      next();
+    };
+    this.app.options('/api/dbl/webhook', dblCors);
+    this.app.post('/api/dbl/webhook', dblCors, async (req, res) => {
+      const auth = req.headers.authorization;
+      if (!auth || auth !== this.config.dblWebhookSecret) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+      const { user: userId, type } = req.body;
+      if (!userId || type !== 'upvote') {
+        res.json({ status: 'ignored' });
+        return;
+      }
+      const reward = 500 + Math.floor(Math.random() * 251);
+      try {
+        if (this.db) {
+          const { userEconomy } = await import('../db/schema.js');
+          const rows: any[] = await this.db
+            .select()
+            .from(userEconomy)
+            .where(eq(userEconomy.userId, userId))
+            .limit(1);
+          if (rows[0]) {
+            await this.db
+              .update(userEconomy)
+              .set({
+                balance: (rows[0].balance ?? 0) + reward,
+                lastVote: new Date(),
+                totalEarned: (rows[0].totalEarned ?? 0) + reward,
+                transactions: (rows[0].transactions ?? 0) + 1,
+              })
+              .where(eq(userEconomy.userId, userId));
+          } else {
+            await this.db
+              .insert(userEconomy)
+              .values({ userId, balance: reward, lastVote: new Date(), totalEarned: reward, transactions: 1 });
+          }
+        }
+      } catch {}
+      if (this.bot) {
+        try {
+          const { guildConfigs } = await import('../db/schema.js');
+          const allConfigs: any[] = await this.db
+            ?.select()
+            .from(guildConfigs);
+          const guildsWithVoteChannel = (allConfigs || []).filter((c: any) => c.voteChannelId);
+          for (const cfg of guildsWithVoteChannel) {
+            const guild = this.bot.client.guilds.cache.get(cfg.guildId);
+            if (!guild) continue;
+            try { await guild.members.fetch(userId); } catch { continue; }
+            const channel = guild.channels.cache.get(cfg.voteChannelId);
+            if (!channel?.isTextBased()) continue;
+            const emb = new EmbedBuilder()
+              .setTitle('📊 Vote Received!')
+              .setDescription(`<@${userId}> just voted for PulseKeep on DiscordBotList!\nThey earned **${reward.toLocaleString()}** Pulses!`)
+              .setColor(0x43B581)
+              .setTimestamp();
+            try { await channel.send({ embeds: [emb] }); } catch {}
+          }
+        } catch {}
+      }
+      res.json({ status: 'ok', reward });
     });
 
     // Serve static files

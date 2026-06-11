@@ -11,6 +11,9 @@ export interface Config {
   statusWebhookURL: string;
   allowedOrigins: string;
   botDisabled: boolean;
+  dblWebhookSecret: string;
+  dblApiToken: string;
+  discordBotID: string;
 }
 
 export function loadConfig(): Config {
@@ -24,5 +27,8 @@ export function loadConfig(): Config {
     statusWebhookURL: process.env.STATUS_WEBHOOK_URL || '',
     allowedOrigins: process.env.ALLOWED_ORIGINS || '',
     botDisabled: process.env.BOT_DISABLED === 'true',
+    dblWebhookSecret: process.env.DBL_WEBHOOK_SECRET || '',
+    dblApiToken: process.env.DBL_API_TOKEN || '',
+    discordBotID: process.env.DISCORD_BOT_ID || '',
   };
 }

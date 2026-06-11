@@ -18,7 +18,7 @@ export const warningsCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -36,7 +36,7 @@ export const warningsCommand: SlashCommand = {
           .setTitle('Warnings')
           .setDescription(`**${target.tag}** has no warnings.`)
           .setColor(Colors.Moderation)))],
-        ephemeral: true,
+        flags: 64,
       });
       return;
     }
@@ -55,6 +55,6 @@ export const warningsCommand: SlashCommand = {
       .addFields({ name: 'Total', value: `${rows.length} warning(s)`, inline: true })
       .setColor(Colors.Moderation);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

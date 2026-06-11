@@ -31,6 +31,6 @@ export const shopCommand: SlashCommand = {
       .setDescription(`**Your Balance:** 💰 ${balance.toLocaleString()} Pulses\n\n${items.join('\n')}`)
       .setColor(Colors.Economy);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

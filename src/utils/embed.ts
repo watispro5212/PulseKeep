@@ -8,6 +8,7 @@ export const Colors = {
   Success: 0x57F287,
   Error: 0xED4245,
   Warning: 0xFEE75C,
+  Configure: 0x99AAFF,
 } as const;
 
 export function footer(emb: EmbedBuilder): EmbedBuilder {
@@ -21,3 +22,5 @@ export function timestamp(emb: EmbedBuilder): EmbedBuilder {
 export function baseEmbed(): EmbedBuilder {
   return timestamp(footer(new EmbedBuilder()));
 }
+
+export const Ephemeral = 64;

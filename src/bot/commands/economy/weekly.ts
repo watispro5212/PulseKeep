@@ -3,7 +3,7 @@ import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
 import { userEconomy } from '../../../db/schema.js';
 import { eq } from 'drizzle-orm';
-import { COOLDOWNS } from '../../economy/store.js';
+import { COOLDOWNS, hasXpBoost, applyXpBoost } from '../../economy/store.js';
 
 export const weeklyCommand: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -14,7 +14,7 @@ export const weeklyCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -33,12 +33,14 @@ export const weeklyCommand: SlashCommand = {
       const elapsed = now.getTime() - new Date(rec.lastWeeklyClaim).getTime();
       if (elapsed < COOLDOWNS.weekly) {
         const remaining = Math.ceil((COOLDOWNS.weekly - elapsed) / 86400000);
-        await interaction.reply({ content: `⏳ Come back in **${remaining}d** for your weekly reward.`, ephemeral: true });
+        await interaction.reply({ content: `⏳ Come back in **${remaining}d** for your weekly reward.`, flags: 64 });
         return;
       }
     }
 
-    const reward = 1000 + Math.floor(Math.random() * 1001);
+    const baseReward = 1000 + Math.floor(Math.random() * 1001);
+    const reward = hasXpBoost(rec) ? applyXpBoost(baseReward, rec) : baseReward;
+    const boosted = reward !== baseReward;
     const ephemeral = !interaction.options.getBoolean('public');
 
     if (rec) {
@@ -58,8 +60,8 @@ export const weeklyCommand: SlashCommand = {
     }
 
     const emb = new EmbedBuilder()
-      .setTitle('Weekly Reward')
-      .setDescription(`📅 You claimed **${reward.toLocaleString()}** Pulses!`)
+      .setTitle(boosted ? 'Weekly Reward ⚡ (x2)' : 'Weekly Reward')
+      .setDescription(`📅 You claimed **${reward.toLocaleString()}** Pulses${boosted ? ' (with XP Boost!)' : '!'}`)
       .setColor(Colors.Economy);
 
     await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral });

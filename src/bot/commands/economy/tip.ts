@@ -17,6 +17,6 @@ export const tipCommand: SlashCommand = {
       .setDescription(tip)
       .setColor(Colors.Economy);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

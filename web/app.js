@@ -255,6 +255,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const lc = qs('[data-key="logChannelId"]');
         if (lc) lc.value = cfg.logChannelId || '';
 
+        const wc = qs('[data-key="welcomeChannelId"]');
+        if (wc) wc.value = cfg.welcomeChannelId || '';
+
       } catch {
         // Keep defaults on error
       }

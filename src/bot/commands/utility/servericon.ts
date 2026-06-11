@@ -11,13 +11,13 @@ export const servericonCommand: SlashCommand = {
   async execute(_ctx, interaction) {
     const guild = interaction.guild;
     if (!guild) {
-      await interaction.reply({ content: 'This command can only be used in a server.', ephemeral: true });
+      await interaction.reply({ content: 'This command can only be used in a server.', flags: 64 });
       return;
     }
 
     const iconURL = guild.iconURL({ size: 4096 });
     if (!iconURL) {
-      await interaction.reply({ content: 'This server does not have a custom icon.', ephemeral: true });
+      await interaction.reply({ content: 'This server does not have a custom icon.', flags: 64 });
       return;
     }
 
@@ -27,6 +27,6 @@ export const servericonCommand: SlashCommand = {
       .setDescription(`[Open in browser](${iconURL})`)
       .setColor(Colors.Utility);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

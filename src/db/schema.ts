@@ -9,7 +9,9 @@ export const guildConfigs = pgTable('guild_configs', {
   ticketsEnabled: boolean('tickets_enabled').default(true).notNull(),
   modlogsEnabled: boolean('modlogs_enabled').default(true).notNull(),
   welcomeEnabled: boolean('welcome_enabled').default(false).notNull(),
+  welcomeChannelId: varchar('welcome_channel_id', { length: 20 }),
   ticketCategoryId: varchar('ticket_category_id', { length: 20 }),
+  voteChannelId: varchar('vote_channel_id', { length: 20 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -27,6 +29,9 @@ export const userEconomy = pgTable('user_economy', {
   totalGambled: integer('total_gambled').default(0).notNull(),
   transactions: integer('transactions').default(0).notNull(),
   streak: integer('streak').default(0).notNull(),
+  lastVote: timestamp('last_vote'),
+  xpBoostExpiry: timestamp('xp_boost_expiry'),
+  luckyCloverActive: integer('lucky_clover_active').default(0).notNull(),
 });
 
 export const userInventory = pgTable('user_inventory', {

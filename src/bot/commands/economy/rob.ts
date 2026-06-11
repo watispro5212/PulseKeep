@@ -14,18 +14,18 @@ export const robCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
     const userId = interaction.user.id;
     const target = interaction.options.getUser('user', true);
     if (target.id === userId) {
-      await interaction.reply({ content: '❌ You cannot rob yourself.', ephemeral: true });
+      await interaction.reply({ content: '❌ You cannot rob yourself.', flags: 64 });
       return;
     }
     if (target.bot) {
-      await interaction.reply({ content: '❌ You cannot rob a bot.', ephemeral: true });
+      await interaction.reply({ content: '❌ You cannot rob a bot.', flags: 64 });
       return;
     }
 
@@ -41,7 +41,7 @@ export const robCommand: SlashCommand = {
       const elapsed = now.getTime() - new Date(rec.lastRob).getTime();
       if (elapsed < COOLDOWNS.rob) {
         const remaining = Math.ceil((COOLDOWNS.rob - elapsed) / 60000);
-        await interaction.reply({ content: `⏳ Wait **${remaining}m** before robbing again.`, ephemeral: true });
+        await interaction.reply({ content: `⏳ Wait **${remaining}m** before robbing again.`, flags: 64 });
         return;
       }
     }
@@ -53,7 +53,7 @@ export const robCommand: SlashCommand = {
       .limit(1);
     const targetRec = targetRows[0];
     if (!targetRec || targetRec.balance < 50) {
-      await interaction.reply({ content: '❌ That user has barely any Pulses.', ephemeral: true });
+      await interaction.reply({ content: '❌ That user has barely any Pulses.', flags: 64 });
       return;
     }
 
@@ -83,7 +83,7 @@ export const robCommand: SlashCommand = {
         .setDescription(`You stole **${stealAmount.toLocaleString()}** Pulses from ${target.username}!`)
         .setColor(Colors.Economy);
 
-      await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
     } else {
       const fine = Math.min(rec?.balance ?? 0, 200);
       if (fine > 0 && rec) {
@@ -98,7 +98,7 @@ export const robCommand: SlashCommand = {
         .setDescription(`You got caught and fined **${fine.toLocaleString()}** Pulses.`)
         .setColor(Colors.Error);
 
-      await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
     }
   },
 };

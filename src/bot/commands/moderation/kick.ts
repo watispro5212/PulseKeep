@@ -15,14 +15,14 @@ export const kickCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     const target = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
     const member = interaction.guild?.members.cache.get(target.id);
     const guildName = interaction.guild?.name ?? 'the server';
 
     if (!member) {
-      await interaction.reply({ content: '❌ Could not find that member.', ephemeral: true });
+      await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });
       return;
     }
 
@@ -46,9 +46,20 @@ export const kickCommand: SlashCommand = {
           { name: 'Moderator', value: `${interaction.user}`, inline: true },
         )
         .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+
+      const log = new EmbedBuilder()
+        .setTitle('Moderation: Kick')
+        .setDescription(`**${target.tag}** was kicked by ${interaction.user}`)
+        .addFields(
+          { name: 'Reason', value: reason },
+          { name: 'User ID', value: target.id, inline: true },
+        )
+        .setColor(Colors.Moderation)
+        .setTimestamp();
+      bot.logToChannel(interaction.guildId!, log);
     } catch {
-      await interaction.reply({ content: '❌ Failed to kick that member.', ephemeral: true });
+      await interaction.reply({ content: '❌ Failed to kick that member.', flags: 64 });
     }
   },
 };

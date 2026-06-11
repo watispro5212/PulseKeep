@@ -18,7 +18,7 @@ export const muteCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     const target = interaction.options.getUser('user', true);
     const minutes = interaction.options.getInteger('duration', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
@@ -26,11 +26,11 @@ export const muteCommand: SlashCommand = {
     const guildName = interaction.guild?.name ?? 'the server';
 
     if (!member) {
-      await interaction.reply({ content: '❌ Could not find that member.', ephemeral: true });
+      await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });
       return;
     }
     if (!member.moderatable) {
-      await interaction.reply({ content: '❌ I cannot moderate that member. Check role hierarchy.', ephemeral: true });
+      await interaction.reply({ content: '❌ I cannot moderate that member. Check role hierarchy.', flags: 64 });
       return;
     }
 
@@ -55,9 +55,21 @@ export const muteCommand: SlashCommand = {
           { name: 'Moderator', value: `${interaction.user}`, inline: true },
         )
         .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+
+      const log = new EmbedBuilder()
+        .setTitle('Moderation: Mute')
+        .setDescription(`**${target.tag}** was muted by ${interaction.user}`)
+        .addFields(
+          { name: 'Reason', value: reason },
+          { name: 'Duration', value: `${minutes} minutes`, inline: true },
+          { name: 'User ID', value: target.id, inline: true },
+        )
+        .setColor(Colors.Moderation)
+        .setTimestamp();
+      bot.logToChannel(interaction.guildId!, log);
     } catch {
-      await interaction.reply({ content: '❌ Failed to timeout that member.', ephemeral: true });
+      await interaction.reply({ content: '❌ Failed to timeout that member.', flags: 64 });
     }
   },
 };
@@ -71,14 +83,14 @@ export const unmuteCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     const target = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
     const member = interaction.guild?.members.cache.get(target.id);
     const guildName = interaction.guild?.name ?? 'the server';
 
     if (!member) {
-      await interaction.reply({ content: '❌ Could not find that member.', ephemeral: true });
+      await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });
       return;
     }
 
@@ -102,9 +114,20 @@ export const unmuteCommand: SlashCommand = {
           { name: 'Moderator', value: `${interaction.user}`, inline: true },
         )
         .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+
+      const log = new EmbedBuilder()
+        .setTitle('Moderation: Unmute')
+        .setDescription(`**${target.tag}** was unmuted by ${interaction.user}`)
+        .addFields(
+          { name: 'Reason', value: reason },
+          { name: 'User ID', value: target.id, inline: true },
+        )
+        .setColor(Colors.Moderation)
+        .setTimestamp();
+      bot.logToChannel(interaction.guildId!, log);
     } catch {
-      await interaction.reply({ content: '❌ Failed to unmute that member.', ephemeral: true });
+      await interaction.reply({ content: '❌ Failed to unmute that member.', flags: 64 });
     }
   },
 };

@@ -21,11 +21,11 @@ export const nickCommand: SlashCommand = {
     const member = interaction.guild?.members.cache.get(target.id);
 
     if (!member) {
-      await interaction.reply({ content: '❌ Could not find that member.', ephemeral: true });
+      await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });
       return;
     }
     if (!member.moderatable) {
-      await interaction.reply({ content: '❌ I cannot change that member\'s nickname.', ephemeral: true });
+      await interaction.reply({ content: '❌ I cannot change that member\'s nickname.', flags: 64 });
       return;
     }
 
@@ -39,9 +39,9 @@ export const nickCommand: SlashCommand = {
           : `Reset **${target.tag}**'s nickname.`,
         )
         .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
     } catch {
-      await interaction.reply({ content: '❌ Failed to change nickname.', ephemeral: true });
+      await interaction.reply({ content: '❌ Failed to change nickname.', flags: 64 });
     }
   },
 };

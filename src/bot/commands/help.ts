@@ -22,7 +22,16 @@ const categories = [
       { name: 'buy', desc: 'Buy an item' },
       { name: 'inventory', desc: 'Check your inventory' },
       { name: 'leaderboard', desc: 'Richest users' },
+      { name: 'search', desc: 'Search for hidden Pulses' },
+      { name: 'use', desc: 'Use an item from inventory' },
       { name: 'tip', desc: 'Get an economy tip' },
+    ],
+  },
+  {
+    name: '⚙️ Configuration',
+    accent: Colors.Configure,
+    commands: [
+      { name: 'configure', desc: 'Set up bot settings' },
     ],
   },
   {
@@ -69,7 +78,7 @@ const categories = [
       { name: 'ping', desc: 'Check bot latency' },
       { name: 'stats', desc: 'Bot statistics' },
       { name: 'invite', desc: 'Invite links' },
-      { name: 'vote', desc: 'Vote on Top.gg' },
+      { name: 'vote', desc: 'Vote on DiscordBotList' },
       { name: 'servericon', desc: 'Get server icon' },
       { name: 'roleinfo', desc: 'Role information' },
       { name: 'channelinfo', desc: 'Channel information' },
@@ -106,6 +115,6 @@ export const helpCommand: SlashCommand = {
       emb.addFields({ name: cat.name, value: cmds, inline: false });
     }
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

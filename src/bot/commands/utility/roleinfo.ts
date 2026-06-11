@@ -44,6 +44,6 @@ export const roleinfoCommand: SlashCommand = {
         { name: 'Key Permissions', value: perms.length > 0 ? perms.join(', ') : 'None', inline: false },
       );
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

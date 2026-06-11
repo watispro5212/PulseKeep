@@ -20,7 +20,7 @@ export const slowmodeCommand: SlashCommand = {
     const seconds = interaction.options.getInteger('seconds', true);
     const channel = interaction.channel;
     if (!channel || !('setRateLimitPerUser' in channel)) {
-      await interaction.reply({ content: 'This channel does not support slowmode.', ephemeral: true });
+      await interaction.reply({ content: 'This channel does not support slowmode.', flags: 64 });
       return;
     }
 
@@ -32,9 +32,9 @@ export const slowmodeCommand: SlashCommand = {
           ? `Slowmode set to **${seconds}s** in ${channel}.`
           : `Slowmode **disabled** in ${channel}.`)
         .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
     } catch {
-      await interaction.reply({ content: '❌ Failed to set slowmode.', ephemeral: true });
+      await interaction.reply({ content: '❌ Failed to set slowmode.', flags: 64 });
     }
   },
 };

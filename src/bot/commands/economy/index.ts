@@ -16,6 +16,7 @@ import { tipCommand } from './tip.js';
 import { voteCommand } from './vote.js';
 import { payCommand } from './pay.js';
 import { useCommand } from './use.js';
+import { searchCommand } from './search.js';
 
 export const economyCommands = [
   balanceCommand,
@@ -23,6 +24,7 @@ export const economyCommands = [
   weeklyCommand,
   workCommand,
   gambleCommand,
+  searchCommand,
   robCommand,
   slotsCommand,
   blackjackCommand,

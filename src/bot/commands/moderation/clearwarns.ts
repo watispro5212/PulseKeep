@@ -18,7 +18,7 @@ export const clearwarnsCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -35,6 +35,6 @@ export const clearwarnsCommand: SlashCommand = {
       .setDescription(`Cleared **${count}** warning(s) for ${target}.`)
       .setColor(Colors.Moderation);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

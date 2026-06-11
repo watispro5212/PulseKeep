@@ -100,12 +100,12 @@ function weightedRandom(items: { weight: number }[]): number {
   return items.length - 1;
 }
 
-export function gamble(amount: number): { result: 'win' | 'lose' | 'push'; payout: number } {
+export function gamble(amount: number): { result: 'win' | 'lose' | 'push'; payout: number; multiplier: number } {
   const roll = Math.floor(Math.random() * 100) + 1;
-  if (roll <= 35) return { result: 'lose', payout: 0 };
-  if (roll <= 45) return { result: 'push', payout: amount };
+  if (roll <= 35) return { result: 'lose', payout: 0, multiplier: 0 };
+  if (roll <= 45) return { result: 'push', payout: amount, multiplier: 1 };
   const multiplier = 2 + Math.floor(Math.random() * 9);
-  return { result: 'win', payout: amount * multiplier };
+  return { result: 'win', payout: amount * multiplier, multiplier };
 }
 
 export function blackjackDealerShouldStand(hand: number): boolean {
@@ -170,9 +170,54 @@ export function getStreakBonus(days: number): number {
   return bonus;
 }
 
+export const SEARCH_PLACES = [
+  { name: 'the old library', min: 50, max: 300, weight: 30 },
+  { name: 'the abandoned mansion', min: 100, max: 500, weight: 20 },
+  { name: 'the dark alley', min: 30, max: 200, weight: 25 },
+  { name: 'the ancient temple', min: 200, max: 800, weight: 10 },
+  { name: 'the sewer tunnels', min: 20, max: 150, weight: 15 },
+  { name: 'the rooftop garden', min: 150, max: 600, weight: 12 },
+  { name: 'the hidden bunker', min: 300, max: 1200, weight: 5 },
+  { name: 'the arcade', min: 80, max: 350, weight: 18 },
+  { name: 'the flea market', min: 40, max: 250, weight: 22 },
+  { name: 'the construction site', min: 100, max: 400, weight: 15 },
+  { name: 'the beach shore', min: 60, max: 280, weight: 20 },
+  { name: 'the haunted forest', min: 120, max: 700, weight: 8 },
+];
+
+export function search(): { name: string; value: number } {
+  const idx = weightedRandom(SEARCH_PLACES);
+  const p = SEARCH_PLACES[idx];
+  if (!p) return { name: 'nowhere', value: 0 };
+  const value = p.min + Math.floor(Math.random() * (p.max - p.min));
+  return { name: p.name, value };
+}
+
 export function getStreakMilestoneProgress(days: number): string {
   for (const m of STREAK_MILESTONES) {
     if (days < m) return `${days}/${m} days`;
   }
   return 'Maxed out!';
+}
+
+const XP_BOOST_DURATION_MS = 30 * 60 * 1000;
+
+export function hasXpBoost(rec: any): boolean {
+  if (!rec?.xpBoostExpiry) return false;
+  return new Date(rec.xpBoostExpiry).getTime() > Date.now();
+}
+
+export function applyXpBoost(earned: number, rec: any): number {
+  return hasXpBoost(rec) ? earned * 2 : earned;
+}
+
+export function formatCooldown(elapsed: number, cooldown: number): string {
+  const remaining = cooldown - elapsed;
+  if (remaining <= 0) return 'Available now';
+  const mins = Math.ceil(remaining / 60000);
+  if (mins >= 60) {
+    const hrs = Math.floor(mins / 60);
+    return `${hrs}h ${mins % 60}m`;
+  }
+  return `${mins}m`;
 }

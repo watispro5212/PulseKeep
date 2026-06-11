@@ -21,7 +21,7 @@ export const channelinfoCommand: SlashCommand = {
   async execute(_ctx, interaction) {
     const channel = interaction.options.getChannel('channel') ?? interaction.channel;
     if (!channel) {
-      await interaction.reply({ content: 'Could not find channel.', ephemeral: true });
+      await interaction.reply({ content: 'Could not find channel.', flags: 64 });
       return;
     }
 
@@ -45,6 +45,6 @@ export const channelinfoCommand: SlashCommand = {
       emb.addFields({ name: 'Server', value: interaction.guild.name, inline: true });
     }
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

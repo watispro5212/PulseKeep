@@ -13,7 +13,7 @@ export const inventoryCommand: SlashCommand = {
 
   async execute({ db }, interaction) {
     if (!db) {
-      await interaction.reply({ content: 'Database unavailable.', ephemeral: true });
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
 
@@ -29,7 +29,7 @@ export const inventoryCommand: SlashCommand = {
           .setTitle(`${target.username}'s Inventory`)
           .setDescription('Nothing here! Visit the **/shop** to buy items.')
           .setColor(Colors.Economy)))],
-        ephemeral: true,
+        flags: 64,
       });
       return;
     }
@@ -43,6 +43,6 @@ export const inventoryCommand: SlashCommand = {
       .setDescription(items.join('\n'))
       .setColor(Colors.Economy);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral: true });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
   },
 };

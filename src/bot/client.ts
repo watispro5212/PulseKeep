@@ -8,10 +8,12 @@ import {
   EmbedBuilder,
   ChannelType,
   PermissionFlagsBits,
+  GuildMember,
 } from 'discord.js';
 import type { Cache } from '../cache/index.js';
+import type { Config } from '../config.js';
 import type { SlashCommand } from './types.js';
-import { Colors, footer, timestamp } from '../utils/embed.js';
+import { Colors, footer, timestamp, baseEmbed } from '../utils/embed.js';
 
 const ECONOMY_COMMANDS = new Set([
   'balance','daily','weekly','work','gamble','blackjack','slots','rob',
@@ -24,12 +26,43 @@ export class Bot {
   readonly client: Client;
   readonly cache: Cache;
   readonly db: any;
+  readonly config: Config;
   readonly commands = new Collection<string, SlashCommand>();
   private rest: REST;
   private statusWebhookURL: string;
-  private guildToggles = new Map<string, { economy?: boolean; tickets?: boolean }>();
+  private guildToggles = new Map<string, Record<string, any>>();
 
-  constructor(token: string, cache: Cache, db: any, statusWebhookURL: string) {
+  async getGuildConfig(guildId: string): Promise<any> {
+    if (!this.db) return {};
+    try {
+      const { guildConfigs } = await import('../db/schema.js');
+      const { eq } = await import('drizzle-orm');
+      const rows: any[] = await this.db
+        .select()
+        .from(guildConfigs)
+        .where(eq(guildConfigs.guildId, guildId))
+        .limit(1);
+      return rows[0] || {};
+    } catch {
+      return {};
+    }
+  }
+
+  async logToChannel(guildId: string, embed: EmbedBuilder) {
+    const toggles = await this.getGuildToggles(guildId);
+    if (toggles.modlogsEnabled === false) return;
+    if (!toggles.logChannelId) return;
+    try {
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return;
+      const channel = guild.channels.cache.get(toggles.logChannelId);
+      if (channel?.isTextBased()) {
+        await channel.send({ embeds: [embed] });
+      }
+    } catch {}
+  }
+
+  constructor(token: string, cache: Cache, db: any, statusWebhookURL: string, config: Config) {
     this.client = new Client({
       intents: [
         GatewayIntentBits.Guilds,
@@ -41,6 +74,7 @@ export class Bot {
     });
     this.cache = cache;
     this.db = db;
+    this.config = config;
     this.statusWebhookURL = statusWebhookURL;
     this.rest = new REST({ version: '10' }).setToken(token);
 
@@ -54,6 +88,24 @@ export class Bot {
       this.cache.setBotGuilds(
         this.client.guilds.cache.map((g: any) => ({ id: g.id, name: g.name }))
       );
+    });
+
+    // Welcome messages
+    this.client.on(Events.GuildMemberAdd, async (member: GuildMember) => {
+      if (member.user.bot) return;
+      const toggles = await this.getGuildToggles(member.guild.id);
+      if (!toggles.welcomeEnabled || !toggles.welcomeChannelId) return;
+      try {
+        const channel = member.guild.channels.cache.get(toggles.welcomeChannelId);
+        if (!channel?.isTextBased()) return;
+        const emb = new EmbedBuilder()
+          .setTitle('Welcome!')
+          .setDescription(`Welcome to **${member.guild.name}**, ${member.user}! We're glad to have you.`)
+          .setThumbnail(member.user.displayAvatarURL())
+          .setColor(Colors.Success)
+          .setTimestamp();
+        await channel.send({ embeds: [emb] });
+      } catch {}
     });
 
     this.client.on(Events.InteractionCreate, async (interaction) => {
@@ -74,7 +126,7 @@ export class Bot {
               .setTitle('Feature Disabled')
               .setDescription('The economy system is disabled in this server. An admin can enable it from the dashboard.')
               .setColor(Colors.Warning)],
-            ephemeral: true,
+            flags: 64,
           });
           return;
         }
@@ -84,7 +136,7 @@ export class Bot {
               .setTitle('Feature Disabled')
               .setDescription('The ticket system is disabled in this server. An admin can enable it from the dashboard.')
               .setColor(Colors.Warning)],
-            ephemeral: true,
+            flags: 64,
           });
           return;
         }
@@ -92,7 +144,7 @@ export class Bot {
 
       const cmd = this.commands.get(cmdName);
       if (!cmd) {
-        await interaction.reply({ content: 'Command not found. Use /help to see available commands.', ephemeral: true });
+        await interaction.reply({ content: 'Command not found. Use /help to see available commands.', flags: 64 });
         return;
       }
 
@@ -111,20 +163,20 @@ export class Bot {
       }
 
       try {
-        await cmd.execute({ bot: this, cache: this.cache, db: this.db }, interaction);
+        await cmd.execute({ bot: this, cache: this.cache, db: this.db, config: this.config }, interaction);
       } catch (err) {
         console.error(`Error executing /${cmdName}:`, err);
         const msg = 'An error occurred while executing this command. Please try again.';
         if (interaction.replied || interaction.deferred) {
-          await interaction.followUp({ content: msg, ephemeral: true });
+          await interaction.followUp({ content: msg, flags: 64 });
         } else {
-          await interaction.reply({ content: msg, ephemeral: true });
+          await interaction.reply({ content: msg, flags: 64 });
         }
       }
     });
   }
 
-  private async getGuildToggles(guildId: string): Promise<{ economy?: boolean; tickets?: boolean }> {
+  private async getGuildToggles(guildId: string): Promise<Record<string, any>> {
     const cached = this.guildToggles.get(guildId);
     if (cached) return cached;
 
@@ -144,6 +196,8 @@ export class Bot {
         const toggles = {
           economy: cfg.economyEnabled !== false,
           tickets: cfg.ticketsEnabled !== false,
+          logChannelId: cfg.logChannelId || undefined,
+          welcomeChannelId: cfg.welcomeChannelId || undefined,
         };
         this.guildToggles.set(guildId, toggles);
         return toggles;
@@ -154,7 +208,7 @@ export class Bot {
   }
 
   private async handleTicketOpen(interaction: any) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: 64 });
     const guild = interaction.guild;
     if (!guild) {
       await interaction.editReply({ content: 'This can only be used in a server.' });
