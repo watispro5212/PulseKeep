@@ -23,7 +23,7 @@ export const slotsCommand: SlashCommand = {
 
     const publicReply = !!interaction.options.getBoolean('public');
     const userId = interaction.user.id;
-    const bet = interaction.options.getInteger('bet', true);
+    const bet = interaction.options.getInteger('amount', true);
 
     const rows = await db
       .select()

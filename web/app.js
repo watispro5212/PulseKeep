@@ -244,6 +244,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!res.ok) throw new Error('No config');
         const cfg = await res.json();
 
+        const vc = qs('[data-key="voteChannelId"]');
+        if (vc) vc.value = cfg.voteChannelId || '';
+
         ['economyEnabled','ticketsEnabled','modlogsEnabled','welcomeEnabled'].forEach(key => {
           const el = qs('[data-key="' + key + '"]');
           if (el) el.checked = cfg[key] !== false;

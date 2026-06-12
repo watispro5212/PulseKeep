@@ -45,7 +45,7 @@ export const configureCommand: SlashCommand = {
     )
     .toJSON(),
 
-  async execute({ db }, interaction) {
+  async execute({ bot, db }, interaction) {
     if (!interaction.guildId) {
       await interaction.reply({ content: 'This command can only be used in a server.', flags: 64 });
       return;
@@ -75,14 +75,13 @@ export const configureCommand: SlashCommand = {
           { name: 'Tickets', value: cfg.ticketsEnabled !== false ? '✅ Enabled' : '❌ Disabled', inline: true },
           { name: 'Mod Logs', value: cfg.modlogsEnabled !== false ? '✅ Enabled' : '❌ Disabled', inline: true },
           { name: 'Welcome', value: cfg.welcomeEnabled === true ? '✅ Enabled' : '❌ Disabled', inline: true },
-          { name: 'Vote Announcements', value: cfg.voteChannelId ? `✅ #${cfg.voteChannelId}` : '❌ Not set', inline: true },
           { name: 'Welcome Channel', value: cfg.welcomeChannelId ? `<#${cfg.welcomeChannelId}>` : 'Not set', inline: true },
           { name: 'Vote Channel', value: cfg.voteChannelId ? `<#${cfg.voteChannelId}>` : 'Not set', inline: true },
           { name: 'Log Channel', value: cfg.logChannelId ? `<#${cfg.logChannelId}>` : 'Not set', inline: true },
           { name: 'Ticket Category', value: cfg.ticketCategoryId ? `<#${cfg.ticketCategoryId}>` : 'Not set', inline: true },
         )
         .setColor(Colors.Utility);
-      await interaction.reply({ embeds: [footer(timestamp(emb))] });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
       return;
     }
 
@@ -147,6 +146,7 @@ export const configureCommand: SlashCommand = {
         .values({ guildId, ...updateData });
     }
 
+    bot.invalidateGuildToggles(guildId);
     await interaction.reply({ content: '✅ Configuration updated. Use `/configure show` to view current settings.', flags: 64 });
   },
 };

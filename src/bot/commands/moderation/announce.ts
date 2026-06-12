@@ -4,7 +4,7 @@ import {
   PermissionFlagsBits,
 } from 'discord.js';
 import type { SlashCommand } from '../../types.js';
-import { Colors, footer, timestamp } from '../../../utils/embed.js';
+import { Colors } from '../../../utils/embed.js';
 
 export const announceCommand: SlashCommand = {
   data: new SlashCommandBuilder()

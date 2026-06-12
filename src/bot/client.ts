@@ -48,6 +48,10 @@ export class Bot {
     }
   }
 
+  invalidateGuildToggles(guildId: string) {
+    this.guildToggles.delete(guildId);
+  }
+
   async logToChannel(guildId: string, embed: EmbedBuilder) {
     const toggles = await this.getGuildToggles(guildId);
     if (toggles.modlogsEnabled === false) return;

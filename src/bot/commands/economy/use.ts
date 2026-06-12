@@ -96,7 +96,7 @@ export const useCommand: SlashCommand = {
         .setDescription(`You used **${def.label}** and found **${value.toLocaleString()}** Pulses! 💰`)
         .setColor(Colors.Economy);
 
-      await interaction.reply({ embeds: [footer(timestamp(emb))] });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
       return;
     }
 
