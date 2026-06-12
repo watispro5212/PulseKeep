@@ -49,7 +49,7 @@ export const fishCommand: SlashCommand = {
 
     const { name, value } = fish();
     const boosted = hasXpBoost(rec) ? applyXpBoost(value, rec) : value;
-    const ephemeral = !interaction.options.getBoolean('public');
+    const publicReply = !!interaction.options.getBoolean('public');
 
     if (rec) {
       await db
@@ -76,6 +76,10 @@ export const fishCommand: SlashCommand = {
       .setDescription(desc)
       .setColor(Colors.Economy);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral });
+    if (publicReply) {
+      await interaction.reply({ embeds: [footer(timestamp(emb))] });
+    } else {
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    }
   },
 };

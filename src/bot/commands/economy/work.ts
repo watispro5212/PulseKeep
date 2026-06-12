@@ -42,7 +42,7 @@ export const workCommand: SlashCommand = {
     const earned = job.pay[0]! + Math.floor(Math.random() * (job.pay[1]! - job.pay[0]!));
     const boosted = hasXpBoost(rec) ? applyXpBoost(earned, rec) : earned;
     const flavor = WORK_FLAVOR[Math.floor(Math.random() * WORK_FLAVOR.length)];
-    const ephemeral = !interaction.options.getBoolean('public');
+    const publicReply = !!interaction.options.getBoolean('public');
 
     if (rec) {
       await db
@@ -69,6 +69,10 @@ export const workCommand: SlashCommand = {
       .setDescription(titleDesc)
       .setColor(Colors.Economy);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral });
+    if (publicReply) {
+      await interaction.reply({ embeds: [footer(timestamp(emb))] });
+    } else {
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    }
   },
 };

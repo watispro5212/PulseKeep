@@ -8,10 +8,11 @@ import { gamble } from '../../economy/store.js';
 export const gambleCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('gamble')
-    .setDescription('Gamble your Pulses for a chance to win big!')
+    .setDescription('Gamble your Pulses for a chance to win big')
     .addIntegerOption((o) =>
       o.setName('amount').setDescription('Amount to gamble').setRequired(true).setMinValue(10),
     )
+    .addBooleanOption((o) => o.setName('public').setDescription('Show publicly'))
     .toJSON(),
 
   async execute({ db }, interaction) {
@@ -20,6 +21,7 @@ export const gambleCommand: SlashCommand = {
       return;
     }
 
+    const publicReply = !!interaction.options.getBoolean('public');
     const userId = interaction.user.id;
     const amount = interaction.options.getInteger('amount', true);
 
@@ -88,6 +90,10 @@ export const gambleCommand: SlashCommand = {
       )
       .setColor(color);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    if (publicReply) {
+      await interaction.reply({ embeds: [footer(timestamp(emb))] });
+    } else {
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    }
   },
 };

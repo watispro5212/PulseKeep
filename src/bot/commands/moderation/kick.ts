@@ -25,6 +25,10 @@ export const kickCommand: SlashCommand = {
       await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });
       return;
     }
+    if (!member.kickable) {
+      await interaction.reply({ content: '❌ I cannot kick that member. Check role hierarchy.', flags: 64 });
+      return;
+    }
 
     try {
       try {

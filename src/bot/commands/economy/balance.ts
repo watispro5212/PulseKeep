@@ -10,9 +10,11 @@ export const balanceCommand: SlashCommand = {
     .setName('balance')
     .setDescription('Check your or another user\'s balance')
     .addUserOption((o) => o.setName('user').setDescription('User to check'))
+    .addBooleanOption((o) => o.setName('public').setDescription('Show publicly'))
     .toJSON(),
 
   async execute({ db }, interaction) {
+    const publicReply = !!interaction.options.getBoolean('public');
     const target = interaction.options.getUser('user') ?? interaction.user;
     let balance = STARTING_BALANCE;
     let extras = '';
@@ -41,6 +43,10 @@ export const balanceCommand: SlashCommand = {
       .setDescription(`💰 **${balance.toLocaleString()}** Pulses${extras}`)
       .setColor(Colors.Economy);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    if (publicReply) {
+      await interaction.reply({ embeds: [footer(timestamp(emb))] });
+    } else {
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    }
   },
 };

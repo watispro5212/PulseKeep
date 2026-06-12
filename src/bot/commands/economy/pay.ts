@@ -51,28 +51,23 @@ export const payCommand: SlashCommand = {
       .limit(1);
     const recv = recvRows[0];
 
-    await db
-      .update(userEconomy)
-      .set({
-        balance: sender.balance - amount,
-        transactions: (sender.transactions ?? 0) + 1,
-      })
-      .where(eq(userEconomy.userId, senderId));
-
-    if (recv) {
-      await db
+    await db.transaction(async (tx: any) => {
+      await tx
         .update(userEconomy)
-        .set({
-          balance: recv.balance + amount,
-          totalEarned: (recv.totalEarned ?? 0) + amount,
-          transactions: (recv.transactions ?? 0) + 1,
-        })
-        .where(eq(userEconomy.userId, recipient.id));
-    } else {
-      await db
-        .insert(userEconomy)
-        .values({ userId: recipient.id, balance: amount, totalEarned: amount, transactions: 1 });
-    }
+        .set({ balance: sender.balance - amount, transactions: (sender.transactions ?? 0) + 1 })
+        .where(eq(userEconomy.userId, senderId));
+
+      if (recv) {
+        await tx
+          .update(userEconomy)
+          .set({ balance: recv.balance + amount, totalEarned: (recv.totalEarned ?? 0) + amount, transactions: (recv.transactions ?? 0) + 1 })
+          .where(eq(userEconomy.userId, recipient.id));
+      } else {
+        await tx
+          .insert(userEconomy)
+          .values({ userId: recipient.id, balance: amount, totalEarned: amount, transactions: 1 });
+      }
+    });
 
     const emb = new EmbedBuilder()
       .setTitle('Payment Sent')

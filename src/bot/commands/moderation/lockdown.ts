@@ -29,7 +29,7 @@ export const lockCommand: SlashCommand = {
         .setTitle('Channel Locked')
         .setDescription(`🔒 ${channel} has been locked.`)
         .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))] });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
     } catch {
       await interaction.reply({ content: '❌ Failed to lock channel.', flags: 64 });
     }
@@ -58,7 +58,7 @@ export const unlockCommand: SlashCommand = {
         .setTitle('Channel Unlocked')
         .setDescription(`🔓 ${channel} has been unlocked.`)
         .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))] });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
     } catch {
       await interaction.reply({ content: '❌ Failed to unlock channel.', flags: 64 });
     }

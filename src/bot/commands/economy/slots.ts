@@ -10,8 +10,9 @@ export const slotsCommand: SlashCommand = {
     .setName('slots')
     .setDescription('Spin the slot machine')
     .addIntegerOption((o) =>
-      o.setName('bet').setDescription('Bet amount').setRequired(true).setMinValue(10),
+      o.setName('amount').setDescription('Amount to bet').setRequired(true).setMinValue(10),
     )
+    .addBooleanOption((o) => o.setName('public').setDescription('Show publicly'))
     .toJSON(),
 
   async execute({ db }, interaction) {
@@ -20,6 +21,7 @@ export const slotsCommand: SlashCommand = {
       return;
     }
 
+    const publicReply = !!interaction.options.getBoolean('public');
     const userId = interaction.user.id;
     const bet = interaction.options.getInteger('bet', true);
 
@@ -69,6 +71,10 @@ export const slotsCommand: SlashCommand = {
       .addFields({ name: 'New Balance', value: `💰 ${newBalance.toLocaleString()}`, inline: true })
       .setColor(color);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    if (publicReply) {
+      await interaction.reply({ embeds: [footer(timestamp(emb))] });
+    } else {
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    }
   },
 };

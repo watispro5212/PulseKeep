@@ -41,7 +41,7 @@ export const weeklyCommand: SlashCommand = {
     const baseReward = 1000 + Math.floor(Math.random() * 1001);
     const reward = hasXpBoost(rec) ? applyXpBoost(baseReward, rec) : baseReward;
     const boosted = reward !== baseReward;
-    const ephemeral = !interaction.options.getBoolean('public');
+    const publicReply = !!interaction.options.getBoolean('public');
 
     if (rec) {
       await db
@@ -64,6 +64,10 @@ export const weeklyCommand: SlashCommand = {
       .setDescription(`📅 You claimed **${reward.toLocaleString()}** Pulses${boosted ? ' (with XP Boost!)' : '!'}`)
       .setColor(Colors.Economy);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral });
+    if (publicReply) {
+      await interaction.reply({ embeds: [footer(timestamp(emb))] });
+    } else {
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    }
   },
 };

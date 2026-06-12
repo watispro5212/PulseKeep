@@ -196,6 +196,8 @@ export class Bot {
         const toggles = {
           economy: cfg.economyEnabled !== false,
           tickets: cfg.ticketsEnabled !== false,
+          modlogsEnabled: cfg.modlogsEnabled !== false,
+          welcomeEnabled: cfg.welcomeEnabled === true,
           logChannelId: cfg.logChannelId || undefined,
           welcomeChannelId: cfg.welcomeChannelId || undefined,
         };

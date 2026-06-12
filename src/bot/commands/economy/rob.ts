@@ -10,6 +10,7 @@ export const robCommand: SlashCommand = {
     .setName('rob')
     .setDescription('Attempt to rob another user')
     .addUserOption((o) => o.setName('user').setDescription('Target').setRequired(true))
+    .addBooleanOption((o) => o.setName('public').setDescription('Show publicly'))
     .toJSON(),
 
   async execute({ db }, interaction) {
@@ -18,6 +19,7 @@ export const robCommand: SlashCommand = {
       return;
     }
 
+    const publicReply = !!interaction.options.getBoolean('public');
     const userId = interaction.user.id;
     const target = interaction.options.getUser('user', true);
     if (target.id === userId) {
@@ -60,30 +62,29 @@ export const robCommand: SlashCommand = {
     const stealAmount = Math.min(targetRec.balance, 100 + Math.floor(Math.random() * 401));
 
     if (robSuccess()) {
-      await db
-        .update(userEconomy)
-        .set({
-          balance: rec ? rec.balance + stealAmount : stealAmount,
-          lastRob: now,
-          totalEarned: (rec?.totalEarned ?? 0) + stealAmount,
-          transactions: (rec?.transactions ?? 0) + 1,
-        })
-        .where(eq(userEconomy.userId, userId));
-
-      await db
-        .update(userEconomy)
-        .set({
-          balance: targetRec.balance - stealAmount,
-          transactions: (targetRec.transactions ?? 0) + 1,
-        })
-        .where(eq(userEconomy.userId, target.id));
+      const attBalance = rec ? rec.balance + stealAmount : stealAmount;
+      const tgtBalance = targetRec.balance - stealAmount;
+      await db.transaction(async (tx: any) => {
+        await tx
+          .update(userEconomy)
+          .set({ balance: attBalance, lastRob: now, totalEarned: (rec?.totalEarned ?? 0) + stealAmount, transactions: (rec?.transactions ?? 0) + 1 })
+          .where(eq(userEconomy.userId, userId));
+        await tx
+          .update(userEconomy)
+          .set({ balance: tgtBalance, transactions: (targetRec.transactions ?? 0) + 1 })
+          .where(eq(userEconomy.userId, target.id));
+      });
 
       const emb = new EmbedBuilder()
         .setTitle(`🦹 Robbery Successful!`)
         .setDescription(`You stole **${stealAmount.toLocaleString()}** Pulses from ${target.username}!`)
         .setColor(Colors.Economy);
 
-      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+      if (publicReply) {
+        await interaction.reply({ embeds: [footer(timestamp(emb))] });
+      } else {
+        await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+      }
     } else {
       const fine = Math.min(rec?.balance ?? 0, 200);
       if (fine > 0 && rec) {
@@ -98,7 +99,11 @@ export const robCommand: SlashCommand = {
         .setDescription(`You got caught and fined **${fine.toLocaleString()}** Pulses.`)
         .setColor(Colors.Error);
 
-      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+      if (publicReply) {
+        await interaction.reply({ embeds: [footer(timestamp(emb))] });
+      } else {
+        await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+      }
     }
   },
 };

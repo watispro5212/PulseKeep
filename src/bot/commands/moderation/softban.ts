@@ -15,7 +15,7 @@ export const softbanCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     const target = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
     const member = interaction.guild?.members.cache.get(target.id);
@@ -30,6 +30,7 @@ export const softbanCommand: SlashCommand = {
     }
 
     try {
+      await target.send(`You have been softbanned from **${interaction.guild?.name ?? 'the server'}**.\nReason: ${reason}`).catch(() => {});
       await member.ban({ reason: `[Softban] ${reason}`, deleteMessageSeconds: 86400 });
       await interaction.guild?.members.unban(target.id, `[Softban completed] ${reason}`);
 
@@ -42,6 +43,17 @@ export const softbanCommand: SlashCommand = {
         )
         .setColor(Colors.Moderation);
       await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+
+      const log = new EmbedBuilder()
+        .setTitle('Member Softbanned')
+        .setDescription(`**${target.tag}** was softbanned.`)
+        .addFields(
+          { name: 'Reason', value: reason, inline: false },
+          { name: 'Moderator', value: `${interaction.user}`, inline: true },
+        )
+        .setColor(Colors.Moderation)
+        .setTimestamp();
+      await bot.logToChannel(interaction.guildId!, log);
     } catch {
       await interaction.reply({ content: '❌ Failed to softban that member.', flags: 64 });
     }

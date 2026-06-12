@@ -76,7 +76,7 @@ export const ticketCommand: SlashCommand = {
           .setTitle('Ticket Closed')
           .setDescription(`Ticket closed by ${interaction.user}. This channel will be deleted shortly.`)
           .setColor(Colors.Tickets);
-        await interaction.reply({ embeds: [footer(timestamp(emb))] });
+        await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
         setTimeout(() => channel.delete().catch(() => {}), 3000);
         break;
       }

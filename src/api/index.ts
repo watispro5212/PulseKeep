@@ -248,21 +248,29 @@ window.location.replace('/dashboard.html');
     // DiscordBotList vote webhook
     const dblCors = (req: any, res: any, next: any) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
       if (req.method === 'OPTIONS') { res.sendStatus(204); return; }
       next();
     };
+    this.app.get('/api/dbl/webhook', dblCors, (_req, res) => {
+      res.json({ status: 'ok', message: 'DBL webhook endpoint ready' });
+    });
     this.app.options('/api/dbl/webhook', dblCors);
     this.app.post('/api/dbl/webhook', dblCors, async (req, res) => {
-      const auth = req.headers.authorization;
+      console.log('[DBL] Webhook received:', JSON.stringify(req.body));
+      console.log('[DBL] Headers:', JSON.stringify(req.headers));
+      const auth = req.headers.authorization || req.body?.auth;
       if (!auth || auth !== this.config.dblWebhookSecret) {
+        console.log('[DBL] Auth mismatch');
         res.status(401).json({ error: 'Unauthorized' });
         return;
       }
-      const { user: userId, type } = req.body;
-      if (!userId || type !== 'upvote') {
-        res.json({ status: 'ignored' });
+      const userId = req.body?.user;
+      const type = req.body?.type;
+      if (!userId) {
+        console.log('[DBL] Missing user field');
+        res.json({ status: 'ignored', reason: 'missing user' });
         return;
       }
       const reward = 500 + Math.floor(Math.random() * 251);
@@ -289,8 +297,11 @@ window.location.replace('/dashboard.html');
               .insert(userEconomy)
               .values({ userId, balance: reward, lastVote: new Date(), totalEarned: reward, transactions: 1 });
           }
+          console.log(`[DBL] Credited ${reward} pulses to ${userId}`);
         }
-      } catch {}
+      } catch (err) {
+        console.error('[DBL] DB error:', err);
+      }
       if (this.bot) {
         try {
           const { guildConfigs } = await import('../db/schema.js');
@@ -311,8 +322,11 @@ window.location.replace('/dashboard.html');
               .setTimestamp();
             try { await channel.send({ embeds: [emb] }); } catch {}
           }
-        } catch {}
+        } catch (err) {
+          console.error('[DBL] Channel announce error:', err);
+        }
       }
+      console.log(`[DBL] Vote processed for ${userId}, reward: ${reward}`);
       res.json({ status: 'ok', reward });
     });
 

@@ -53,37 +53,34 @@ export const blackjackCommand: SlashCommand = {
     const dealerHand = [drawCard(), drawCard()];
 
     const playerTotal = handValue(playerHand);
-    const dealerTotal = handValue(dealerHand);
 
     let result: string;
     let change: number;
 
-    if (playerTotal === 21 && dealerTotal !== 21) {
+    if (playerTotal === 21) {
       result = '🎉 **Blackjack!** You got 21!';
       change = Math.floor(bet * 2.5);
     } else if (playerTotal > 21) {
       result = '💥 **Bust!** You went over 21.';
       change = -bet;
-    } else if (dealerTotal > 21) {
-      result = '🎉 **Dealer busts!** You win!';
-      change = bet;
-    } else if (playerTotal > dealerTotal) {
-      result = '🎉 **You win!** Better hand than the dealer.';
-      change = bet;
-    } else if (playerTotal < dealerTotal) {
-      result = '💸 **You lose!** Dealer has a better hand.';
-      change = -bet;
     } else {
-      result = '🤝 **Push!** Same hand.';
-      change = 0;
-    }
-
-    let dealerPlays = '';
-    if (change >= 0 || playerTotal > 21) {
-      dealerPlays = ' (dealer didn\'t need to draw)';
-    } else {
-      const finalDealer = handValue(dealerHand);
-      dealerPlays = finalDealer > 21 ? ' — Dealer busted!' : '';
+      while (!blackjackDealerShouldStand(handValue(dealerHand))) {
+        dealerHand.push(drawCard());
+      }
+      const dealerTotal = handValue(dealerHand);
+      if (dealerTotal > 21) {
+        result = '🎉 **Dealer busts!** You win!';
+        change = bet;
+      } else if (playerTotal > dealerTotal) {
+        result = '🎉 **You win!** Better hand than the dealer.';
+        change = bet;
+      } else if (playerTotal < dealerTotal) {
+        result = '💸 **You lose!** Dealer has a better hand.';
+        change = -bet;
+      } else {
+        result = '🤝 **Push!** Same hand.';
+        change = 0;
+      }
     }
 
     const newBalance = rec.balance + change;
@@ -96,6 +93,7 @@ export const blackjackCommand: SlashCommand = {
       })
       .where(eq(userEconomy.userId, userId));
 
+    const dealerTotal = handValue(dealerHand);
     const emb = new EmbedBuilder()
       .setTitle('♠️ Blackjack')
       .setDescription(result)
@@ -107,7 +105,7 @@ export const blackjackCommand: SlashCommand = {
         },
         {
           name: `Dealer's Hand (${dealerTotal})`,
-          value: `${dealerHand.join(' · ')}${dealerPlays}`,
+          value: dealerHand.join(' · '),
           inline: true,
         },
         { name: 'Payout', value: `${change >= 0 ? '+' : ''}${change.toLocaleString()}`, inline: true },

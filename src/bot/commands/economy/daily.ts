@@ -45,7 +45,7 @@ export const dailyCommand: SlashCommand = {
     const bonus = getStreakBonus(newStreak);
     const total = hasXpBoost(rec) ? applyXpBoost(base + bonus, rec) : base + bonus;
 
-    const ephemeral = !interaction.options.getBoolean('public');
+    const publicReply = !!interaction.options.getBoolean('public');
 
     if (rec) {
       await db
@@ -83,6 +83,10 @@ export const dailyCommand: SlashCommand = {
       )
       .setColor(Colors.Economy);
 
-    await interaction.reply({ embeds: [footer(timestamp(emb))], ephemeral });
+    if (publicReply) {
+      await interaction.reply({ embeds: [footer(timestamp(emb))] });
+    } else {
+      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    }
   },
 };

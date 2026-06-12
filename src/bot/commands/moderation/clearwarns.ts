@@ -16,7 +16,7 @@ export const clearwarnsCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
     .toJSON(),
 
-  async execute({ db }, interaction) {
+  async execute({ bot, db }, interaction) {
     if (!db) {
       await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
@@ -36,5 +36,16 @@ export const clearwarnsCommand: SlashCommand = {
       .setColor(Colors.Moderation);
 
     await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+
+    const log = new EmbedBuilder()
+      .setTitle('Warnings Cleared')
+      .setDescription(`**${target.tag}** had **${count}** warning(s) cleared.`)
+      .addFields(
+        { name: 'Moderator', value: `${interaction.user}`, inline: true },
+        { name: 'User', value: `${target}`, inline: true },
+      )
+      .setColor(Colors.Moderation)
+      .setTimestamp();
+    await bot.logToChannel(interaction.guildId!, log);
   },
 };

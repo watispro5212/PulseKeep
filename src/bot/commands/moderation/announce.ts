@@ -38,13 +38,17 @@ export const announceCommand: SlashCommand = {
       yellow: Colors.Warning,
     };
 
-    const emb = new EmbedBuilder()
-      .setTitle(title)
-      .setDescription(message)
-      .setColor(colors[colorChoice] ?? Colors.Moderation)
-      .setFooter({ text: `Announcement by ${interaction.user.tag}` })
-      .setTimestamp(new Date());
+    try {
+      const emb = new EmbedBuilder()
+        .setTitle(title)
+        .setDescription(message)
+        .setColor(colors[colorChoice] ?? Colors.Moderation)
+        .setFooter({ text: `Announcement by ${interaction.user.tag}` })
+        .setTimestamp(new Date());
 
-    await interaction.reply({ embeds: [emb] });
+      await interaction.reply({ embeds: [emb] });
+    } catch {
+      await interaction.reply({ content: '❌ Failed to send announcement.', flags: 64 });
+    }
   },
 };

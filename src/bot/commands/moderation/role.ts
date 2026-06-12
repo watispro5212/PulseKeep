@@ -28,6 +28,7 @@ export const roleCommand: SlashCommand = {
     const target = interaction.options.getUser('user', true);
     const role = interaction.options.getRole('role', true);
     const member = interaction.guild?.members.cache.get(target.id);
+    const botMember = interaction.guild?.members.me;
 
     if (!member) {
       await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });
@@ -41,7 +42,7 @@ export const roleCommand: SlashCommand = {
       await interaction.reply({ content: '❌ That role is managed by an integration and cannot be manually assigned.', flags: 64 });
       return;
     }
-    if (role.comparePositionTo(interaction.guild?.members.me?.roles.highest ?? role) >= 0) {
+    if (botMember && role.comparePositionTo(botMember.roles.highest) >= 0) {
       await interaction.reply({ content: '❌ That role is higher than my highest role.', flags: 64 });
       return;
     }
