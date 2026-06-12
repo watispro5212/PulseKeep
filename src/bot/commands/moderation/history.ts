@@ -37,7 +37,7 @@ export const historyCommand: SlashCommand = {
       : 'None';
 
     const emb = new EmbedBuilder()
-      .setTitle(`Moderation History — ${target.tag}`)
+      .setTitle(`Moderation History — ${target.username}`)
       .setColor(Colors.Moderation)
       .addFields(
         { name: 'Total Warnings', value: `${warnCount}`, inline: true },

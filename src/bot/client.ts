@@ -17,7 +17,7 @@ import { Colors, footer, timestamp, baseEmbed } from '../utils/embed.js';
 
 const ECONOMY_COMMANDS = new Set([
   'balance','daily','weekly','work','gamble','blackjack','slots','rob',
-  'fish','mine','shop','buy','inventory','leaderboard','tip',
+  'fish','mine','shop','buy','inventory','leaderboard','tip','vote','search',
 ]);
 
 const TICKET_COMMANDS = new Set(['ticketpanel']);
@@ -87,16 +87,20 @@ export class Bot {
 
   private registerListeners() {
     this.client.once(Events.ClientReady, (c) => {
-      console.log(`Logged in as ${c.user.tag}`);
+      console.log(`Logged in as ${c.user.username}`);
       this.cache.setGuildsCount(this.client.guilds.cache.size);
       this.cache.setBotGuilds(
         this.client.guilds.cache.map((g: any) => ({ id: g.id, name: g.name }))
+      );
+      this.cache.setTotalUserCount(
+        this.client.guilds.cache.reduce((sum: number, g: any) => sum + (g.memberCount || 0), 0)
       );
     });
 
     // Welcome messages
     this.client.on(Events.GuildMemberAdd, async (member: GuildMember) => {
       if (member.user.bot) return;
+      this.cache.setTotalUserCount(this.cache.getTotalUserCount() + 1);
       const toggles = await this.getGuildToggles(member.guild.id);
       if (!toggles.welcomeEnabled || !toggles.welcomeChannelId) return;
       try {
@@ -110,6 +114,10 @@ export class Bot {
           .setTimestamp();
         await channel.send({ embeds: [emb] });
       } catch {}
+    });
+
+    this.client.on(Events.GuildMemberRemove, () => {
+      this.cache.setTotalUserCount(this.cache.getTotalUserCount() - 1);
     });
 
     this.client.on(Events.InteractionCreate, async (interaction) => {

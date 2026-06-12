@@ -1,7 +1,9 @@
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { eq } from 'drizzle-orm';
 import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
 import { SHOP_ITEMS } from '../../economy/store.js';
+import { userEconomy } from '../../../db/schema.js';
 
 export const shopCommand: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -12,8 +14,6 @@ export const shopCommand: SlashCommand = {
   async execute({ db }, interaction) {
     let balance = 500;
     if (db) {
-      const { userEconomy } = await import('../../../db/schema.js');
-      const { eq } = await import('drizzle-orm');
       const rows = await db
         .select()
         .from(userEconomy)

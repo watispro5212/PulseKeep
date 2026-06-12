@@ -26,7 +26,7 @@ export const fishCommand: SlashCommand = {
       .where(and(eq(userInventory.userId, userId), eq(userInventory.itemId, 'fishing_rod')))
       .limit(1);
 
-    if (inv.length === 0) {
+    if (inv.length === 0 || inv[0].quantity <= 0) {
       await interaction.reply({ content: '❌ You need a **Fishing Rod**! Buy one from /shop.', flags: 64 });
       return;
     }

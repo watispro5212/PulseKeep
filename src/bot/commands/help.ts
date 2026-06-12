@@ -24,7 +24,9 @@ const categories = [
       { name: 'leaderboard', desc: 'Richest users' },
       { name: 'search', desc: 'Search for hidden Pulses' },
       { name: 'use', desc: 'Use an item from inventory' },
+      { name: 'vote', desc: 'Vote on DiscordBotList' },
       { name: 'tip', desc: 'Get an economy tip' },
+      { name: 'vote', desc: 'Vote on DiscordBotList' },
     ],
   },
   {
@@ -78,7 +80,6 @@ const categories = [
       { name: 'ping', desc: 'Check bot latency' },
       { name: 'stats', desc: 'Bot statistics' },
       { name: 'invite', desc: 'Invite links' },
-      { name: 'vote', desc: 'Vote on DiscordBotList' },
       { name: 'servericon', desc: 'Get server icon' },
       { name: 'roleinfo', desc: 'Role information' },
       { name: 'channelinfo', desc: 'Channel information' },
@@ -96,6 +97,7 @@ export const helpCommand: SlashCommand = {
           { name: 'Economy', value: 'economy' },
           { name: 'Moderation', value: 'moderation' },
           { name: 'Tickets', value: 'tickets' },
+          { name: 'Configuration', value: 'configuration' },
           { name: 'Utility', value: 'utility' },
         ),
     )

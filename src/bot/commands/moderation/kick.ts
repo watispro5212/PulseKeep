@@ -16,10 +16,13 @@ export const kickCommand: SlashCommand = {
     .toJSON(),
 
   async execute({ bot }, interaction) {
+    if (!interaction.guild) {
+      await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
+      return;
+    }
     const target = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
-    const member = interaction.guild?.members.cache.get(target.id);
-    const guildName = interaction.guild?.name ?? 'the server';
+    const member = await interaction.guild.members.fetch(target.id).catch(() => null);
 
     if (!member) {
       await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });
@@ -33,8 +36,8 @@ export const kickCommand: SlashCommand = {
     try {
       try {
         const dm = new EmbedBuilder()
-          .setTitle(`Kicked from ${guildName}`)
-          .setDescription(`You have been kicked from **${guildName}**.`)
+          .setTitle(`Kicked from ${interaction.guild.name}`)
+          .setDescription(`You have been kicked from **${interaction.guild.name}**.`)
           .addFields({ name: 'Reason', value: reason })
           .setColor(Colors.Moderation)
           .setTimestamp();
@@ -44,7 +47,7 @@ export const kickCommand: SlashCommand = {
       await member.kick(reason);
       const emb = new EmbedBuilder()
         .setTitle('Member Kicked')
-        .setDescription(`**${target.tag}** has been kicked.`)
+        .setDescription(`**${target.username}** has been kicked.`)
         .addFields(
           { name: 'Reason', value: reason, inline: false },
           { name: 'Moderator', value: `${interaction.user}`, inline: true },
@@ -54,7 +57,7 @@ export const kickCommand: SlashCommand = {
 
       const log = new EmbedBuilder()
         .setTitle('Moderation: Kick')
-        .setDescription(`**${target.tag}** was kicked by ${interaction.user}`)
+        .setDescription(`**${target.username}** was kicked by ${interaction.user}`)
         .addFields(
           { name: 'Reason', value: reason },
           { name: 'User ID', value: target.id, inline: true },

@@ -16,9 +16,13 @@ export const nickCommand: SlashCommand = {
     .toJSON(),
 
   async execute(_ctx, interaction) {
+    if (!interaction.guild) {
+      await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
+      return;
+    }
     const target = interaction.options.getUser('user', true);
     const nickname = interaction.options.getString('nickname');
-    const member = interaction.guild?.members.cache.get(target.id);
+    const member = await interaction.guild.members.fetch(target.id).catch(() => null);
 
     if (!member) {
       await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });
@@ -35,8 +39,8 @@ export const nickCommand: SlashCommand = {
       const emb = new EmbedBuilder()
         .setTitle('Nickname Updated')
         .setDescription(nickname
-          ? `Changed **${target.tag}**'s nickname to **${nickname}**.`
-          : `Reset **${target.tag}**'s nickname.`,
+          ? `Changed **${target.username}**'s nickname to **${nickname}**.`
+          : `Reset **${target.username}**'s nickname.`,
         )
         .setColor(Colors.Moderation);
       await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });

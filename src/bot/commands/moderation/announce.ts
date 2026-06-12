@@ -43,7 +43,7 @@ export const announceCommand: SlashCommand = {
         .setTitle(title)
         .setDescription(message)
         .setColor(colors[colorChoice] ?? Colors.Moderation)
-        .setFooter({ text: `Announcement by ${interaction.user.tag}` })
+        .setFooter({ text: `Announcement by ${interaction.user.username}` })
         .setTimestamp(new Date());
 
       await interaction.reply({ embeds: [emb] });

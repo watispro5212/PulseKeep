@@ -17,26 +17,29 @@ export const banCommand: SlashCommand = {
     .toJSON(),
 
   async execute({ bot }, interaction) {
+    if (!interaction.guild) {
+      await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
+      return;
+    }
     const target = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
     const days = interaction.options.getInteger('days') ?? 0;
-    const guildName = interaction.guild?.name ?? 'the server';
 
     try {
       try {
         const dm = new EmbedBuilder()
-          .setTitle(`Banned from ${guildName}`)
-          .setDescription(`You have been banned from **${guildName}**.`)
+          .setTitle(`Banned from ${interaction.guild.name}`)
+          .setDescription(`You have been banned from **${interaction.guild.name}**.`)
           .addFields({ name: 'Reason', value: reason })
           .setColor(Colors.Moderation)
           .setTimestamp();
         await target.send({ embeds: [dm] });
       } catch {}
 
-      await interaction.guild?.members.ban(target, { reason, deleteMessageSeconds: days * 86400 });
+      await interaction.guild.members.ban(target, { reason, deleteMessageSeconds: days * 86400 });
       const emb = new EmbedBuilder()
         .setTitle('User Banned')
-        .setDescription(`**${target.tag}** has been banned.`)
+        .setDescription(`**${target.username}** has been banned.`)
         .addFields(
           { name: 'Reason', value: reason, inline: false },
           { name: 'Moderator', value: `${interaction.user}`, inline: true },
@@ -46,7 +49,7 @@ export const banCommand: SlashCommand = {
 
       const log = new EmbedBuilder()
         .setTitle('Moderation: Ban')
-        .setDescription(`**${target.tag}** was banned by ${interaction.user}`)
+        .setDescription(`**${target.username}** was banned by ${interaction.user}`)
         .addFields(
           { name: 'Reason', value: reason },
           { name: 'User ID', value: target.id, inline: true },

@@ -10,6 +10,7 @@ process.on('unhandledRejection', (reason) => {
 });
 process.on('uncaughtException', (err) => {
   console.error('Uncaught exception:', err);
+  process.exit(1);
 });
 
 async function main() {

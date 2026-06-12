@@ -46,7 +46,7 @@ export const warnCommand: SlashCommand = {
 
     const emb = new EmbedBuilder()
       .setTitle('User Warned')
-      .setDescription(`**${user.tag}** has been warned.`)
+      .setDescription(`**${user.username}** has been warned.`)
       .addFields(
         { name: 'Reason', value: reason, inline: false },
         { name: 'Moderator', value: `<@${moderatorId}>`, inline: true },
@@ -59,7 +59,7 @@ export const warnCommand: SlashCommand = {
     // Log to mod channel
     const log = new EmbedBuilder()
       .setTitle('Moderation: Warn')
-      .setDescription(`**${user.tag}** was warned by ${interaction.user}`)
+      .setDescription(`**${user.username}** was warned by ${interaction.user}`)
       .addFields(
         { name: 'Reason', value: reason },
         { name: 'User ID', value: user.id, inline: true },

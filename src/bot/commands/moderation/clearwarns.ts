@@ -39,7 +39,7 @@ export const clearwarnsCommand: SlashCommand = {
 
     const log = new EmbedBuilder()
       .setTitle('Warnings Cleared')
-      .setDescription(`**${target.tag}** had **${count}** warning(s) cleared.`)
+      .setDescription(`**${target.username}** had **${count}** warning(s) cleared.`)
       .addFields(
         { name: 'Moderator', value: `${interaction.user}`, inline: true },
         { name: 'User', value: `${target}`, inline: true },

@@ -22,7 +22,7 @@ export const lockCommand: SlashCommand = {
     }
 
     try {
-      await channel.permissionOverwrites.create(interaction.guild.roles.everyone, {
+      await channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
         SendMessages: false,
       });
       const emb = new EmbedBuilder()
@@ -51,7 +51,7 @@ export const unlockCommand: SlashCommand = {
     }
 
     try {
-      await channel.permissionOverwrites.create(interaction.guild.roles.everyone, {
+      await channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
         SendMessages: null,
       });
       const emb = new EmbedBuilder()

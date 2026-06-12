@@ -15,8 +15,12 @@ export const vckickCommand: SlashCommand = {
     .toJSON(),
 
   async execute(_ctx, interaction) {
+    if (!interaction.guild) {
+      await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
+      return;
+    }
     const target = interaction.options.getUser('user', true);
-    const member = interaction.guild?.members.cache.get(target.id);
+    const member = await interaction.guild.members.fetch(target.id).catch(() => null);
     if (!member?.voice.channelId) {
       await interaction.reply({ content: '❌ That user is not in a voice channel.', flags: 64 });
       return;
@@ -31,7 +35,7 @@ export const vckickCommand: SlashCommand = {
 
     const emb = new EmbedBuilder()
       .setTitle('Member Disconnected')
-      .setDescription(`Disconnected **${target.tag}** from voice chat.`)
+      .setDescription(`Disconnected **${target.username}** from voice chat.`)
       .setColor(Colors.Moderation);
 
     await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });

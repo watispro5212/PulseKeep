@@ -24,11 +24,15 @@ export const roleCommand: SlashCommand = {
     .toJSON(),
 
   async execute(_ctx, interaction) {
+    if (!interaction.guild) {
+      await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
+      return;
+    }
     const sub = interaction.options.getSubcommand();
     const target = interaction.options.getUser('user', true);
     const role = interaction.options.getRole('role', true);
-    const member = interaction.guild?.members.cache.get(target.id);
-    const botMember = interaction.guild?.members.me;
+    const member = await interaction.guild.members.fetch(target.id).catch(() => null);
+    const botMember = interaction.guild.members.me;
 
     if (!member) {
       await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });

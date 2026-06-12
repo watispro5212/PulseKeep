@@ -34,7 +34,7 @@ export const warningsCommand: SlashCommand = {
       await interaction.reply({
         embeds: [footer(timestamp(new EmbedBuilder()
           .setTitle('Warnings')
-          .setDescription(`**${target.tag}** has no warnings.`)
+          .setDescription(`**${target.username}** has no warnings.`)
           .setColor(Colors.Moderation)))],
         flags: 64,
       });
@@ -50,7 +50,7 @@ export const warningsCommand: SlashCommand = {
     }
 
     const emb = new EmbedBuilder()
-      .setTitle(`Warnings — ${target.tag}`)
+      .setTitle(`Warnings — ${target.username}`)
       .setDescription(list.join('\n'))
       .addFields({ name: 'Total', value: `${rows.length} warning(s)`, inline: true })
       .setColor(Colors.Moderation);

@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return r || '0m';
   }
 
-  if ($('stat-servers') || $('status-dot')) {
+  if ($('stat-servers') || $('status-dot') || $('st-bot')) {
     fetchStats();
     setInterval(fetchStats, 30000);
   }

@@ -16,9 +16,13 @@ export const softbanCommand: SlashCommand = {
     .toJSON(),
 
   async execute({ bot }, interaction) {
+    if (!interaction.guild) {
+      await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
+      return;
+    }
     const target = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
-    const member = interaction.guild?.members.cache.get(target.id);
+    const member = await interaction.guild.members.fetch(target.id).catch(() => null);
 
     if (!member) {
       await interaction.reply({ content: '❌ Could not find that member.', flags: 64 });
@@ -30,13 +34,13 @@ export const softbanCommand: SlashCommand = {
     }
 
     try {
-      await target.send(`You have been softbanned from **${interaction.guild?.name ?? 'the server'}**.\nReason: ${reason}`).catch(() => {});
+      await target.send(`You have been softbanned from **${interaction.guild.name}**.\nReason: ${reason}`).catch(() => {});
       await member.ban({ reason: `[Softban] ${reason}`, deleteMessageSeconds: 86400 });
-      await interaction.guild?.members.unban(target.id, `[Softban completed] ${reason}`);
+      await interaction.guild.members.unban(target.id, `[Softban completed] ${reason}`);
 
       const emb = new EmbedBuilder()
         .setTitle('Member Softbanned')
-        .setDescription(`**${target.tag}** was banned and immediately unbanned. Their recent messages have been removed.`)
+        .setDescription(`**${target.username}** was banned and immediately unbanned. Their recent messages have been removed.`)
         .addFields(
           { name: 'Reason', value: reason, inline: false },
           { name: 'Moderator', value: `${interaction.user}`, inline: true },
@@ -46,7 +50,7 @@ export const softbanCommand: SlashCommand = {
 
       const log = new EmbedBuilder()
         .setTitle('Member Softbanned')
-        .setDescription(`**${target.tag}** was softbanned.`)
+        .setDescription(`**${target.username}** was softbanned.`)
         .addFields(
           { name: 'Reason', value: reason, inline: false },
           { name: 'Moderator', value: `${interaction.user}`, inline: true },

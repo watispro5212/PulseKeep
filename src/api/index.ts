@@ -258,15 +258,14 @@ window.location.replace('/dashboard.html');
     });
     this.app.options('/api/dbl/webhook', dblCors);
     this.app.post('/api/dbl/webhook', dblCors, async (req, res) => {
-      console.log('[DBL] Webhook received:', JSON.stringify(req.body));
-      console.log('[DBL] Headers:', JSON.stringify(req.headers));
+      console.log('[DBL] Webhook received:', JSON.stringify({ id: req.body?.id, username: req.body?.username }));
       const auth = req.headers.authorization || req.body?.auth;
       if (!auth || auth !== this.config.dblWebhookSecret) {
         console.log('[DBL] Auth mismatch');
         res.status(401).json({ error: 'Unauthorized' });
         return;
       }
-      const userId = req.body?.user;
+      const userId = req.body?.id;
       const type = req.body?.type;
       if (!userId) {
         console.log('[DBL] Missing user field');
