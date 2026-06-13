@@ -26,6 +26,7 @@ export const statsCommand: SlashCommand = {
         { name: 'Version', value: 'v7.0.0', inline: true },
         { name: 'Library', value: `discord.js v${djsVersion}`, inline: true },
         { name: 'Runtime', value: `Node.js ${process.version}`, inline: true },
+        { name: 'Shards', value: `${cache.getShardCount()} shard(s)`, inline: true },
       );
 
     await interaction.reply({ embeds: [footer(emb).setTimestamp(new Date())], flags: 64 });

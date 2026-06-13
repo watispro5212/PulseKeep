@@ -2,9 +2,11 @@ export class Cache {
   private guildsCount = 0;
   private totalUserCount = 0;
   private commandsRun = 0;
+  private avgLatencyValue = 0;
   private startedAt = new Date();
   private latencies: number[] = [];
   private botGuilds: { id: string; name: string }[] = [];
+  private shardStats = new Map<number, { guilds: number; users: number; commandsRun: number; avgLatency: number; uptime: number }>();
 
   setGuildsCount(count: number) { this.guildsCount = count; }
   getGuildsCount(): number { return this.guildsCount; }
@@ -12,8 +14,12 @@ export class Cache {
   setTotalUserCount(count: number) { this.totalUserCount = count; }
   getTotalUserCount(): number { return this.totalUserCount; }
 
-  incrementCommandsRun() { this.commandsRun++; }
+  setCommandsRun(count: number) { this.commandsRun = count; }
   getCommandsRun(): number { return this.commandsRun; }
+  incrementCommandsRun() { this.commandsRun++; }
+
+  setAvgLatency(ms: number) { this.avgLatencyValue = ms; }
+  getAvgLatency(): number { return this.avgLatencyValue; }
 
   getStartedAt(): Date { return this.startedAt; }
 
@@ -25,8 +31,13 @@ export class Cache {
     if (this.latencies.length > 100) this.latencies.shift();
   }
 
-  getAvgLatency(): number {
-    if (this.latencies.length === 0) return 0;
-    return this.latencies.reduce((a, b) => a + b, 0) / this.latencies.length;
+  getShardCount(): number { return this.shardStats.size; }
+
+  setShardStats(shardId: number, stats: { guilds: number; users: number; commandsRun: number; avgLatency: number; uptime: number }) {
+    this.shardStats.set(shardId, stats);
+  }
+
+  getAllShardStats(): { guilds: number; users: number; commandsRun: number; avgLatency: number; uptime: number }[] {
+    return Array.from(this.shardStats.values());
   }
 }

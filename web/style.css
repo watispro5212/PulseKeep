@@ -132,39 +132,28 @@ footer .social{display:flex;gap:12px}
 footer .social a{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);transition:var(--transition)}
 footer .social a:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-dim)}
 
-.dash-sidebar-toggle{display:none;position:fixed;bottom:20px;right:20px;z-index:60;width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;border:none;font-size:1.2rem;box-shadow:0 4px 24px var(--primary-glow);cursor:pointer;transition:var(--transition)}
-.dash-sidebar-toggle:hover{transform:scale(1.05);box-shadow:0 8px 36px var(--primary-glow)}
-.dash-sidebar-close{display:none;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px}
-.dash-sidebar-close:hover{color:var(--text)}
+body{animation:fadeIn .4s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-.dashboard-layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 64px)}
-.dashboard-sidebar{padding:20px;border-right:1px solid var(--border);background:var(--bg-soft);display:flex;flex-direction:column}
-.dashboard-sidebar h3{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:16px;padding:0 8px}
-.dash-sidebar-actions{margin-top:16px;padding:12px;text-align:center;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
-.guild-list{display:flex;flex-direction:column;gap:2px;flex:1;overflow-y:auto}
-.guild-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;font-size:.85rem;color:var(--muted);cursor:pointer;transition:var(--transition)}
-.guild-item:hover{background:rgba(255,255,255,.04);color:var(--text)}
-.guild-item.active{background:var(--primary-dim);color:var(--primary)}
-.guild-item.no-admin{opacity:.5;cursor:not-allowed}
-.guild-item.no-admin:hover{background:transparent;color:var(--muted)}
-.guild-item img{width:32px;height:32px;border-radius:50%;flex-shrink:0}
-.guild-item .guild-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
-.guild-item .guild-lock{color:var(--muted);font-size:.75rem;flex-shrink:0}
-.dashboard-main{padding:32px;max-width:720px}
-.dashboard-main h1{font-size:1.4rem;font-weight:700;margin-bottom:4px}
-.dashboard-main .subtitle{color:var(--muted);font-size:.85rem;margin-bottom:28px}
+.features-grid,.cmd-group,.status-card,.feature-card{animation:slideUp .5s ease both}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.feature-card:nth-child(2){animation-delay:.05s}
+.feature-card:nth-child(3){animation-delay:.1s}
+.feature-card:nth-child(4){animation-delay:.15s}
+.feature-card:nth-child(5){animation-delay:.2s}
+.feature-card:nth-child(6){animation-delay:.25s}
+.status-card:nth-child(2){animation-delay:.05s}
+.status-card:nth-child(3){animation-delay:.1s}
+.status-card:nth-child(4){animation-delay:.15s}
+.status-card:nth-child(5){animation-delay:.2s}
+.status-card:nth-child(6){animation-delay:.25s}
 
-.config-card{padding:24px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-card);margin-bottom:16px}
-.config-card h3{font-size:.9rem;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
-.config-card h3 i{color:var(--primary)}
-.config-card p.card-desc{font-size:.82rem;color:var(--muted);margin-bottom:16px}
-.config-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
-.config-row:last-child{border-bottom:none}
-.config-row label{font-size:.85rem;cursor:pointer;flex:1}
-.config-row input[type="checkbox"]{width:20px;height:20px;accent-color:var(--primary);cursor:pointer}
-.config-input{width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-soft);color:var(--text);font-size:.85rem;transition:var(--transition)}
-.config-input:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px var(--primary-dim)}
-.config-input::placeholder{color:var(--muted)}
+.mobile-nav a{transition:transform .2s ease,color .2s,background .2s}
+.mobile-nav a:active{transform:scale(.97)}
+nav a{transition:color .2s,background .2s,transform .2s}
+nav a:hover{transform:translateY(-1px)}
+.btn{transition:transform .2s,box-shadow .2s,background .2s}
+.btn:active{transform:scale(.97)}
 
 .status-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .status-card{padding:24px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-card)}

@@ -16,8 +16,9 @@ export const inviteCommand: SlashCommand = {
         color: Colors.Utility,
         fields: [
           { name: 'Invite Bot', value: '[Click here](https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands)', inline: false },
-          { name: 'Support Server', value: '[Click here](https://discord.gg/pulsekeep)', inline: false },
+          { name: 'Support Server', value: '[Click here](https://discord.gg/b9HBphyeuP)', inline: false },
           { name: 'DiscordBotList', value: '[Vote for us](https://discordbotlist.com/bots/1507498795569512598)', inline: false },
+          { name: 'Discords.com', value: '[Vote for us](https://discords.com/bots/bot/1507498795569512598)', inline: false },
         ],
         timestamp: new Date().toISOString(),
       }],

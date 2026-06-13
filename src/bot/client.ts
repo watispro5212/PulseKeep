@@ -70,8 +70,9 @@ export class Bot {
     }
   }
 
-  constructor(token: string, cache: Cache, db: any, statusWebhookURL: string, config: Config) {
+  constructor(token: string, cache: Cache, db: any, statusWebhookURL: string, config: Config, redis?: any) {
     this.client = new Client({
+      shards: 'auto',
       intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
@@ -99,6 +100,31 @@ export class Bot {
       this.cache.setTotalUserCount(
         this.client.guilds.cache.reduce((sum: number, g: any) => sum + (g.memberCount || 0), 0)
       );
+      this.sendStatusWebhook();
+    });
+
+    this.client.on(Events.GuildCreate, (guild) => {
+      this.cache.setGuildsCount(this.client.guilds.cache.size);
+      this.cache.setBotGuilds(
+        this.client.guilds.cache.map((g: any) => ({ id: g.id, name: g.name }))
+      );
+      this.cache.setTotalUserCount(
+        this.client.guilds.cache.reduce((sum: number, g: any) => sum + (g.memberCount || 0), 0)
+      );
+      console.log(`[Guild] Joined: ${guild.name} (${guild.id})`);
+      this.sendStatusWebhook();
+    });
+
+    this.client.on(Events.GuildDelete, (guild) => {
+      this.cache.setGuildsCount(this.client.guilds.cache.size);
+      this.cache.setBotGuilds(
+        this.client.guilds.cache.map((g: any) => ({ id: g.id, name: g.name }))
+      );
+      this.cache.setTotalUserCount(
+        this.client.guilds.cache.reduce((sum: number, g: any) => sum + (g.memberCount || 0), 0)
+      );
+      console.log(`[Guild] Left/removed: ${guild.id}`);
+      this.sendStatusWebhook();
     });
 
     // Welcome messages
@@ -352,7 +378,6 @@ export class Bot {
 
   async start(token: string) {
     await this.client.login(token);
-    this.sendStatusWebhook();
     setInterval(() => this.sendStatusWebhook(), 300000);
   }
 

@@ -90,6 +90,10 @@ document.addEventListener('DOMContentLoaded', function () {
       if (latTxt) latTxt.textContent = (d.avgLatency || '--') + 'ms';
       const uptEl = $('st-uptime-text');
       if (uptEl) uptEl.textContent = formatUptime(d.uptime);
+      const shEl = $('st-shards');
+      const shTxt = $('st-shards-text');
+      if (shEl) shEl.className = (d.shards || 0) > 0 ? 'dot dot-green' : 'dot dot-amber';
+      if (shTxt) shTxt.textContent = (d.shards || 0) > 0 ? d.shards + ' online' : 'Starting...';
       const upEl = $('st-updated');
       if (upEl) upEl.textContent = new Date().toLocaleTimeString();
 
@@ -99,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (dot) dot.className = 'dot dot-rose';
       if (txt) txt.textContent = 'Offline';
 
-      ['st-bot','st-api','st-db'].forEach(id => {
+      ['st-bot','st-api','st-db','st-shards'].forEach(id => {
         const el = $(id);
         if (el) el.className = 'dot dot-rose';
         const tel = $(id + '-text');
@@ -128,210 +132,5 @@ document.addEventListener('DOMContentLoaded', function () {
     setInterval(fetchStats, 30000);
   }
 
-  // --- Dashboard ---
-  const guildList = $('guild-list');
-  const dashConfig = $('dash-config');
-  const dashPrompt = $('dash-select-prompt');
-  const loginBtn = $('dash-login-btn');
-  const logoutBtn = $('dash-logout-btn');
-  const sidebar = $('dash-sidebar');
-  const sidebarToggle = $('dash-sidebar-toggle');
-
-  if (guildList) {
-    let accessToken = localStorage.getItem('pk_token');
-
-    const sidebarClose = $('dash-sidebar-close');
-
-    function closeSidebar() {
-      if (sidebar) sidebar.classList.remove('open');
-    }
-
-    if (sidebarToggle) {
-      sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('open');
-      });
-      document.addEventListener('click', (e) => {
-        if (sidebar && sidebar.classList.contains('open') && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-          closeSidebar();
-        }
-      });
-    }
-    if (sidebarClose) {
-      sidebarClose.addEventListener('click', closeSidebar);
-    }
-
-    function checkAuth() {
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get('token');
-      if (token) {
-        accessToken = token;
-        localStorage.setItem('pk_token', token);
-        window.history.replaceState({}, '', window.location.pathname);
-        updateAuthUI();
-        loadGuilds();
-        return true;
-      }
-      if (accessToken) {
-        updateAuthUI();
-        loadGuilds();
-        return true;
-      }
-      updateAuthUI();
-      return false;
-    }
-
-    function updateAuthUI() {
-      if (loginBtn) loginBtn.style.display = accessToken ? 'none' : 'flex';
-      if (logoutBtn) logoutBtn.style.display = accessToken ? 'flex' : 'none';
-    }
-
-    async function loadGuilds() {
-      if (loginBtn) loginBtn.style.display = 'none';
-      if (logoutBtn) logoutBtn.style.display = 'flex';
-      guildList.innerHTML = '<div style="color:var(--muted);font-size:.82rem;padding:8px"><div class="loading-spinner" style="margin-right:8px;vertical-align:middle"></div> Loading servers...</div>';
-
-      try {
-        const res = await fetch(API + '/api/user/guilds', {
-          headers: accessToken ? { 'Authorization': 'Bearer ' + accessToken } : {}
-        });
-        if (!res.ok) throw new Error('Failed to fetch');
-        const guilds = await res.json();
-
-        if (!guilds || guilds.length === 0) {
-          guildList.innerHTML = '<div style="color:var(--muted);font-size:.82rem;padding:8px">No mutual servers found. Make sure PulseKeep is in your server.</div>';
-          return;
-        }
-
-        guildList.innerHTML = '';
-        guilds.forEach(g => {
-          const div = document.createElement('div');
-          div.className = 'guild-item';
-          if (!g.hasAdmin) div.classList.add('no-admin');
-          const icon = g.icon
-            ? 'https://cdn.discordapp.com/icons/' + g.id + '/' + g.icon + '.png?size=64'
-            : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"%3E%3Crect fill="%23333" width="32" height="32" rx="8"/%3E%3Ctext x="16" y="20" text-anchor="middle" fill="%23fff" font-size="16"%3E' + (g.name ? g.name.charAt(0).toUpperCase() : '?') + '%3C/text%3E%3C/svg%3E';
-          div.innerHTML = '<img src="' + icon + '" alt="" loading="lazy"><span class="guild-name">' + (g.name || 'Unknown') + '</span>';
-          if (!g.hasAdmin) {
-            div.innerHTML += '<span class="guild-lock"><i class="fa-solid fa-lock" title="Need Manage Server permission"></i></span>';
-          }
-          div.addEventListener('click', () => {
-            if (!g.hasAdmin) {
-              toast('You need Manage Server permission to configure this server.', 'error');
-              return;
-            }
-            qsa('.guild-item').forEach(el => el.classList.remove('active'));
-            div.classList.add('active');
-            if (sidebar) sidebar.classList.remove('open');
-            loadConfig(g.id, g.name);
-          });
-          guildList.appendChild(div);
-        });
-      } catch {
-        guildList.innerHTML = '<div style="color:var(--muted);font-size:.82rem;padding:8px">Failed to load servers. Make sure you\'re logged in.</div>';
-      }
-    }
-
-    async function loadConfig(guildId, guildName) {
-      $('dash-guild-name').textContent = guildName;
-      $('dash-guild-id').textContent = 'ID: ' + guildId;
-      if (dashPrompt) dashPrompt.style.display = 'none';
-      if (dashConfig) dashConfig.style.display = 'block';
-      const saved = $('dash-saved');
-      if (saved) saved.style.display = 'none';
-
-      // Show loading state
-      qsa('[data-key]').forEach(el => {
-        if (el.type === 'checkbox') el.checked = true;
-        else el.value = '';
-      });
-
-      try {
-        const res = await fetch(API + '/api/guild/' + guildId + '/config', {
-          headers: accessToken ? { 'Authorization': 'Bearer ' + accessToken } : {}
-        });
-        if (!res.ok) throw new Error('No config');
-        const cfg = await res.json();
-
-        const vc = qs('[data-key="voteChannelId"]');
-        if (vc) vc.value = cfg.voteChannelId || '';
-
-        ['economyEnabled','ticketsEnabled','modlogsEnabled','welcomeEnabled'].forEach(key => {
-          const el = qs('[data-key="' + key + '"]');
-          if (el) el.checked = cfg[key] !== false;
-        });
-
-        const tc = qs('[data-key="ticketCategoryId"]');
-        if (tc) tc.value = cfg.ticketCategoryId || '';
-
-        const lc = qs('[data-key="logChannelId"]');
-        if (lc) lc.value = cfg.logChannelId || '';
-
-        const wc = qs('[data-key="welcomeChannelId"]');
-        if (wc) wc.value = cfg.welcomeChannelId || '';
-
-      } catch {
-        // Keep defaults on error
-      }
-    }
-
-    const saveBtn = $('dash-save');
-    if (saveBtn) {
-      saveBtn.addEventListener('click', async () => {
-        const guildIdEl = $('dash-guild-id');
-        if (!guildIdEl) return;
-        const guildId = guildIdEl.textContent.replace('ID: ','');
-        if (!guildId) return;
-
-        const payload = {};
-        qsa('[data-key]').forEach(el => {
-          const key = el.getAttribute('data-key');
-          payload[key] = el.type === 'checkbox' ? el.checked : el.value;
-        });
-
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<div class="loading-spinner" style="width:16px;height:16px;border-width:2px"></div> Saving...';
-
-        try {
-          const res = await fetch(API + '/api/guild/' + guildId + '/config', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken },
-            body: JSON.stringify(payload),
-          });
-          if (res.ok) {
-            toast('Configuration saved', 'success');
-          } else {
-            const err = await res.json().catch(() => ({}));
-            toast(err.error || 'Failed to save', 'error');
-          }
-        } catch {
-          toast('Failed to save config', 'error');
-        } finally {
-          saveBtn.disabled = false;
-          saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Changes';
-        }
-      });
-    }
-
-    checkAuth();
-
-    if (loginBtn) {
-      loginBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.location.href = API + '/auth/discord/login';
-      });
-    }
-
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        accessToken = null;
-        localStorage.removeItem('pk_token');
-        updateAuthUI();
-        guildList.innerHTML = '<div style="color:var(--muted);font-size:.82rem;padding:8px">Logged out. Log in to see your servers.</div>';
-        if (dashConfig) dashConfig.style.display = 'none';
-        if (dashPrompt) dashPrompt.style.display = 'block';
-        toast('Logged out', 'success');
-      });
-    }
-  }
+  // --- Dashboard removed ---
 });

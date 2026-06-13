@@ -14,6 +14,9 @@ export interface Config {
   dblWebhookSecret: string;
   dblApiToken: string;
   discordBotID: string;
+  discordsWebhookSecret: string;
+  discordsApiKey: string;
+  redisURL: string;
 }
 
 export function loadConfig(): Config {
@@ -30,5 +33,8 @@ export function loadConfig(): Config {
     dblWebhookSecret: process.env.DBL_WEBHOOK_SECRET || '',
     dblApiToken: process.env.DBL_API_TOKEN || '',
     discordBotID: process.env.DISCORD_BOT_ID || '',
+    discordsWebhookSecret: process.env.DISCORDS_WEBHOOK_SECRET || '',
+    discordsApiKey: process.env.DISCORDS_API_KEY || '',
+    redisURL: process.env.REDIS_URL || '',
   };
 }

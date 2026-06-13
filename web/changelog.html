@@ -19,10 +19,9 @@
     <nav>
       <a href="/">Home</a>
       <a href="/commands.html">Commands</a>
-      <a href="/dashboard.html">Dashboard</a>
       <a href="/status.html">Status</a>
       <a href="/team.html">Team</a>
-      <a href="/changelog.html" class="active">Changelog</a>
+      <a href="/changelog.html">Changelog</a>
       <a href="/privacy.html">Privacy</a>
       <a href="/terms.html">Terms</a>
       <a href="https://discord.com/oauth2/authorize?client_id=1507498795569512598&permissions=8&scope=bot%20applications.commands" class="btn btn-primary" style="height:34px;padding:0 14px;font-size:.8rem;margin-left:4px"><i class="fa-brands fa-discord"></i> Invite</a>
@@ -32,7 +31,6 @@
   <nav class="mobile-nav" id="mobile-nav">
     <a href="/">Home</a>
     <a href="/commands.html">Commands</a>
-    <a href="/dashboard.html">Dashboard</a>
     <a href="/status.html">Status</a>
     <a href="/team.html">Team</a>
     <a href="/changelog.html">Changelog</a>
@@ -48,8 +46,38 @@
 
   <div class="changelog-list" style="margin-top:24px">
     <div class="changelog-entry">
-      <div><span class="version">v7.2.0</span><span class="date">June 12, 2026</span></div>
+      <div><span class="version">v7.3.0</span><span class="date">June 13, 2026</span></div>
       <ul>
+        <li>Discord.js sharding via ShardingManager with auto-scaling — bot spawns shards based on guild count</li>
+        <li>Redis caching layer (ioredis) for cross-process data sharing between shards</li>
+        <li>Shard count displayed on the status page and in /stats command</li>
+        <li>Each shard reports stats (guilds, users, commands, latency) via IPC every 15 seconds</li>
+        <li>Removed dashboard page and all OAuth routes (no longer needed)</li>
+        <li>Removed guild config API endpoints and OAuth helper</li>
+        <li>Dashboard link removed from all navigation bars across the site</li>
+        <li>Added page fade-in animation and staggered card slide-up effects across the site</li>
+        <li>Mobile nav and desktop nav now have hover/active transform transitions</li>
+      </ul>
+    </div>
+    <div class="changelog-entry">
+      <div><span class="version">v7.2.0</span><span class="date">June 13, 2026</span></div>
+      <ul>
+        <li>Status webhook now broadcasts live stats to Discord every 5 minutes</li>
+        <li>Fixed status webhook sending 0 values on startup — moved send to ClientReady event</li>
+        <li>Guild join/leave now triggers a status webhook update</li>
+        <li>Status page shows DB connection status (green/rose dot) and "last updated" timestamp</li>
+        <li>Added rate limiting (100 req/min per IP) to all API endpoints</li>
+        <li>Added security headers (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy)</li>
+        <li>Limited JSON body size to 32KB on all API endpoints</li>
+        <li>Whitelisted allowed config fields in dashboard save endpoint — only 10 fields accepted</li>
+        <li>Fixed OAuth CSRF — state parameter now validated on callback with 5-minute TTL</li>
+        <li>Sanitized guild name display in dashboard against XSS (HTML entity encoding)</li>
+        <li>Cached DB health check — rechecks every 30 seconds instead of every poll</li>
+        <li>Bot approved on discords.com — link added to all footers and home page hero</li>
+        <li>Discords.com vote webhook endpoint with API key and webhook secret configured</li>
+        <li>GitHub URL updated to watispro5212/PulseKeep</li>
+        <li>Discord invite updated to b9HBphyeuP</li>
+        <li>Social links and toast notifications added to all website pages</li>
         <li>Support server blueprint (server.md) — complete channel-by-channel guide</li>
         <li>48 channel sections with descriptions, permission tables, and starter messages</li>
         <li>Category permission defaults for all 11 categories (START HERE through ARCHIVE)</li>
@@ -64,10 +92,12 @@
         <li>Fixed mod log delivery when guild/channel wasn't cached</li>
         <li>Welcome events now logged to configured mod log channel</li>
         <li>Error logging added to welcome and log delivery (no more silent failures)</li>
+        <li>/data-deletion command added (owner/co-owner only) for GDPR-compliant user data wipes</li>
+        <li>FAQ section in server.md shortened for easier pasting into Discord</li>
       </ul>
     </div>
     <div class="changelog-entry">
-      <div><span class="version">v7.1.1</span><span class="date">June 12, 2026</span></div>
+      <div><span class="version">v7.1.0</span><span class="date">June 12, 2026</span></div>
       <ul>
         <li>/search now has a 15-minute cooldown (was an infinite money exploit)</li>
         <li>/fish and /mine now show precise cooldown remaining time instead of "wait a moment"</li>
@@ -79,16 +109,10 @@
         <li>Fixed duplicate /vote entry in help command economy category</li>
         <li>/vote command now handles DBL API errors gracefully (tells user if check is unavailable)</li>
         <li>DB error handling added to economy commands (daily, work, vote) — no more silent crashes</li>
-        <li>server.md now has table of contents, collapsible sections, horizontal rules for readability</li>
         <li>Balance shown after every economy transaction (daily, work, fish, mine, search, blackjack)</li>
         <li>/clearwarns now has confirmation buttons to prevent accidental data loss</li>
         <li>/inventory now shows active XP Boost and Lucky Clover status</li>
         <li>Economy commands now use try/catch for graceful DB error handling</li>
-        <li>/data-deletion command added (owner/co-owner only) for GDPR-compliant user data wipes</li>
-        <li>FAQ section in server.md shortened for easier pasting</li>
-        <li>Status webhook now broadcasts live stats to Discord every 5 minutes</li>
-        <li>Status page shows DB connection status and "last updated" timestamp</li>
-        <li>Social links and toast notifications added to all website pages</li>
       </ul>
     </div>
     <div class="changelog-entry">
@@ -131,16 +155,16 @@
     <div><span class="copyright">&copy; <span id="footer-year"></span> PulseKeep</span></div>
     <div class="links">
       <a href="/commands.html">Commands</a>
-      <a href="/dashboard.html">Dashboard</a>
-      <a href="/status.html">Status</a>
       <a href="/team.html">Team</a>
       <a href="/changelog.html">Changelog</a>
       <a href="/privacy.html">Privacy</a>
       <a href="/terms.html">Terms</a>
     </div>
     <div class="social">
-      <a href="https://discord.gg/pulsekeep" aria-label="Discord"><i class="fa-brands fa-discord"></i></a>
+      <a href="https://discord.gg/b9HBphyeuP" aria-label="Discord"><i class="fa-brands fa-discord"></i></a>
       <a href="https://discordbotlist.com/bots/1507498795569512598" aria-label="DiscordBotList"><i class="fa-solid fa-star"></i></a>
+    
+    <a href='https://discords.com/bots/bot/1507498795569512598' aria-label='Discords.com'><i class='fa-solid fa-robot'></i></a>
     </div>
   </div>
 </footer>
@@ -150,3 +174,4 @@
 <script src="/app.js"></script>
 </body>
 </html>
+
