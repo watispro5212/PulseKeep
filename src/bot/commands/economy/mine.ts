@@ -3,7 +3,7 @@ import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
 import { userEconomy, userInventory } from '../../../db/schema.js';
 import { eq, and } from 'drizzle-orm';
-import { COOLDOWNS, mine, hasXpBoost, applyXpBoost } from '../../economy/store.js';
+import { COOLDOWNS, mine, hasXpBoost, applyXpBoost, formatCooldown } from '../../economy/store.js';
 
 export const mineCommand: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -42,7 +42,8 @@ export const mineCommand: SlashCommand = {
     if (rec?.lastMine) {
       const elapsed = now.getTime() - new Date(rec.lastMine).getTime();
       if (elapsed < COOLDOWNS.mine) {
-        await interaction.reply({ content: '⏳ Wait a moment before mining again.', flags: 64 });
+        const remaining = formatCooldown(elapsed, COOLDOWNS.mine);
+        await interaction.reply({ content: `⏳ Mine again in **${remaining}**.`, flags: 64 });
         return;
       }
     }
@@ -67,6 +68,7 @@ export const mineCommand: SlashCommand = {
         .values({ userId, balance: boosted, lastMine: now, totalEarned: boosted, transactions: 1 });
     }
 
+    const newBalance = rec ? rec.balance + boosted : boosted;
     const desc = boosted !== value
       ? `⚡ XP Boost! You found **${name}** worth **${boosted.toLocaleString()}** Pulses (${value.toLocaleString()} ×2)!`
       : `You found **${name}** worth **${boosted.toLocaleString()}** Pulses!`;
@@ -74,6 +76,7 @@ export const mineCommand: SlashCommand = {
     const emb = new EmbedBuilder()
       .setTitle('⛏️ Mining')
       .setDescription(desc)
+      .addFields({ name: 'Balance', value: `💰 **${newBalance.toLocaleString()}** Pulses`, inline: false })
       .setColor(Colors.Economy);
 
     if (publicReply) {

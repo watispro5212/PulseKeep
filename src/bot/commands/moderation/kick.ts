@@ -33,40 +33,46 @@ export const kickCommand: SlashCommand = {
       return;
     }
 
+    let dmFailed = false;
     try {
-      try {
-        const dm = new EmbedBuilder()
-          .setTitle(`Kicked from ${interaction.guild.name}`)
-          .setDescription(`You have been kicked from **${interaction.guild.name}**.`)
-          .addFields({ name: 'Reason', value: reason })
-          .setColor(Colors.Moderation)
-          .setTimestamp();
-        await target.send({ embeds: [dm] });
-      } catch {}
-
-      await member.kick(reason);
-      const emb = new EmbedBuilder()
-        .setTitle('Member Kicked')
-        .setDescription(`**${target.username}** has been kicked.`)
-        .addFields(
-          { name: 'Reason', value: reason, inline: false },
-          { name: 'Moderator', value: `${interaction.user}`, inline: true },
-        )
-        .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
-
-      const log = new EmbedBuilder()
-        .setTitle('Moderation: Kick')
-        .setDescription(`**${target.username}** was kicked by ${interaction.user}`)
-        .addFields(
-          { name: 'Reason', value: reason },
-          { name: 'User ID', value: target.id, inline: true },
-        )
+      const dm = new EmbedBuilder()
+        .setTitle(`Kicked from ${interaction.guild.name}`)
+        .setDescription(`You have been kicked from **${interaction.guild.name}**.`)
+        .addFields({ name: 'Reason', value: reason })
         .setColor(Colors.Moderation)
         .setTimestamp();
-      bot.logToChannel(interaction.guildId!, log);
+      await target.send({ embeds: [dm] });
     } catch {
-      await interaction.reply({ content: '❌ Failed to kick that member.', flags: 64 });
+      dmFailed = true;
     }
+
+    try {
+      await member.kick(reason);
+    } catch (err) {
+      await interaction.reply({ content: `❌ Failed to kick that member: ${err instanceof Error ? err.message : err}`, flags: 64 });
+      return;
+    }
+
+    const emb = new EmbedBuilder()
+      .setTitle('Member Kicked')
+      .setDescription(`**${target.username}** has been kicked.`)
+      .addFields(
+        { name: 'Reason', value: reason, inline: false },
+        { name: 'Moderator', value: `${interaction.user}`, inline: true },
+      )
+      .setColor(Colors.Moderation);
+    if (dmFailed) emb.setFooter({ text: '⚠️ Could not DM the user (DMs may be closed).' });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+
+    const log = new EmbedBuilder()
+      .setTitle('Moderation: Kick')
+      .setDescription(`**${target.username}** was kicked by ${interaction.user}`)
+      .addFields(
+        { name: 'Reason', value: reason },
+        { name: 'User ID', value: target.id, inline: true },
+      )
+        .setColor(Colors.Moderation)
+        .setTimestamp();
+    bot.logToChannel(interaction.guildId!, log);
   },
 };

@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, ChannelType } from 'discord.js';
 import type { SlashCommand } from '../types.js';
 import { Colors, footer, timestamp } from '../../utils/embed.js';
 import { eq } from 'drizzle-orm';
@@ -120,6 +120,10 @@ export const configureCommand: SlashCommand = {
       }
       case 'ticket_category': {
         const category = interaction.options.getChannel('category', true);
+        if (category.type !== ChannelType.GuildCategory) {
+          await interaction.reply({ content: '❌ You must select a **category** channel type, not a text/voice channel.', flags: 64 });
+          return;
+        }
         updateData.ticketCategoryId = category.id;
         break;
       }

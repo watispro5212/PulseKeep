@@ -21,13 +21,18 @@ export const dailyCommand: SlashCommand = {
     const userId = interaction.user.id;
     const now = new Date();
 
-    const rows = await db
-      .select()
-      .from(userEconomy)
-      .where(eq(userEconomy.userId, userId))
-      .limit(1);
-
-    let rec = rows[0];
+    let rec: any;
+    try {
+      const rows = await db
+        .select()
+        .from(userEconomy)
+        .where(eq(userEconomy.userId, userId))
+        .limit(1);
+      rec = rows[0];
+    } catch (err) {
+      await interaction.reply({ content: '❌ Database error. Please try again.', flags: 64 });
+      return;
+    }
     if (rec?.lastDailyClaim) {
       const elapsed = now.getTime() - new Date(rec.lastDailyClaim).getTime();
       if (elapsed < COOLDOWNS.daily) {
@@ -47,30 +52,36 @@ export const dailyCommand: SlashCommand = {
 
     const publicReply = !!interaction.options.getBoolean('public');
 
-    if (rec) {
-      await db
-        .update(userEconomy)
-        .set({
-          balance: rec.balance + total,
-          lastDailyClaim: now,
-          streak: newStreak,
-          totalEarned: (rec.totalEarned ?? 0) + total,
-          transactions: (rec.transactions ?? 0) + 1,
-        })
-        .where(eq(userEconomy.userId, userId));
-    } else {
-      await db
-        .insert(userEconomy)
-        .values({
-          userId,
-          balance: total,
-          lastDailyClaim: now,
-          streak: newStreak,
-          totalEarned: total,
-          transactions: 1,
-        });
+    try {
+      if (rec) {
+        await db
+          .update(userEconomy)
+          .set({
+            balance: rec.balance + total,
+            lastDailyClaim: now,
+            streak: newStreak,
+            totalEarned: (rec.totalEarned ?? 0) + total,
+            transactions: (rec.transactions ?? 0) + 1,
+          })
+          .where(eq(userEconomy.userId, userId));
+      } else {
+        await db
+          .insert(userEconomy)
+          .values({
+            userId,
+            balance: total,
+            lastDailyClaim: now,
+            streak: newStreak,
+            totalEarned: total,
+            transactions: 1,
+          });
+      }
+    } catch (err) {
+      await interaction.reply({ content: '❌ Failed to save daily reward. Please try again.', flags: 64 });
+      return;
     }
 
+    const newBalance = rec ? rec.balance + total : total;
     const progress = getStreakMilestoneProgress(newStreak);
     const boosted = hasXpBoost(rec);
     const emb = new EmbedBuilder()
@@ -80,6 +91,7 @@ export const dailyCommand: SlashCommand = {
         { name: 'Base', value: `${base.toLocaleString()}`, inline: true },
         { name: 'Streak Bonus', value: `+${bonus.toLocaleString()}`, inline: true },
         { name: 'Streak', value: `🔥 **${newStreak}** days (${progress})`, inline: true },
+        { name: 'Balance', value: `💰 **${newBalance.toLocaleString()}** Pulses`, inline: false },
       )
       .setColor(Colors.Economy);
 

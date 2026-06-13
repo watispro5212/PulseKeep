@@ -33,8 +33,8 @@ export const slowmodeCommand: SlashCommand = {
           : `Slowmode **disabled** in ${channel}.`)
         .setColor(Colors.Moderation);
       await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
-    } catch {
-      await interaction.reply({ content: '❌ Failed to set slowmode.', flags: 64 });
+    } catch (err) {
+      await interaction.reply({ content: `❌ Failed to set slowmode: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }
   },
 };

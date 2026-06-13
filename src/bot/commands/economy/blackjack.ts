@@ -109,6 +109,7 @@ export const blackjackCommand: SlashCommand = {
           inline: true,
         },
         { name: 'Payout', value: `${change >= 0 ? '+' : ''}${change.toLocaleString()}`, inline: true },
+        { name: 'Balance', value: `💰 **${newBalance.toLocaleString()}** Pulses`, inline: false },
       )
       .setColor(change >= 0 ? Colors.Economy : Colors.Error);
 

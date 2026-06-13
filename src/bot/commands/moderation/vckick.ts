@@ -28,8 +28,8 @@ export const vckickCommand: SlashCommand = {
 
     try {
       await member.voice.disconnect();
-    } catch {
-      await interaction.reply({ content: '❌ Failed to disconnect the user.', flags: 64 });
+    } catch (err) {
+      await interaction.reply({ content: `❌ Failed to disconnect the user: ${err instanceof Error ? err.message : err}`, flags: 64 });
       return;
     }
 

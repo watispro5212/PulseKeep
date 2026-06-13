@@ -47,8 +47,8 @@ export const announceCommand: SlashCommand = {
         .setTimestamp(new Date());
 
       await interaction.reply({ embeds: [emb] });
-    } catch {
-      await interaction.reply({ content: '❌ Failed to send announcement.', flags: 64 });
+    } catch (err) {
+      await interaction.reply({ content: `❌ Failed to send announcement: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }
   },
 };

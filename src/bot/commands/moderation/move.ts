@@ -40,8 +40,8 @@ export const moveCommand: SlashCommand = {
     const oldChannelId = member.voice.channelId;
     try {
       await member.voice.setChannel(channel.id);
-    } catch {
-      await interaction.reply({ content: '❌ Failed to move the member.', flags: 64 });
+    } catch (err) {
+      await interaction.reply({ content: `❌ Failed to move the member: ${err instanceof Error ? err.message : err}`, flags: 64 });
       return;
     }
 

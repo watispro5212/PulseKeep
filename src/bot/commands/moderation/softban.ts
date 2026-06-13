@@ -33,33 +33,41 @@ export const softbanCommand: SlashCommand = {
       return;
     }
 
+    let dmFailed = false;
     try {
-      await target.send(`You have been softbanned from **${interaction.guild.name}**.\nReason: ${reason}`).catch(() => {});
+      await target.send(`You have been softbanned from **${interaction.guild.name}**.\nReason: ${reason}`);
+    } catch {
+      dmFailed = true;
+    }
+
+    try {
       await member.ban({ reason: `[Softban] ${reason}`, deleteMessageSeconds: 86400 });
       await interaction.guild.members.unban(target.id, `[Softban completed] ${reason}`);
-
-      const emb = new EmbedBuilder()
-        .setTitle('Member Softbanned')
-        .setDescription(`**${target.username}** was banned and immediately unbanned. Their recent messages have been removed.`)
-        .addFields(
-          { name: 'Reason', value: reason, inline: false },
-          { name: 'Moderator', value: `${interaction.user}`, inline: true },
-        )
-        .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
-
-      const log = new EmbedBuilder()
-        .setTitle('Member Softbanned')
-        .setDescription(`**${target.username}** was softbanned.`)
-        .addFields(
-          { name: 'Reason', value: reason, inline: false },
-          { name: 'Moderator', value: `${interaction.user}`, inline: true },
-        )
-        .setColor(Colors.Moderation)
-        .setTimestamp();
-      await bot.logToChannel(interaction.guildId!, log);
-    } catch {
-      await interaction.reply({ content: '❌ Failed to softban that member.', flags: 64 });
+    } catch (err) {
+      await interaction.reply({ content: `❌ Failed to softban that member: ${err instanceof Error ? err.message : err}`, flags: 64 });
+      return;
     }
+
+    const emb = new EmbedBuilder()
+      .setTitle('Member Softbanned')
+      .setDescription(`**${target.username}** was banned and immediately unbanned. Their recent messages have been removed.`)
+      .addFields(
+        { name: 'Reason', value: reason, inline: false },
+        { name: 'Moderator', value: `${interaction.user}`, inline: true },
+      )
+      .setColor(Colors.Moderation);
+    if (dmFailed) emb.setFooter({ text: '⚠️ Could not DM the user (DMs may be closed).' });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+
+    const log = new EmbedBuilder()
+      .setTitle('Member Softbanned')
+      .setDescription(`**${target.username}** was softbanned.`)
+      .addFields(
+        { name: 'Reason', value: reason, inline: false },
+        { name: 'Moderator', value: `${interaction.user}`, inline: true },
+      )
+      .setColor(Colors.Moderation)
+      .setTimestamp();
+    await bot.logToChannel(interaction.guildId!, log);
   },
 };

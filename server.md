@@ -1,17 +1,51 @@
 # 🛡️ PulseKeep Support Server Blueprint
 
-Owner: `watispro1`  
+Owner: `watispro1` · Co‑Owner: `williamdelilah7_`  
 Recommended server name: `PulseKeep Support`  
-Recommended permanent invite label: `pulsekeep-support`
+Recommended invite label: `pulsekeep-support`
 
 > [!NOTE]
-> This file is a complete Discord support-server build plan for PulseKeep. It is written so you can create the server category by category, role by role, and permission by permission without guessing.
+> Complete Discord support-server build plan. Create the server category by category, role by role, permission by permission.
+
+---
+
+## 📑 Table of Contents
+
+| Section | Description |
+|---------|-------------|
+| [🎯 Server Purpose](#-server-purpose) | Why this server exists |
+| [🧠 Server Style](#-server-style) | Look and feel |
+| [👥 Role Stack](#-role-stack) | All roles from highest to lowest |
+| [🔐 Role Permissions](#-role-permissions) | Detailed role permission tables |
+| [🗂️ Category Layout](#-category-layout) | All 11 categories |
+| [📌 START HERE](#-start-here) | Welcome, rules, start-here |
+| [📚 PULSEKEEP INFO](#-pulsekeep-info) | Announcements, changelog, status, commands, FAQ |
+| [🎫 SUPPORT](#-support) | Support info, help, bug reports, tickets |
+| [🤖 BOT COMMANDS](#-bot-commands) | Command menu, status checks, economy, tickets demo |
+| [🧪 TEST LAB](#-test-lab) | Slash command, moderation, economy, ticket, dashboard, automod testing |
+| [💬 COMMUNITY](#-community) | General, showcase, suggestions, off-topic |
+| [🧑‍💻 CONTRIBUTORS](#-contributors) | Contributor chat, docs feedback, translation help |
+| [🔒 STAFF](#-staff) | Staff chat, mod chat, support notes, review queue, staff commands |
+| [🧾 LOGS](#-logs) | Mod, bot, ticket, vote, automod, dashboard, deploy logs |
+| [🚨 INCIDENTS](#-incidents) | Incident response, security reports, audit review |
+| [📦 ARCHIVE](#-archive) | Resolved tickets, old announcements, old bugs |
+| [🧩 Category Permission Defaults](#-category-permission-defaults) | Default permissions per category |
+| [🤖 Bot Invite Settings](#-bot-invite-settings) | Invite links and permissions |
+| [🎫 Ticket Workflow](#-ticket-workflow) | Full ticket flow guide |
+| [🖥️ Dashboard Workflow](#-dashboard-workflow) | Dashboard login and config guide |
+| [⏱️ Economy Cooldowns](#-economy-cooldown-reference) | Command cooldown reference |
+| [🎨 Embed Colors](#-embed-color-reference) | Embed color reference |
+| [📊 Status Workflow](#-status-workflow) | Status page guide |
+| [✅ DBL Checklist](#-discordbotlist-readiness-checklist) | DiscordBotList submission checklist |
+| [📣 First Announcement](#-first-announcement) | Server opening announcement |
+
+---
 
 ## 🎯 Server Purpose
 
 PulseKeep Support should exist for these core purposes:
 
-- 👑 **Ownership hub** - Clearly shows that PulseKeep is owned by `watispro1`.
+- 👑 **Ownership hub** - Clearly shows that PulseKeep is owned by `watispro1` and co‑owned by `williamdelilah7_`.
 - 🧰 **User support** - Gives server owners a clean place to ask setup questions.
 - 🎫 **Private tickets** - Lets users share server-specific issues without exposing private IDs or screenshots publicly.
 - 🤖 **Bot command help** - Explains every major command category and where commands should be tested.
@@ -71,6 +105,9 @@ Create these roles from highest to lowest. Put the **PulseKeep Bot** role above 
 
 ## 🔐 Role Permissions
 
+<details>
+<summary><strong>Click to expand — full role permission tables</strong></summary>
+
 ### 👑 Owner
 
 Purpose: Complete control of the support server and final authority on PulseKeep operations.
@@ -101,7 +138,7 @@ Rules:
 
 ### 💎 Co-Owner
 
-Purpose: Emergency backup if the owner is unavailable.
+Role held by `williamdelilah7_`. Emergency backup if the owner is unavailable.
 
 Give:
 
@@ -518,6 +555,10 @@ Setup notes:
 - Put the bot role above members it needs to kick, ban, timeout, or nickname.
 - Administrator is easiest for early testing, but granular permissions are cleaner for production.
 
+</details>
+
+---
+
 ## 🗂️ Category Layout
 
 Create categories in this order:
@@ -537,6 +578,9 @@ Create categories in this order:
 ```
 
 ## 📌 START HERE
+
+<details>
+<summary><strong>Click to expand — channels in this category</strong></summary>
 
 ### 👋 `#welcome`
 
@@ -567,7 +611,7 @@ Starter message to send:
 
 PulseKeep is a Discord bot for moderation, tickets, economy, logging, and server operations.
 
-👑 Owner: watispro1
+👑 Owner: watispro1 · 👑 Co‑Owner: williamdelilah7_
 ⌨️ Commands: see #commands
 🎫 Need help? Open a ticket in #ticket-panel
 📊 Service status: see #status
@@ -654,7 +698,14 @@ Include:
 Need help? Open a ticket in #ticket-panel or ask in #help-chat.
 ```
 
+</details>
+
+---
+
 ## 📚 PULSEKEEP INFO
+
+<details>
+<summary><strong>Click to expand — channels in this category</strong></summary>
 
 ### 📣 `#announcements`
 
@@ -761,7 +812,7 @@ Starter message to pin — full command listing:
 
 **🎮 Economy** — `/balance` `/daily` `/weekly` `/work` `/gamble` `/blackjack` `/slots` `/rob` `/pay` `/search` `/fish` `/mine` `/shop` `/buy` `/inventory` `/use` `/leaderboard` `/tip` `/vote`
 
-**🛡️ Moderation** — `/warn` `/warnings` `/clearwarns` `/history` `/mute` `/unmute` `/kick` `/ban` `/softban` `/purge` `/clean` `/slowmode` `/lock` `/unlock` `/nick` `/role add` `/role remove` `/move` `/vckick` `/announce`
+**🛡️ Moderation** — `/warn` `/warnings` `/clearwarns` `/history` `/mute` `/unmute` `/kick` `/ban` `/softban` `/purge` `/clean` `/slowmode` `/lock` `/unlock` `/nick` `/role add` `/role remove` `/move` `/vckick` `/announce` `/data-deletion`
 
 **🎫 Tickets** — `/ticketpanel` `/ticket add` `/ticket remove` `/ticket close` `/ticket rename`
 
@@ -823,185 +874,104 @@ Below are detailed Q&A entries to paste into the channel.
 <details>
 <summary><strong>❓ Why are slash commands not appearing?</strong></summary>
 
-1. Make sure PulseKeep has the `applications.commands` scope when you invite it.
-2. Re-invite the bot using the link from `/invite`.
-3. If commands still don't appear, kick and re-invite the bot with the correct scopes.
-4. It can take up to 1 hour for global slash commands to sync to all servers.
-5. Run `/help` once — if it works, all other commands are available.
+- Bot needs `applications.commands` scope on invite. Commands can take up to 1 hour to sync. Re-invite or restart Discord.
 </details>
 
 <details>
 <summary><strong>❓ Why can't the bot create tickets?</strong></summary>
 
-1. PulseKeep needs **Manage Channels** permission to create ticket channels.
-2. The bot role must be above any roles it needs to manage in the permission overwrites.
-3. If using a ticket category, make sure PulseKeep can view and manage channels in that category.
-4. Make sure tickets are enabled via `/configure tickets enabled:true`.
-5. Check that the bot has not hit Discord's channel creation rate limit (rare).
+- Bot needs **Manage Channels**. Check `/configure tickets enabled:true` and that the ticket category is set correctly.
 </details>
 
 <details>
 <summary><strong>❓ Why do moderation commands fail?</strong></summary>
 
-1. The bot's role must be **above** the target member's highest role in the server role list.
-2. The bot needs the relevant permission: `Kick Members`, `Ban Members`, `Moderate Members`, etc.
-3. The moderator's role must have the permission to use the command.
-4. You cannot moderate the server owner or users with higher roles than the bot.
-5. Check if moderation logging is enabled — it does not affect command execution.
-6. If `/mute` fails, the target may already be timed out — use `/unmute` first.
+- Bot's role must be **above** the target's highest role. Bot needs the relevant permission (Kick/Ban/Moderate Members).
 </details>
 
 <details>
 <summary><strong>❓ Why does dashboard login fail?</strong></summary>
 
-1. Make sure you are using a Discord account that is a member of the server you want to manage.
-2. You need **Manage Server** permission on the guild to see and edit its config.
-3. The OAuth redirect URI must be exactly `https://pulsekeep.fly.dev/auth/discord/callback`.
-4. Try logging out and logging in again.
-5. Clear your browser cache and cookies for the site.
-6. Check that your browser is not blocking third-party cookies — Discord OAuth requires them.
+- Must use an account that's a member of the server with **Manage Server** permission. Clear browser cache and retry.
 </details>
 
 <details>
 <summary><strong>❓ What permissions does PulseKeep need?</strong></summary>
 
-**Minimum recommended permissions:**
-- View Channels, Send Messages, Embed Links, Attach Files, Read Message History
-- Use Application Commands, Manage Messages (for purge/clean)
-- Manage Channels (for ticket creation)
-- Kick Members, Ban Members, Moderate Members (for moderation commands)
-- Manage Nicknames (for `/nick`)
-- Manage Roles (for `/role`)
-
-**For easiest setup:** use the Administrator permission invite link from `/invite`.
+- **Administrator** (recommended). Otherwise: View/Send Messages, Manage Channels, Kick/Ban/Moderate Members, Manage Nicknames, Manage Roles.
 </details>
 
 <details>
 <summary><strong>❓ How do I request data deletion?</strong></summary>
 
-1. Open a support ticket in the PulseKeep support server.
-2. Include your Discord user ID and the guild ID(s) you want data removed from.
-3. You can find your user ID by enabling Developer Mode in Discord → right-click your name → Copy ID.
-4. Economy balances, warnings, and inventory data will be deleted upon request.
-5. Command logs may be retained for analytics but are not linked to you personally after deletion.
-6. Allow up to 48 hours for data deletion to be processed.
+- Open a support ticket with your user ID and guild ID(s). Deletion processed within 48 hours. Or ask the owner/co-owner to run `/data-deletion`.
 </details>
 
 <details>
 <summary><strong>❓ How do I report a bug?</strong></summary>
 
-1. Use the `#bug-reports` channel and include:
-   - Command or feature you were using
-   - What happened (error message, unexpected behavior)
-   - What you expected to happen
-   - Screenshots or error text if possible
-   - Whether the bot has the required permissions
-2. Check if the bug has already been reported in the channel.
-3. Staff may ask follow-up questions to reproduce the issue.
-4. Bug reports with clear reproduction steps are prioritized.
+- Post in `#bug-reports` with command, what happened, expected behavior, and screenshots if possible. Check for duplicates first.
 </details>
 
 <details>
-<summary><strong>❓ Why does the status page say offline?</strong></summary>
+<summary><strong>❓ Why does the status page show offline?</strong></summary>
 
-1. The status page checks the Fly.io API server at `https://pulsekeep.fly.dev/api/stats`.
-2. If the API server is down, all status indicators show offline.
-3. Check `https://pulsekeep.fly.dev/health` directly — if it returns JSON, the API is up.
-4. Deployments restart the bot briefly — wait 1-2 minutes and refresh.
-5. If it stays offline for more than 5 minutes, report it in a support ticket.
+- API at `pulsekeep.fly.dev` may be down. Check `/health` directly. Deployments cause brief restarts — wait 1-2 min.
 </details>
 
 <details>
 <summary><strong>❓ How do I earn Pulses?</strong></summary>
 
-- `/daily` — Claim once per day (increasing streak bonus).
-- `/weekly` — Claim once per week.
-- `/work` — Work every 30 minutes for a base payout.
-- `/gamble` — 55% win rate, up to 10x multiplier.
-- `/blackjack` — Play against the dealer.
-- `/slots` — Spin with configurable bet amounts.
-- `/search` — Search for hidden Pulses every 15 minutes.
-- `/fish` — Needs a Fishing Rod from `/shop`.
-- `/mine` — Needs a Mining Pick from `/shop`.
-- `/vote` — Vote on DiscordBotList for 500-750 Pulses.
-- Daily/weekly streaks reset if you miss a day.
+- `/daily` `/weekly` `/work` `/gamble` `/blackjack` `/slots` `/search` `/fish` `/mine` `/vote`. Fish/mine need tools from `/shop`. Streaks reset if you miss a day.
 </details>
 
 <details>
-<summary><strong>❓ How does the blackjack game work?</strong></summary>
+<summary><strong>❓ How does blackjack work?</strong></summary>
 
-- You bet an amount of Pulses.
-- You and the dealer are dealt 2 cards each (one dealer card is hidden).
-- Hit to draw more cards, stand to keep your hand.
-- Closest to 21 without going over wins.
-- Blackjack (21 on first 2 cards) pays 2.5x.
-- Regular win pays 2x.
-- Push (tie) returns your bet.
-- The dealer must hit on 16 and stand on 17.
+- Bet Pulses, get 2 cards (one dealer hidden). Hit/stand to reach 21. Blackjack pays 2.5x, regular win 2x, push returns bet.
 </details>
 
 <details>
 <summary><strong>❓ What items are in the shop?</strong></summary>
 
-- **Fishing Rod** — Required for `/fish`. Costs 2,500 Pulses.
-- **Mining Pick** — Required for `/mine`. Costs 5,000 Pulses.
-- **Treasure Map** — Use with `/use` for a random reward. Costs 1,000 Pulses.
-- **Lucky Clover** — Doubles your next `/gamble` win. Costs 3,000 Pulses.
-- **EXP Boost** — 1.5x earnings from work/fish/mine/search for 30 minutes. Costs 4,000 Pulses.
-
-Run `/shop` to see current prices and available items.
+- Fishing Rod (2,500), Mining Pick (5,000), Treasure Map (1,000), Lucky Clover (3,000), EXP Boost (4,000). Run `/shop`.
 </details>
 
 <details>
-<summary><strong>❓ The economy is disabled but I can still use economy commands?</strong></summary>
+<summary><strong>❓ Economy disabled but commands still work?</strong></summary>
 
-- Economy commands should be blocked when toggled off.
-- If they still work, run `/configure economy enabled:false` again.
-- The setting applies to all members — staff included.
-- Check that the config was saved: `/configure show`.
+- Run `/configure economy enabled:false` again and verify with `/configure show`.
 </details>
 
 <details>
 <summary><strong>❓ How do I set up welcome messages?</strong></summary>
 
-1. Create a channel for welcome messages (e.g., `#welcome`).
-2. Run `/configure welcome enabled:true`.
-3. Run `/configure welcome_channel channel:#welcome` (select the channel).
-4. When a new member joins, PulseKeep will post a welcome embed in that channel.
-5. Bots are ignored — only real users trigger the welcome message.
+- Create a welcome channel, run `/configure welcome enabled:true`, then `/configure welcome_channel channel:#channel`.
 </details>
 
 <details>
-<summary><strong>❓ How does the rob command work?</strong></summary>
+<summary><strong>❓ How does /rob work?</strong></summary>
 
-- You attempt to steal Pulses from another user.
-- Success rate depends on the target's balance — higher balances are slightly harder to rob.
-- If you fail, you pay a fine to the target.
-- Both the robber and target must have at least 100 Pulses.
-- There is a cooldown between robbery attempts.
-- Bots and users with economy disabled cannot be robbed.
+- Attempt to steal Pulses. Success depends on target balance. Failure pays a fine. Both need ≥100 Pulses.
 </details>
 
 <details>
-<summary><strong>❓ What happens when I vote on DiscordBotList?</strong></summary>
+<summary><strong>❓ What happens when I vote?</strong></summary>
 
-1. You click the vote link from `/vote`.
-2. DBL sends a webhook to PulseKeep's server.
-3. You receive 500-750 Pulses added to your balance.
-4. If you are in any server with a vote channel configured, an announcement is posted there.
-5. You can vote once every 12 hours on DBL.
-6. The `/vote` command also verifies your vote status through the DBL API.
+- Vote via `/vote`, get 500-750 Pulses via webhook. Can vote every 12 hours. Announcement in vote channel if configured.
 </details>
 
 <details>
 <summary><strong>❓ My question isn't listed here</strong></summary>
 
-- Open a ticket in `#ticket-panel`.
-- Ask in `#help-chat`.
-- Check the command page at `https://pulsekeep.fly.dev/commands.html`.
-- Check the full documentation on the website.</details>
+- Open a ticket in `#ticket-panel`, ask in `#help-chat`, or check the website.</details>
+
+---
 
 ## 🎫 SUPPORT
+
+<details>
+<summary><strong>Click to expand — channels in this category</strong></summary>
 
 ### 🧰 `#support-info`
 
@@ -1175,7 +1145,14 @@ Setup:
 7. Confirm staff can view the ticket.
 8. Confirm the close button deletes/closes the ticket.
 
+</details>
+
+---
+
 ## 🤖 BOT COMMANDS
+
+<details>
+<summary><strong>Click to expand — channels in this category</strong></summary>
 
 ### 🧭 `#command-menu`
 
@@ -1337,7 +1314,14 @@ Want to see how PulseKeep tickets work? A ticket panel may be set up here for te
 Demo tickets are deleted automatically. Real support tickets open in #ticket-panel.
 ```
 
+</details>
+
+---
+
 ## 🧪 TEST LAB
+
+<details>
+<summary><strong>Click to expand — channels in this category</strong></summary>
 
 ### 🧪 `#slash-command-testing`
 
@@ -1565,7 +1549,14 @@ Expected behavior:
 - The user is not warned or muted unless auto-mod punishment is configured.
 - Repeated offenses may trigger escalating actions.
 
+</details>
+
+---
+
 ## 💬 COMMUNITY
+
+<details>
+<summary><strong>Click to expand — channels in this category</strong></summary>
 
 ### 💬 `#general`
 
@@ -1665,7 +1656,14 @@ Rules still apply:
 Support questions should go in #help-chat or #ticket-panel.
 ```
 
+</details>
+
+---
+
 ## 🧑‍💻 CONTRIBUTORS
+
+<details>
+<summary><strong>Click to expand — channels in this category</strong></summary>
 
 ### 🧱 `#contributor-chat`
 
@@ -1745,7 +1743,14 @@ Languages planned: Spanish, French, German, Portuguese, Japanese.
 Interested? Let us know what languages you speak!
 ```
 
+</details>
+
+---
+
 ## 🔒 STAFF
+
+<details>
+<summary><strong>Click to expand — channels in this category</strong></summary>
 
 ### 🔒 `#staff-chat`
 
@@ -1891,7 +1896,14 @@ Useful commands:
 For moderation testing with full command permissions, use #moderation-testing.
 ```
 
+</details>
+
+---
+
 ## 🧾 LOGS
+
+<details>
+<summary><strong>Click to expand — channels in this category</strong></summary>
 
 ### 🔨 `#mod-logs`
 
@@ -2010,7 +2022,14 @@ Log:
 - deploy failed
 - health check failures
 
+</details>
+
+---
+
 ## 🚨 INCIDENTS
+
+<details>
+<summary><strong>Click to expand — channels in this category</strong></summary>
 
 ### 🚨 `#incident-response`
 
@@ -2110,7 +2129,14 @@ Actions taken:
 Prevention:
 ```
 
+</details>
+
+---
+
 ## 📦 ARCHIVE
+
+<details>
+<summary><strong>Click to expand — channels in this category</strong></summary>
 
 ### ✅ `#resolved-tickets`
 
@@ -2180,6 +2206,10 @@ This channel archives resolved bug reports for reference.
 Fixed bugs are moved here from #bug-reports.
 Check here before reporting a new bug — it may already be fixed!
 ```
+
+</details>
+
+---
 
 ## 🧩 Category Permission Defaults
 
@@ -2400,6 +2430,8 @@ PulseKeep Bot:
 
 - ❌ View Channels (no bot access needed)
 
+---
+
 ## 🤖 PulseKeep Bot Invite Settings
 
 Scopes:
@@ -2436,6 +2468,8 @@ Granular permissions included:
 - ✅ Kick Members
 - ✅ Ban Members
 - ✅ Moderate Members
+
+---
 
 ## 🎫 Ticket Workflow
 
@@ -2487,6 +2521,8 @@ ticket-userid
 support-username
 ```
 
+---
+
 ## 🖥️ Dashboard Workflow
 
 ### Access:
@@ -2533,6 +2569,8 @@ Dashboard is available at `https://pulsekeep.fly.dev/dashboard.html`
 > | ❌ **Config does not persist** | Database connection error | Check database connectivity — report in support if persistent |
 > | ❌ **Logged out unexpectedly** | Token expired or deleted | Tokens expire after ~7 days — log in again |
 
+---
+
 ## ⏱️ Economy Cooldown Reference
 
 | Command | Cooldown | Notes |
@@ -2553,6 +2591,8 @@ Items that affect cooldowns:
 - **EXP Boost** (from `/shop`) — 1.5x earnings for 30 minutes, does not reduce cooldowns
 - **Lucky Clover** — Doubles next `/gamble` win only
 
+---
+
 ## 🎨 Embed Color Reference
 
 PulseKeep uses consistent embed colors across all commands:
@@ -2567,6 +2607,8 @@ PulseKeep uses consistent embed colors across all commands:
 | Blue-gray | `#5865f2` | Moderation actions (warn, kick, ban, mute) |
 
 All embeds include a footer with the bot name and a timestamp.
+
+---
 
 ## 📊 Status Workflow
 
@@ -2589,6 +2631,8 @@ If status shows offline:
 4. Check the Fly.io machine is running: `flyctl status`
 5. Check the database is reachable: `flyctl ssh -- pg_isready`
 
+---
+
 ## ✅ DiscordBotList Readiness Checklist
 
 Before submitting:
@@ -2609,7 +2653,7 @@ Before submitting:
 - ✅ Privacy policy exists at `/privacy.html`
 - ✅ Terms of service exists at `/terms.html`
 - ✅ DBL webhook configured at `/api/dbl/webhook`
-- ✅ Owner is listed as `watispro1`
+- ✅ Owner is listed as `watispro1` · Co‑Owner listed as `williamdelilah7_`
 - ✅ No private backend origin is shown publicly
 - ✅ No bot tokens or secrets in client-side code
 - ✅ Support server has clear rules
@@ -2617,6 +2661,8 @@ Before submitting:
 - ✅ Support server has a command guide
 - ✅ Support server has a status channel
 - ✅ Vote rewards automatically credit Pulses
+
+---
 
 ## 📣 First Announcement
 
@@ -2628,7 +2674,7 @@ Post this in `#announcements`:
 Welcome to the official PulseKeep support server.
 
 🤖 PulseKeep is a Discord bot for moderation, tickets, economy, and server analytics.
-👑 Owner: watispro1
+👑 Owner: watispro1 · 👑 Co‑Owner: williamdelilah7_
 ⌨️ 50+ slash commands — run /help to browse
 🎫 Need help? Open a ticket in #ticket-panel
 📊 Service status: https://pulsekeep.fly.dev/status.html

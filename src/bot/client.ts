@@ -57,13 +57,17 @@ export class Bot {
     if (toggles.modlogsEnabled === false) return;
     if (!toggles.logChannelId) return;
     try {
-      const guild = this.client.guilds.cache.get(guildId);
+      const guild = this.client.guilds.cache.get(guildId)
+        || await this.client.guilds.fetch(guildId).catch(() => null);
       if (!guild) return;
-      const channel = guild.channels.cache.get(toggles.logChannelId);
+      const channel = guild.channels.cache.get(toggles.logChannelId)
+        || await guild.channels.fetch(toggles.logChannelId).catch(() => null);
       if (channel?.isTextBased()) {
         await channel.send({ embeds: [embed] });
       }
-    } catch {}
+    } catch (err) {
+      console.error(`[logToChannel] Failed in guild ${guildId}:`, err);
+    }
   }
 
   constructor(token: string, cache: Cache, db: any, statusWebhookURL: string, config: Config) {
@@ -104,8 +108,12 @@ export class Bot {
       const toggles = await this.getGuildToggles(member.guild.id);
       if (!toggles.welcomeEnabled || !toggles.welcomeChannelId) return;
       try {
-        const channel = member.guild.channels.cache.get(toggles.welcomeChannelId);
-        if (!channel?.isTextBased()) return;
+        const channel = member.guild.channels.cache.get(toggles.welcomeChannelId)
+          || await member.guild.channels.fetch(toggles.welcomeChannelId).catch(() => null);
+        if (!channel?.isTextBased()) {
+          console.warn(`[Welcome] Channel ${toggles.welcomeChannelId} not found or not text-based in guild ${member.guild.id}`);
+          return;
+        }
         const emb = new EmbedBuilder()
           .setTitle('Welcome!')
           .setDescription(`Welcome to **${member.guild.name}**, ${member.user}! We're glad to have you.`)
@@ -113,7 +121,16 @@ export class Bot {
           .setColor(Colors.Success)
           .setTimestamp();
         await channel.send({ embeds: [emb] });
-      } catch {}
+        // Also log the welcome event to the configured log channel
+        const logEmb = new EmbedBuilder()
+          .setTitle('Member Joined')
+          .setDescription(`${member.user.username} joined the server and was welcomed.`)
+          .setColor(Colors.Utility)
+          .setTimestamp();
+        this.logToChannel(member.guild.id, logEmb);
+      } catch (err) {
+        console.error(`[Welcome] Failed to send welcome message in guild ${member.guild.id}:`, err);
+      }
     });
 
     this.client.on(Events.GuildMemberRemove, () => {
@@ -299,8 +316,44 @@ export class Bot {
     }
   }
 
+  private async sendStatusWebhook() {
+    if (!this.statusWebhookURL) return;
+    try {
+      const uptime = Math.floor((Date.now() - this.cache.getStartedAt().getTime()) / 1000);
+      const d = Math.floor(uptime / 86400);
+      const h = Math.floor((uptime % 86400) / 3600);
+      const m = Math.floor((uptime % 3600) / 60);
+      const uptimeStr = `${d > 0 ? d + 'd ' : ''}${h > 0 || d > 0 ? h + 'h ' : ''}${m}m`;
+
+      const emb = {
+        embeds: [{
+          title: 'PulseKeep Status Update',
+          color: 0x7c5cfc,
+          fields: [
+            { name: 'Servers', value: String(this.cache.getGuildsCount()), inline: true },
+            { name: 'Users', value: String(this.cache.getTotalUserCount()), inline: true },
+            { name: 'Commands Run', value: String(this.cache.getCommandsRun()), inline: true },
+            { name: 'Avg Latency', value: `${Math.round(this.cache.getAvgLatency())}ms`, inline: true },
+            { name: 'Uptime', value: uptimeStr, inline: true },
+          ],
+          timestamp: new Date().toISOString(),
+        }],
+      };
+
+      await fetch(this.statusWebhookURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emb),
+      });
+    } catch (err) {
+      console.error('[StatusWebhook] Failed to send:', err);
+    }
+  }
+
   async start(token: string) {
     await this.client.login(token);
+    this.sendStatusWebhook();
+    setInterval(() => this.sendStatusWebhook(), 300000);
   }
 
   async stop() {

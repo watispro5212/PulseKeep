@@ -21,13 +21,18 @@ export const workCommand: SlashCommand = {
     const userId = interaction.user.id;
     const now = new Date();
 
-    const rows = await db
-      .select()
-      .from(userEconomy)
-      .where(eq(userEconomy.userId, userId))
-      .limit(1);
-
-    const rec = rows[0];
+    let rec: any;
+    try {
+      const rows = await db
+        .select()
+        .from(userEconomy)
+        .where(eq(userEconomy.userId, userId))
+        .limit(1);
+      rec = rows[0];
+    } catch (err) {
+      await interaction.reply({ content: '❌ Database error. Please try again.', flags: 64 });
+      return;
+    }
 
     if (rec?.lastWork) {
       const elapsed = now.getTime() - new Date(rec.lastWork).getTime();
@@ -44,22 +49,28 @@ export const workCommand: SlashCommand = {
     const flavor = WORK_FLAVOR[Math.floor(Math.random() * WORK_FLAVOR.length)];
     const publicReply = !!interaction.options.getBoolean('public');
 
-    if (rec) {
-      await db
-        .update(userEconomy)
-        .set({
-          balance: rec.balance + boosted,
-          lastWork: now,
-          totalEarned: (rec.totalEarned ?? 0) + boosted,
-          transactions: (rec.transactions ?? 0) + 1,
-        })
-        .where(eq(userEconomy.userId, userId));
-    } else {
-      await db
-        .insert(userEconomy)
-        .values({ userId, balance: boosted, lastWork: now, totalEarned: boosted, transactions: 1 });
+    try {
+      if (rec) {
+        await db
+          .update(userEconomy)
+          .set({
+            balance: rec.balance + boosted,
+            lastWork: now,
+            totalEarned: (rec.totalEarned ?? 0) + boosted,
+            transactions: (rec.transactions ?? 0) + 1,
+          })
+          .where(eq(userEconomy.userId, userId));
+      } else {
+        await db
+          .insert(userEconomy)
+          .values({ userId, balance: boosted, lastWork: now, totalEarned: boosted, transactions: 1 });
+      }
+    } catch (err) {
+      await interaction.reply({ content: '❌ Failed to save earnings. Please try again.', flags: 64 });
+      return;
     }
 
+    const newBalance = rec ? rec.balance + boosted : boosted;
     const titleDesc = boosted !== earned
       ? `⚡ XP Boost active! You ${flavor} **${boosted.toLocaleString()}** Pulses (${earned.toLocaleString()} ×2)!`
       : `You ${flavor} **${boosted.toLocaleString()}** Pulses!`;
@@ -67,6 +78,7 @@ export const workCommand: SlashCommand = {
     const emb = new EmbedBuilder()
       .setTitle(`💼 ${job.title}`)
       .setDescription(titleDesc)
+      .addFields({ name: 'Balance', value: `💰 **${newBalance.toLocaleString()}** Pulses`, inline: false })
       .setColor(Colors.Economy);
 
     if (publicReply) {

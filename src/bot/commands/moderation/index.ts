@@ -15,6 +15,7 @@ import { lockCommand, unlockCommand } from './lockdown.js';
 import { announceCommand } from './announce.js';
 import { cleanCommand } from './clean.js';
 import { historyCommand } from './history.js';
+import { dataDeletionCommand } from './datadeletion.js';
 
 export const moderationCommands = [
   warnCommand,
@@ -36,4 +37,5 @@ export const moderationCommands = [
   announceCommand,
   cleanCommand,
   historyCommand,
+  dataDeletionCommand,
 ];

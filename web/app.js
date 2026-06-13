@@ -74,18 +74,24 @@ document.addEventListener('DOMContentLoaded', function () {
       if (dot) dot.className = 'dot dot-green';
       if (txt) txt.textContent = 'Online \u00b7 ' + d.guilds + ' servers';
 
-      ['st-bot','st-api','st-db'].forEach(id => {
+      ['st-bot','st-api'].forEach(id => {
         const el = $(id);
         if (el) el.className = 'dot dot-green';
         const tel = $(id + '-text');
         if (tel) tel.textContent = id === 'st-bot' ? 'Online \u00b7 ' + d.guilds + ' servers' : 'Online';
       });
+      const dbEl = $('st-db');
+      const dbTxt = $('st-db-text');
+      if (dbEl) dbEl.className = d.dbConnected ? 'dot dot-green' : 'dot dot-rose';
+      if (dbTxt) dbTxt.textContent = d.dbConnected ? 'Connected' : 'Disconnected';
       const latEl = $('st-latency');
       const latTxt = $('st-latency-text');
       if (latEl) latEl.className = d.avgLatency < 200 ? 'dot dot-green' : 'dot dot-amber';
       if (latTxt) latTxt.textContent = (d.avgLatency || '--') + 'ms';
       const uptEl = $('st-uptime-text');
       if (uptEl) uptEl.textContent = formatUptime(d.uptime);
+      const upEl = $('st-updated');
+      if (upEl) upEl.textContent = new Date().toLocaleTimeString();
 
     } catch {
       const dot = $('status-dot');
@@ -97,8 +103,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const el = $(id);
         if (el) el.className = 'dot dot-rose';
         const tel = $(id + '-text');
-        if (tel) tel.textContent = 'Offline';
+        if (tel) tel.textContent = id === 'st-db' ? 'Unknown' : 'Offline';
       });
+      const upEl = $('st-updated');
+      if (upEl) upEl.textContent = '--';
     }
   }
 

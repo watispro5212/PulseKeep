@@ -26,7 +26,6 @@ const categories = [
       { name: 'use', desc: 'Use an item from inventory' },
       { name: 'vote', desc: 'Vote on DiscordBotList' },
       { name: 'tip', desc: 'Get an economy tip' },
-      { name: 'vote', desc: 'Vote on DiscordBotList' },
     ],
   },
   {

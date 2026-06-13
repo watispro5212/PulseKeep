@@ -85,13 +85,21 @@ export class ApiServer {
     });
 
     // Stats
-    this.app.get('/api/stats', (_req, res) => {
+    this.app.get('/api/stats', async (_req, res) => {
+      let dbConnected = false;
+      if (this.db) {
+        try {
+          await this.db.execute('SELECT 1');
+          dbConnected = true;
+        } catch {}
+      }
       res.json({
         guilds: this.cache.getGuildsCount(),
         users: this.cache.getTotalUserCount(),
         commandsRun: this.cache.getCommandsRun(),
         avgLatency: this.cache.getAvgLatency(),
         uptime: Math.floor((Date.now() - this.cache.getStartedAt().getTime()) / 1000),
+        dbConnected,
       });
     });
 

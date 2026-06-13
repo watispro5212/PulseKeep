@@ -66,8 +66,8 @@ export const cleanCommand: SlashCommand = {
         .setColor(Colors.Moderation);
 
       await interaction.editReply({ embeds: [footer(timestamp(emb))] });
-    } catch {
-      await interaction.editReply({ content: '❌ Failed to clean messages. Some may be older than 14 days.' });
+    } catch (err) {
+      await interaction.editReply({ content: `❌ Failed to clean messages: ${err instanceof Error ? err.message : err}` });
     }
   },
 };

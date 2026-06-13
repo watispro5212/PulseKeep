@@ -34,6 +34,7 @@ export const warnCommand: SlashCommand = {
       reason,
     });
 
+    let dmFailed = false;
     try {
       const dm = new EmbedBuilder()
         .setTitle(`Warning from ${guildName}`)
@@ -42,7 +43,9 @@ export const warnCommand: SlashCommand = {
         .setColor(Colors.Moderation)
         .setTimestamp();
       await user.send({ embeds: [dm] });
-    } catch {}
+    } catch {
+      dmFailed = true;
+    }
 
     const emb = new EmbedBuilder()
       .setTitle('User Warned')
@@ -53,6 +56,7 @@ export const warnCommand: SlashCommand = {
         { name: 'User', value: `${user}`, inline: true },
       )
       .setColor(Colors.Moderation);
+    if (dmFailed) emb.setFooter({ text: '⚠️ Could not DM the user (DMs may be closed).' });
 
     await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
 

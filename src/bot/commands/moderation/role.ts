@@ -51,6 +51,15 @@ export const roleCommand: SlashCommand = {
       return;
     }
 
+    if (sub === 'add' && member.roles.cache.has(role.id)) {
+      await interaction.reply({ content: `❌ ${target} already has the ${role} role.`, flags: 64 });
+      return;
+    }
+    if (sub === 'remove' && !member.roles.cache.has(role.id)) {
+      await interaction.reply({ content: `❌ ${target} does not have the ${role} role.`, flags: 64 });
+      return;
+    }
+
     try {
       if (sub === 'add') {
         await member.roles.add(role);
@@ -67,8 +76,8 @@ export const roleCommand: SlashCommand = {
           .setColor(Colors.Moderation);
         await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
       }
-    } catch {
-      await interaction.reply({ content: `❌ Failed to ${sub} role.`, flags: 64 });
+    } catch (err) {
+      await interaction.reply({ content: `❌ Failed to ${sub} role: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }
   },
 };

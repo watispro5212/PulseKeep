@@ -25,41 +25,47 @@ export const banCommand: SlashCommand = {
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
     const days = interaction.options.getInteger('days') ?? 0;
 
+    let dmFailed = false;
     try {
-      try {
-        const dm = new EmbedBuilder()
-          .setTitle(`Banned from ${interaction.guild.name}`)
-          .setDescription(`You have been banned from **${interaction.guild.name}**.`)
-          .addFields({ name: 'Reason', value: reason })
-          .setColor(Colors.Moderation)
-          .setTimestamp();
-        await target.send({ embeds: [dm] });
-      } catch {}
-
-      await interaction.guild.members.ban(target, { reason, deleteMessageSeconds: days * 86400 });
-      const emb = new EmbedBuilder()
-        .setTitle('User Banned')
-        .setDescription(`**${target.username}** has been banned.`)
-        .addFields(
-          { name: 'Reason', value: reason, inline: false },
-          { name: 'Moderator', value: `${interaction.user}`, inline: true },
-        )
-        .setColor(Colors.Moderation);
-      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
-
-      const log = new EmbedBuilder()
-        .setTitle('Moderation: Ban')
-        .setDescription(`**${target.username}** was banned by ${interaction.user}`)
-        .addFields(
-          { name: 'Reason', value: reason },
-          { name: 'User ID', value: target.id, inline: true },
-          { name: 'Deleted Days', value: `${days}`, inline: true },
-        )
+      const dm = new EmbedBuilder()
+        .setTitle(`Banned from ${interaction.guild.name}`)
+        .setDescription(`You have been banned from **${interaction.guild.name}**.`)
+        .addFields({ name: 'Reason', value: reason })
         .setColor(Colors.Moderation)
         .setTimestamp();
-      bot.logToChannel(interaction.guildId!, log);
+      await target.send({ embeds: [dm] });
     } catch {
-      await interaction.reply({ content: '❌ Failed to ban that user.', flags: 64 });
+      dmFailed = true;
     }
+
+    try {
+      await interaction.guild.members.ban(target, { reason, deleteMessageSeconds: days * 86400 });
+    } catch (err) {
+      await interaction.reply({ content: `❌ Failed to ban that user: ${err instanceof Error ? err.message : err}`, flags: 64 });
+      return;
+    }
+
+    const emb = new EmbedBuilder()
+      .setTitle('User Banned')
+      .setDescription(`**${target.username}** has been banned.`)
+      .addFields(
+        { name: 'Reason', value: reason, inline: false },
+        { name: 'Moderator', value: `${interaction.user}`, inline: true },
+      )
+      .setColor(Colors.Moderation);
+    if (dmFailed) emb.setFooter({ text: '⚠️ Could not DM the user (DMs may be closed).' });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+
+    const log = new EmbedBuilder()
+      .setTitle('Moderation: Ban')
+      .setDescription(`**${target.username}** was banned by ${interaction.user}`)
+      .addFields(
+        { name: 'Reason', value: reason },
+        { name: 'User ID', value: target.id, inline: true },
+        { name: 'Deleted Days', value: `${days}`, inline: true },
+      )
+      .setColor(Colors.Moderation)
+      .setTimestamp();
+    bot.logToChannel(interaction.guildId!, log);
   },
 };

@@ -44,8 +44,8 @@ export const nickCommand: SlashCommand = {
         )
         .setColor(Colors.Moderation);
       await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
-    } catch {
-      await interaction.reply({ content: '❌ Failed to change nickname.', flags: 64 });
+    } catch (err) {
+      await interaction.reply({ content: `❌ Failed to change nickname: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }
   },
 };

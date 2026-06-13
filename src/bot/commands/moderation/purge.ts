@@ -31,8 +31,8 @@ export const purgeCommand: SlashCommand = {
         .setDescription(`Deleted **${messages.size}** messages in ${channel}.`)
         .setColor(Colors.Moderation);
       await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
-    } catch {
-      await interaction.reply({ content: '❌ Failed to purge messages. Messages may be too old (older than 14 days).', flags: 64 });
+    } catch (err) {
+      await interaction.reply({ content: `❌ Failed to purge messages: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }
   },
 };

@@ -1,9 +1,12 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, Collection } from 'discord.js';
 import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
 import { userEconomy } from '../../../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { search, hasXpBoost, applyXpBoost } from '../../economy/store.js';
+
+const SEARCH_COOLDOWN = 15 * 60 * 1000;
+const searchCooldowns = new Collection<string, number>();
 
 export const searchCommand: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -19,6 +22,14 @@ export const searchCommand: SlashCommand = {
     }
 
     const userId = interaction.user.id;
+    const now = Date.now();
+    const lastSearch = searchCooldowns.get(userId);
+    if (lastSearch && now - lastSearch < SEARCH_COOLDOWN) {
+      const remaining = Math.ceil((SEARCH_COOLDOWN - (now - lastSearch)) / 60000);
+      await interaction.reply({ content: `⏳ Still searching! Come back in **${remaining}m**.`, flags: 64 });
+      return;
+    }
+
     const rows = await db
       .select()
       .from(userEconomy)
@@ -45,6 +56,9 @@ export const searchCommand: SlashCommand = {
         .values({ userId, balance: boosted, totalEarned: boosted, transactions: 1 });
     }
 
+    searchCooldowns.set(userId, now);
+
+    const newBalance = rec ? rec.balance + boosted : boosted;
     const desc = boosted !== value
       ? `⚡ XP Boost! You searched **${name}** and found **${boosted.toLocaleString()}** Pulses (${value.toLocaleString()} ×2)!`
       : `You searched **${name}** and found **${boosted.toLocaleString()}** Pulses!`;
@@ -52,6 +66,7 @@ export const searchCommand: SlashCommand = {
     const emb = new EmbedBuilder()
       .setTitle('🔍 Search')
       .setDescription(desc)
+      .addFields({ name: 'Balance', value: `💰 **${newBalance.toLocaleString()}** Pulses`, inline: false })
       .setColor(Colors.Economy);
 
     if (publicReply) {
