@@ -6,12 +6,18 @@ import { pingCommand } from './ping.js';
 import { inviteCommand } from './invite.js';
 import { helpCommand } from './help.js';
 import { configureCommand } from './configure.js';
+import { aboutCommand } from './about.js';
+import { userinfoCommand } from './userinfo.js';
+import { serverinfoCommand } from './serverinfo.js';
 
 export const commands = [
   helpCommand,
   pingCommand,
   inviteCommand,
+  aboutCommand,
   configureCommand,
+  userinfoCommand,
+  serverinfoCommand,
   ...economyCommands,
   ...moderationCommands,
   ...utilityCommands,

@@ -132,5 +132,13 @@ document.addEventListener('DOMContentLoaded', function () {
     setInterval(fetchStats, 30000);
   }
 
-  // --- Dashboard removed ---
+  // Scroll reveal
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target) } });
+    }, { threshold: .1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+  }
 });

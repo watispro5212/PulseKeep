@@ -16,7 +16,6 @@ export interface Config {
   discordBotID: string;
   discordsWebhookSecret: string;
   discordsApiKey: string;
-  redisURL: string;
 }
 
 export function loadConfig(): Config {
@@ -35,6 +34,5 @@ export function loadConfig(): Config {
     discordBotID: process.env.DISCORD_BOT_ID || '',
     discordsWebhookSecret: process.env.DISCORDS_WEBHOOK_SECRET || '',
     discordsApiKey: process.env.DISCORDS_API_KEY || '',
-    redisURL: process.env.REDIS_URL || '',
   };
 }

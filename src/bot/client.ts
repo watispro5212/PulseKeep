@@ -9,11 +9,16 @@ import {
   ChannelType,
   PermissionFlagsBits,
   GuildMember,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
 } from 'discord.js';
 import type { Cache } from '../cache/index.js';
 import type { Config } from '../config.js';
 import type { SlashCommand } from './types.js';
-import { Colors, footer, timestamp, baseEmbed } from '../utils/embed.js';
+import { Colors, footer, timestamp } from '../utils/embed.js';
+import { eq } from 'drizzle-orm';
+import { guildConfigs, commandLogs } from '../db/schema.js';
 
 const ECONOMY_COMMANDS = new Set([
   'balance','daily','weekly','work','gamble','blackjack','slots','rob',
@@ -31,12 +36,54 @@ export class Bot {
   private rest: REST;
   private statusWebhookURL: string;
   private guildToggles = new Map<string, Record<string, any>>();
+  private guildTogglesTtl = new Map<string, number>();
+  // Per-user mod-action tracking for soft anti-spam: serverId:userId -> { count, windowStart }
+  private modSpam = new Map<string, { count: number; windowStart: number }>();
+  // Lightweight event emitter so the API server (separate process via fetch) and other
+  // modules can react to bot-internal state changes. We use a Map-of-listeners
+  // instead of node:events to keep the file dependency-light.
+  private listeners = new Map<string, Set<(...args: any[]) => void>>();
+
+  on(event: 'guildConfigUpdated', listener: (guildId: string) => void): this;
+  on(event: string, listener: (...args: any[]) => void): this;
+  on(event: string, listener: (...args: any[]) => void): this {
+    if (!this.listeners.has(event)) this.listeners.set(event, new Set());
+    this.listeners.get(event)!.add(listener);
+    return this;
+  }
+
+  emit(event: string, ...args: any[]): void {
+    const set = this.listeners.get(event);
+    if (!set) return;
+    for (const fn of set) {
+      try { fn(...args); } catch (err) { console.error(`[Event:${event}]`, err); }
+    }
+  }
+
+  /**
+   * Returns true if a moderator has triggered too many mod actions in a short
+   * window. Used as a soft brake to avoid ban-spam accidents.
+   */
+  registerModAction(guildId: string, userId: string): { throttled: boolean; resetIn: number } {
+    const key = `${guildId}:${userId}`;
+    const now = Date.now();
+    const WINDOW = 10_000;
+    const LIMIT = 6;
+    const cur = this.modSpam.get(key);
+    if (!cur || now - cur.windowStart > WINDOW) {
+      this.modSpam.set(key, { count: 1, windowStart: now });
+      return { throttled: false, resetIn: 0 };
+    }
+    cur.count += 1;
+    if (cur.count > LIMIT) {
+      return { throttled: true, resetIn: WINDOW - (now - cur.windowStart) };
+    }
+    return { throttled: false, resetIn: 0 };
+  }
 
   async getGuildConfig(guildId: string): Promise<any> {
     if (!this.db) return {};
     try {
-      const { guildConfigs } = await import('../db/schema.js');
-      const { eq } = await import('drizzle-orm');
       const rows: any[] = await this.db
         .select()
         .from(guildConfigs)
@@ -50,6 +97,8 @@ export class Bot {
 
   invalidateGuildToggles(guildId: string) {
     this.guildToggles.delete(guildId);
+    this.guildTogglesTtl.delete(guildId);
+    this.emit('guildConfigUpdated', guildId);
   }
 
   async logToChannel(guildId: string, embed: EmbedBuilder) {
@@ -70,7 +119,7 @@ export class Bot {
     }
   }
 
-  constructor(token: string, cache: Cache, db: any, statusWebhookURL: string, config: Config, redis?: any) {
+  constructor(token: string, cache: Cache, db: any, statusWebhookURL: string, config: Config) {
     this.client = new Client({
       shards: 'auto',
       intents: [
@@ -102,6 +151,22 @@ export class Bot {
       );
       this.sendStatusWebhook();
     });
+
+    // Reconnect / network state — surface to logs so we can see drops in Fly.
+    this.client.on(Events.ShardDisconnect, (close, shardId) => {
+      console.warn(`[Bot] Shard ${shardId} disconnected: ${close?.code} ${close?.reason ?? ''}`);
+    });
+    this.client.on(Events.ShardReconnecting, (shardId) => {
+      console.warn(`[Bot] Shard ${shardId} reconnecting…`);
+    });
+    this.client.on(Events.ShardReady, (shardId) => {
+      console.log(`[Bot] Shard ${shardId} ready.`);
+    });
+    this.client.on(Events.ShardError, (err, shardId) => {
+      console.error(`[Bot] Shard ${shardId} error:`, err);
+    });
+    this.client.on(Events.Warn, (msg) => console.warn('[Discord]', msg));
+    this.client.on(Events.Error, (err) => console.error('[Discord]', err));
 
     this.client.on(Events.GuildCreate, (guild) => {
       this.cache.setGuildsCount(this.client.guilds.cache.size);
@@ -140,17 +205,24 @@ export class Bot {
           console.warn(`[Welcome] Channel ${toggles.welcomeChannelId} not found or not text-based in guild ${member.guild.id}`);
           return;
         }
+        const memberCount = member.guild.memberCount;
         const emb = new EmbedBuilder()
-          .setTitle('Welcome!')
-          .setDescription(`Welcome to **${member.guild.name}**, ${member.user}! We're glad to have you.`)
-          .setThumbnail(member.user.displayAvatarURL())
+          .setTitle(`👋 Welcome to ${member.guild.name}!`)
+          .setDescription(
+            `Hey ${member.user} — welcome aboard!\n\n` +
+            `You're member **#${memberCount.toLocaleString()}** of **${member.guild.name}**. ` +
+            `Take a look around, say hi, and have fun.`
+          )
+          .setThumbnail(member.user.displayAvatarURL({ size: 256 }))
           .setColor(Colors.Success)
+          .setFooter({ text: `Account created` })
           .setTimestamp();
         await channel.send({ embeds: [emb] });
         // Also log the welcome event to the configured log channel
         const logEmb = new EmbedBuilder()
           .setTitle('Member Joined')
-          .setDescription(`${member.user.username} joined the server and was welcomed.`)
+          .setDescription(`${member.user.tag} (${member.user.id}) — member #${memberCount.toLocaleString()}`)
+          .setThumbnail(member.user.displayAvatarURL({ size: 128 }))
           .setColor(Colors.Utility)
           .setTimestamp();
         this.logToChannel(member.guild.id, logEmb);
@@ -163,9 +235,89 @@ export class Bot {
       this.cache.setTotalUserCount(this.cache.getTotalUserCount() - 1);
     });
 
+    // Voice state logging
+    this.client.on(Events.VoiceStateUpdate, (oldState, newState) => {
+      const guildId = oldState.guild?.id || newState.guild?.id;
+      if (!guildId) return;
+      const userId = oldState.id || newState.id;
+
+      const oldChannel = oldState.channelId;
+      const newChannel = newState.channelId;
+
+      if (!oldChannel && newChannel) {
+        const logEmb = new EmbedBuilder()
+          .setDescription(`<@${userId}> joined voice channel <#${newChannel}>`)
+          .setColor(Colors.Utility)
+          .setTimestamp();
+        this.logToChannel(guildId, logEmb);
+      } else if (oldChannel && !newChannel) {
+        const logEmb = new EmbedBuilder()
+          .setDescription(`<@${userId}> left voice channel <#${oldChannel}>`)
+          .setColor(Colors.Utility)
+          .setTimestamp();
+        this.logToChannel(guildId, logEmb);
+      } else if (oldChannel && newChannel && oldChannel !== newChannel) {
+        const logEmb = new EmbedBuilder()
+          .setDescription(`<@${userId}> moved from <#${oldChannel}> to <#${newChannel}>`)
+          .setColor(Colors.Utility)
+          .setTimestamp();
+        this.logToChannel(guildId, logEmb);
+      }
+    });
+
+    // Auto-mod: message filtering
+    this.client.on(Events.MessageCreate, async (message) => {
+      if (message.author.bot) return;
+      if (!message.guildId || !message.guild) return;
+      const member = message.member;
+      if (!member) return;
+      const isMod = member.permissions.has('ManageMessages') || member.permissions.has('Administrator');
+      if (isMod) return;
+      const { runAutomod } = await import('./automod/index.js');
+      const { action, reason } = await runAutomod(
+        this, message.guildId, message.channelId,
+        message.author.id, message.content, member.roles.cache.map(r => r.id),
+      );
+      if (!action) return;
+      switch (action) {
+        case 'delete':
+          await message.delete().catch(() => {});
+          break;
+        case 'warn': {
+          const warnEmb = new EmbedBuilder()
+            .setTitle('⚠️ Auto-Mod Warning')
+            .setDescription(`**Reason:** ${reason}`)
+            .setColor(Colors.Warning)
+            .setTimestamp();
+          await message.channel.send({ content: `<@${message.author.id}>`, embeds: [warnEmb] }).then(m => {
+            setTimeout(() => m.delete().catch(() => {}), 5000);
+          });
+          break;
+        }
+        case 'timeout': {
+          await message.delete().catch(() => {});
+          await member.timeout(10 * 60 * 1000, reason).catch(() => {});
+          const timeoutEmb = new EmbedBuilder()
+            .setTitle('🔇 Auto-Mod Timeout')
+            .setDescription(`<@${message.author.id}> has been timed out for **10 minutes**.\n**Reason:** ${reason}`)
+            .setColor(Colors.Moderation)
+            .setTimestamp();
+          await message.channel.send({ embeds: [timeoutEmb] }).then(m => {
+            setTimeout(() => m.delete().catch(() => {}), 8000);
+          });
+          break;
+        }
+      }
+    });
+
     this.client.on(Events.InteractionCreate, async (interaction) => {
       if (interaction.isButton() && interaction.customId === 'ticket_open') {
         await this.handleTicketOpen(interaction);
+        return;
+      }
+
+      if (interaction.isButton() && interaction.customId === 'ticket_close_button') {
+        await this.handleTicketCloseButton(interaction);
         return;
       }
 
@@ -208,7 +360,6 @@ export class Bot {
       // Log command to DB
       if (this.db) {
         try {
-          const { commandLogs } = await import('../db/schema.js');
           await this.db.insert(commandLogs).values({
             guildId: interaction.guildId,
             userId: interaction.user.id,
@@ -233,13 +384,18 @@ export class Bot {
 
   private async getGuildToggles(guildId: string): Promise<Record<string, any>> {
     const cached = this.guildToggles.get(guildId);
-    if (cached) return cached;
+    if (cached) {
+      const expiresAt = this.guildTogglesTtl.get(guildId) || 0;
+      // 60s TTL — short enough that manual DB edits propagate quickly,
+      // long enough to spare us a SELECT per command.
+      if (Date.now() < expiresAt) return cached;
+      this.guildToggles.delete(guildId);
+      this.guildTogglesTtl.delete(guildId);
+    }
 
     if (!this.db) return {};
 
     try {
-      const { guildConfigs } = await import('../db/schema.js');
-      const { eq } = await import('drizzle-orm');
       const rows: any[] = await this.db
         .select()
         .from(guildConfigs)
@@ -253,13 +409,19 @@ export class Bot {
           tickets: cfg.ticketsEnabled !== false,
           modlogsEnabled: cfg.modlogsEnabled !== false,
           welcomeEnabled: cfg.welcomeEnabled === true,
+          automodEnabled: cfg.automodEnabled !== false,
           logChannelId: cfg.logChannelId || undefined,
           welcomeChannelId: cfg.welcomeChannelId || undefined,
+          voteChannelId: cfg.voteChannelId || undefined,
+          ticketCategoryId: cfg.ticketCategoryId || undefined,
         };
         this.guildToggles.set(guildId, toggles);
+        this.guildTogglesTtl.set(guildId, Date.now() + 60_000);
         return toggles;
       }
-    } catch {}
+    } catch (err) {
+      console.error(`[getGuildToggles] DB error for ${guildId}:`, err);
+    }
 
     return {};
   }
@@ -282,8 +444,6 @@ export class Bot {
     let categoryId: string | undefined;
     if (this.db) {
       try {
-        const { guildConfigs } = await import('../db/schema.js');
-        const { eq } = await import('drizzle-orm');
         const rows: any[] = await this.db
           .select()
           .from(guildConfigs)
@@ -313,12 +473,77 @@ export class Bot {
     });
 
     const emb = new EmbedBuilder()
-      .setTitle('Ticket Created')
-      .setDescription(`Welcome ${interaction.user}! A staff member will be with you shortly.`)
+      .setTitle('🎫 Ticket Created')
+      .setDescription(
+        `Welcome ${interaction.user}! A staff member will be with you shortly.\n\n` +
+        `**What to do next**\n` +
+        `• Describe your issue as clearly as you can\n` +
+        `• Add screenshots or links if they help\n` +
+        `• Use \`/ticket add <user>\` to bring someone else in\n` +
+        `• Use \`/ticket close\` or the button below when you're done`
+      )
       .setColor(Colors.Tickets);
 
-    await channel.send({ embeds: [footer(timestamp(emb))] });
-    await interaction.editReply({ content: `Your ticket has been created: ${channel}` });
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('ticket_close_button')
+        .setLabel('Close Ticket')
+        .setEmoji('🔒')
+        .setStyle(ButtonStyle.Danger),
+    );
+
+    await channel.send({ embeds: [footer(timestamp(emb))], components: [row] });
+    await interaction.editReply({ content: `✅ Your ticket has been created: ${channel}` });
+  }
+
+  private async handleTicketCloseButton(interaction: any) {
+    const channel = interaction.channel;
+    if (!channel || !channel.name?.startsWith?.('ticket-')) {
+      await interaction.reply({ content: 'This button only works inside a ticket channel.', flags: 64 });
+      return;
+    }
+
+    // Only the ticket creator or staff (ManageChannels) can close.
+    const isStaff = interaction.member?.permissions?.has?.('ManageChannels');
+    const openerMatch = channel.name === `ticket-${interaction.user.id}`;
+    if (!isStaff && !openerMatch) {
+      await interaction.reply({
+        content: 'Only the ticket creator or staff can close this ticket. Use `/ticket close` as staff if needed.',
+        flags: 64,
+      });
+      return;
+    }
+
+    await interaction.deferReply({ flags: 64 });
+
+    // Best-effort transcript to the configured log channel.
+    try {
+      if ('messages' in channel && interaction.guildId) {
+        const messages = await (channel as any).messages.fetch({ limit: 100 }).catch(() => null);
+        if (messages && messages.size > 0) {
+          const transcript = messages
+            .sort((a: any, b: any) => a.createdTimestamp - b.createdTimestamp)
+            .map((m: any) => `[${new Date(m.createdTimestamp).toISOString()}] ${m.author?.tag ?? 'unknown'}: ${m.content ?? ''}`)
+            .join('\n')
+            .slice(0, 6000);
+          const transcriptEmb = new EmbedBuilder()
+            .setTitle(`Ticket transcript — #${channel.name}`)
+            .setDescription('```\n' + transcript + '\n```')
+            .setColor(Colors.Tickets)
+            .setFooter({ text: `${messages.size} message(s) • closed by ${interaction.user.tag}` });
+          await this.logToChannel(interaction.guildId, transcriptEmb);
+        }
+      }
+    } catch (err) {
+      console.error('[ticket close button] transcript failed:', err);
+    }
+
+    const emb = new EmbedBuilder()
+      .setTitle('🔒 Ticket Closed')
+      .setDescription(`Ticket closed by ${interaction.user}. Deleting channel in **10 seconds**…`)
+      .setColor(Colors.Tickets);
+    await interaction.editReply({ embeds: [timestamp(emb)] });
+    setTimeout(() => channel.delete().catch(() => {}), 10_000);
   }
 
   registerCommand(command: SlashCommand) {

@@ -3,15 +3,12 @@ import { connect } from '../db/index.js';
 import { Cache } from '../cache/index.js';
 import { Bot } from './client.js';
 import { commands } from './commands/index.js';
-import { getRedis } from '../redis.js';
-
 async function main() {
   const cfg = loadConfig();
   const database = connect(cfg.databaseURL);
   const memCache = new Cache();
-  const redis = getRedis(cfg.redisURL);
 
-  const discordBot = new Bot(cfg.discordToken, memCache, database, cfg.statusWebhookURL, cfg, redis);
+  const discordBot = new Bot(cfg.discordToken, memCache, database, cfg.statusWebhookURL, cfg);
 
   for (const cmd of commands) {
     discordBot.registerCommand(cmd);

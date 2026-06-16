@@ -12,6 +12,13 @@ export const guildConfigs = pgTable('guild_configs', {
   welcomeChannelId: varchar('welcome_channel_id', { length: 20 }),
   ticketCategoryId: varchar('ticket_category_id', { length: 20 }),
   voteChannelId: varchar('vote_channel_id', { length: 20 }),
+  automodEnabled: boolean('automod_enabled').default(true).notNull(),
+  automodSpamEnabled: boolean('automod_spam_enabled').default(true).notNull(),
+  automodMentionEnabled: boolean('automod_mention_enabled').default(true).notNull(),
+  automodLinkEnabled: boolean('automod_link_enabled').default(true).notNull(),
+  automodCapsEnabled: boolean('automod_caps_enabled').default(true).notNull(),
+  automodWordsEnabled: boolean('automod_words_enabled').default(true).notNull(),
+  automodBannedWords: text('automod_banned_words'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

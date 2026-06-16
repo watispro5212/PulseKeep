@@ -25,6 +25,34 @@ export const configureCommand: SlashCommand = {
         .addBooleanOption((o) => o.setName('enabled').setDescription('Enable/disable welcome messages').setRequired(true)),
     )
     .addSubcommand((s) =>
+      s.setName('automod').setDescription('Toggle the auto-moderation system')
+        .addBooleanOption((o) => o.setName('enabled').setDescription('Enable/disable auto-mod').setRequired(true)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_spam').setDescription('Toggle spam detection')
+        .addBooleanOption((o) => o.setName('enabled').setDescription('Enable/disable spam detection').setRequired(true)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_mentions').setDescription('Toggle mass mention detection')
+        .addBooleanOption((o) => o.setName('enabled').setDescription('Enable/disable mass mention protection').setRequired(true)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_caps').setDescription('Toggle excessive caps detection')
+        .addBooleanOption((o) => o.setName('enabled').setDescription('Enable/disable caps enforcement').setRequired(true)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_links').setDescription('Toggle link blocking')
+        .addBooleanOption((o) => o.setName('enabled').setDescription('Enable/disable link blocking').setRequired(true)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_words').setDescription('Toggle banned words filtering')
+        .addBooleanOption((o) => o.setName('enabled').setDescription('Enable/disable banned words filter').setRequired(true)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_banned_words').setDescription('Set banned words (comma-separated)')
+        .addStringOption((o) => o.setName('words').setDescription('Comma-separated banned words').setRequired(true)),
+    )
+    .addSubcommand((s) =>
       s.setName('log_channel').setDescription('Set the moderation log channel')
         .addChannelOption((o) => o.setName('channel').setDescription('The channel for logs').setRequired(true)),
     )
@@ -75,6 +103,7 @@ export const configureCommand: SlashCommand = {
           { name: 'Tickets', value: cfg.ticketsEnabled !== false ? '✅ Enabled' : '❌ Disabled', inline: true },
           { name: 'Mod Logs', value: cfg.modlogsEnabled !== false ? '✅ Enabled' : '❌ Disabled', inline: true },
           { name: 'Welcome', value: cfg.welcomeEnabled === true ? '✅ Enabled' : '❌ Disabled', inline: true },
+          { name: 'Auto-Mod', value: cfg.automodEnabled !== false ? '✅ Enabled' : '❌ Disabled', inline: true },
           { name: 'Welcome Channel', value: cfg.welcomeChannelId ? `<#${cfg.welcomeChannelId}>` : 'Not set', inline: true },
           { name: 'Vote Channel', value: cfg.voteChannelId ? `<#${cfg.voteChannelId}>` : 'Not set', inline: true },
           { name: 'Log Channel', value: cfg.logChannelId ? `<#${cfg.logChannelId}>` : 'Not set', inline: true },
@@ -112,6 +141,27 @@ export const configureCommand: SlashCommand = {
         break;
       case 'welcome':
         updateData.welcomeEnabled = interaction.options.getBoolean('enabled', true);
+        break;
+      case 'automod':
+        updateData.automodEnabled = interaction.options.getBoolean('enabled', true);
+        break;
+      case 'automod_spam':
+        updateData.automodSpamEnabled = interaction.options.getBoolean('enabled', true);
+        break;
+      case 'automod_mentions':
+        updateData.automodMentionEnabled = interaction.options.getBoolean('enabled', true);
+        break;
+      case 'automod_caps':
+        updateData.automodCapsEnabled = interaction.options.getBoolean('enabled', true);
+        break;
+      case 'automod_links':
+        updateData.automodLinkEnabled = interaction.options.getBoolean('enabled', true);
+        break;
+      case 'automod_words':
+        updateData.automodWordsEnabled = interaction.options.getBoolean('enabled', true);
+        break;
+      case 'automod_banned_words':
+        updateData.automodBannedWords = interaction.options.getString('words', true);
         break;
       case 'log_channel': {
         const channel = interaction.options.getChannel('channel', true);

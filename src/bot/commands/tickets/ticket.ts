@@ -72,12 +72,39 @@ export const ticketCommand: SlashCommand = {
         break;
       }
       case 'close': {
+        const { bot } = _ctx;
         const emb = new EmbedBuilder()
           .setTitle('Ticket Closed')
-          .setDescription(`Ticket closed by ${interaction.user}. This channel will be deleted shortly.`)
+          .setDescription(
+            `Ticket closed by ${interaction.user}.\n\n` +
+            'Saving transcript and deleting this channel in **10 seconds**…'
+          )
           .setColor(Colors.Tickets);
         await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
-        setTimeout(() => channel.delete().catch(() => {}), 3000);
+
+        // Try to fetch & send a transcript to the configured log channel.
+        try {
+          if ('messages' in channel && interaction.guildId) {
+            const messages = await (channel as any).messages.fetch({ limit: 100 }).catch(() => null);
+            if (messages && messages.size > 0) {
+              const transcript = messages
+                .sort((a: any, b: any) => a.createdTimestamp - b.createdTimestamp)
+                .map((m: any) => `[${new Date(m.createdTimestamp).toISOString()}] ${m.author?.tag ?? 'unknown'}: ${m.content ?? ''}`)
+                .join('\n')
+                .slice(0, 6000); // hard cap so we don't explode a single embed field
+              const transcriptEmb = new EmbedBuilder()
+                .setTitle(`Ticket transcript — #${channel.name}`)
+                .setDescription('```\n' + transcript + '\n```')
+                .setColor(Colors.Tickets)
+                .setFooter({ text: `${messages.size} message(s) • closed by ${interaction.user.tag}` });
+              if (bot) await bot.logToChannel(interaction.guildId, transcriptEmb);
+            }
+          }
+        } catch (err) {
+          console.error('[ticket close] transcript failed:', err);
+        }
+
+        setTimeout(() => channel.delete().catch(() => {}), 10_000);
         break;
       }
       case 'rename': {

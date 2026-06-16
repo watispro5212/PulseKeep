@@ -3,7 +3,6 @@ import { loadConfig } from './config.js';
 import { connect } from './db/index.js';
 import { Cache } from './cache/index.js';
 import { ApiServer } from './api/index.js';
-import { getRedis, closeRedis } from './redis.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -19,7 +18,6 @@ async function main() {
   const cfg = loadConfig();
   const database = connect(cfg.databaseURL);
   const memCache = new Cache();
-  const redis = getRedis(cfg.redisURL);
 
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const manager = new ShardingManager(path.resolve(__dirname, './bot/shard.js'), {
@@ -65,7 +63,6 @@ async function main() {
   const shutdown = async () => {
     console.log('Shutting down...');
     server.stop();
-    closeRedis();
     if (!cfg.botDisabled) { for (const [, s] of manager.shards) s.kill(); }
     process.exit(0);
   };
