@@ -1,6 +1,6 @@
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import type { SlashCommand } from '../../types.js';
-import { Colors, footer, timestamp } from '../../../utils/embed.js';
+import { Colors, footer, timestamp, formatNumber } from '../../../utils/embed.js';
 import { userEconomy } from '../../../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { COOLDOWNS, getStreakBonus, getStreakMilestoneProgress, hasXpBoost, applyXpBoost } from '../../economy/store.js';
@@ -86,12 +86,12 @@ export const dailyCommand: SlashCommand = {
     const boosted = hasXpBoost(rec);
     const emb = new EmbedBuilder()
       .setTitle(boosted ? 'Daily Reward ⚡ (x2)' : 'Daily Reward')
-      .setDescription(`🎉 You claimed **${total.toLocaleString()}** Pulses${boosted ? ' (with XP Boost!)' : '!'}`)
+      .setDescription(`🎉 You claimed **${formatNumber(total)}** Pulses${boosted ? ' (with XP Boost!)' : '!'}`)
       .addFields(
-        { name: 'Base', value: `${base.toLocaleString()}`, inline: true },
-        { name: 'Streak Bonus', value: `+${bonus.toLocaleString()}`, inline: true },
+        { name: 'Base', value: `${formatNumber(base)}`, inline: true },
+        { name: 'Streak Bonus', value: `+${formatNumber(bonus)}`, inline: true },
         { name: 'Streak', value: `🔥 **${newStreak}** days (${progress})`, inline: true },
-        { name: 'Balance', value: `💰 **${newBalance.toLocaleString()}** Pulses`, inline: false },
+        { name: 'Balance', value: `💰 **${formatNumber(newBalance)}** Pulses`, inline: false },
       )
       .setColor(Colors.Economy);
 

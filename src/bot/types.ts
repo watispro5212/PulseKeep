@@ -2,10 +2,12 @@ import type { Cache } from '../cache/index.js';
 import type { Bot } from './client.js';
 import type { Config } from '../config.js';
 
+export type DB = any;
+
 export interface CommandContext {
   bot: Bot;
   cache: Cache;
-  db: any;
+  db: DB;
   config: Config;
 }
 

@@ -2,8 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://pulsekeep.fly.dev/</loc><priority>1.0</priority></url>
   <url><loc>https://pulsekeep.fly.dev/commands.html</loc><priority>0.8</priority></url>
-  <url><loc>https://pulsekeep.fly.dev/dashboard.html</loc><priority>0.7</priority></url>
-  <url><loc>https://pulsekeep.fly.dev/status.html</loc><priority>0.6</priority></url>
+  <url><loc>https://pulsekeep.fly.dev/status.html</loc><priority>0.7</priority></url>
   <url><loc>https://pulsekeep.fly.dev/privacy.html</loc><priority>0.4</priority></url>
   <url><loc>https://pulsekeep.fly.dev/terms.html</loc><priority>0.4</priority></url>
   <url><loc>https://pulsekeep.fly.dev/team.html</loc><priority>0.5</priority></url>

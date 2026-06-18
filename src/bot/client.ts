@@ -39,6 +39,8 @@ export class Bot {
   private guildTogglesTtl = new Map<string, number>();
   // Per-user mod-action tracking for soft anti-spam: serverId:userId -> { count, windowStart }
   private modSpam = new Map<string, { count: number; windowStart: number }>();
+  // Command cooldowns: userId:commandName -> timestamp when cooldown expires
+  private commandCooldowns = new Map<string, number>();
   // Lightweight event emitter so the API server (separate process via fetch) and other
   // modules can react to bot-internal state changes. We use a Map-of-listeners
   // instead of node:events to keep the file dependency-light.
@@ -58,6 +60,23 @@ export class Bot {
     for (const fn of set) {
       try { fn(...args); } catch (err) { console.error(`[Event:${event}]`, err); }
     }
+  }
+
+  /**
+   * Checks and sets a per-user per-command cooldown.
+   * Economy commands: 3s, moderation: 2s, others: 1s.
+   * Returns the remaining cooldown in seconds (0 = not on cooldown).
+   */
+  checkCommandCooldown(userId: string, commandName: string): number {
+    const now = Date.now();
+    const key = `${userId}:${commandName}`;
+    const expire = this.commandCooldowns.get(key);
+    if (expire && now < expire) return (expire - now) / 1000;
+    const ECONOMY = new Set(['balance','daily','weekly','work','gamble','blackjack','slots','rob','pay','fish','mine','shop','buy','inventory','use','leaderboard','tip','vote','search']);
+    const MOD = new Set(['warn','mute','kick','ban','softban','purge','clean','slowmode','lock','unlock','nick','role','move','vckick','announce']);
+    const seconds = ECONOMY.has(commandName) ? this.config.cooldownEconomy : MOD.has(commandName) ? this.config.cooldownModeration : 1;
+    this.commandCooldowns.set(key, now + seconds * 1000);
+    return 0;
   }
 
   /**
@@ -342,6 +361,21 @@ export class Bot {
             embeds: [new EmbedBuilder()
               .setTitle('Feature Disabled')
               .setDescription('The ticket system is disabled in this server. An admin can enable it from the dashboard.')
+              .setColor(Colors.Warning)],
+            flags: 64,
+          });
+          return;
+        }
+      }
+
+      // Command cooldown check
+      if (interaction.user.id !== this.config.botOwnerID && interaction.user.id !== this.config.botCoOwnerID) {
+        const remaining = this.checkCommandCooldown(interaction.user.id, cmdName);
+        if (remaining > 0) {
+          await interaction.reply({
+            embeds: [new EmbedBuilder()
+              .setTitle('⏳ Slow Down')
+              .setDescription(`Please wait **${remaining.toFixed(1)}s** before using this command again.`)
               .setColor(Colors.Warning)],
             flags: 64,
           });

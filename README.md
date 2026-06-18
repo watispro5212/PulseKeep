@@ -64,7 +64,7 @@ BOT_DISABLED=true npm run dev
 fly launch --no-deploy
 fly secrets set DISCORD_TOKEN="your-token"
 fly secrets set DATABASE_URL="postgresql://..."
-fly secrets set ALLOWED_ORIGIN="https://pulsekeep.fly.dev"
+fly secrets set ALLOWED_ORIGINS="https://pulsekeep.fly.dev"
 fly secrets set DISCORD_CLIENT_ID="..."
 fly secrets set DISCORD_CLIENT_SECRET="..."
 fly secrets set DISCORD_REDIRECT_URI="https://pulsekeep.fly.dev/auth/discord/callback"
@@ -89,30 +89,20 @@ fly deploy
 | `DBL_API_TOKEN` | For vote command | DiscordBotList API token |
 | `DBL_WEBHOOK_SECRET` | For DBL webhook | Secret for vote webhook auth |
 
-## Database
-
-The project uses Drizzle for schema management:
-
-```bash
-npm run db:generate
-npm run db:migrate
-```
-
 ## Commands
 
-50+ slash commands across 5 categories:
+70+ slash commands across 5 categories:
 
-- **Moderation** — ban, kick, mute, warn, purge, lock, slowmode, role, nick, move, vckick, announce, clean, softban
-- **Economy** — balance, daily, weekly, work, gamble, blackjack, slots, rob, pay, shop, buy, inventory, use, search, fish, mine, leaderboard, tip, vote
+- **Moderation** — warn, mute, kick, ban, softban, purge, clean, slowmode, lock, unlock, nick, role, move, vckick, announce, lockdown, history, warnings, clearwarns, data-deletion
+- **Economy** — balance, daily, weekly, work, gamble, blackjack, slots, rob, pay, fish, mine, search, shop, buy, inventory, use, vote, leaderboard
 - **Tickets** — ticketpanel, ticket add/remove/close/rename
-- **Configuration** — configure (economy, tickets, modlogs, welcome, log_channel, welcome_channel, vote_channel, ticket_category, show)
-- **Utility** — help, ping, stats, invite, vote, servericon, roleinfo, channelinfo
+- **Configuration** — configure (economy, tickets, modlogs, welcome, automod, automod_spam, automod_mentions, automod_caps, automod_links, automod_words, automod_banned_words, log_channel, welcome_channel, vote_channel, ticket_category, show)
+- **Utility** — help, ping, stats, invite, about, userinfo, serverinfo, servericon, roleinfo, channelinfo
 
 ## Links
 
 - Website: https://pulsekeep.fly.dev
 - Commands: https://pulsekeep.fly.dev/commands.html
-- Dashboard: https://pulsekeep.fly.dev/dashboard.html
 - Status: https://pulsekeep.fly.dev/status.html
 - DiscordBotList: https://discordbotlist.com/bots/1507498795569512598
 - GitHub: https://github.com/watispro5212/PulseKeep

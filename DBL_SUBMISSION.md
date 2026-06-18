@@ -28,7 +28,7 @@ PulseKeep is a versatile Discord bot designed to help server staff teams manage 
 
 **Economy** features daily/weekly rewards, work shifts, gambling with configurable odds, blackjack against an AI dealer, slot machines, fishing and mining minigames, a full item shop, rob/pay interactions, and a search command. Users can vote on DiscordBotList to earn bonus Pulses.
 
-**Configuration** is handled entirely through the `/configure` command with 9 subcommands, or via the web dashboard with Discord OAuth2 login.
+**Configuration** is handled entirely through the `/configure` command with 16 subcommands including auto-mod toggles, or via the web dashboard with Discord OAuth2 login.
 
 **Live Monitoring** includes a public status page with real-time metrics, health checks, and graceful shutdown handling.
 
@@ -36,22 +36,22 @@ PulseKeep is built with TypeScript on discord.js v14, backed by PostgreSQL, and 
 
 ## Full Command List
 
-### Moderation (19)
-`/ban` `/kick` `/mute` `/unmute` `/warn` `/warnings` `/clearwarns` `/history` `/softban` `/purge` `/clean` `/lock` `/unlock` `/slowmode` `/move` `/vckick` `/nick` `/role add` `/role remove` `/announce`
+### Moderation (20)
+`/ban` `/kick` `/mute` `/unmute` `/warn` `/warnings` `/clearwarns` `/history` `/softban` `/purge` `/clean` `/lock` `/unlock` `/slowmode` `/move` `/vckick` `/nick` `/role` `/announce` `/data-deletion`
 
-### Economy (19)
-`/balance` `/daily` `/weekly` `/work` `/gamble` `/blackjack` `/slots` `/rob` `/pay` `/search` `/fish` `/mine` `/shop` `/buy` `/use` `/inventory` `/leaderboard` `/tip` `/vote`
+### Economy (18)
+`/balance` `/daily` `/weekly` `/work` `/gamble` `/blackjack` `/slots` `/rob` `/pay` `/search` `/fish` `/mine` `/shop` `/buy` `/use` `/inventory` `/leaderboard` `/vote`
 
 ### Tickets (5)
 `/ticketpanel` `/ticket add` `/ticket remove` `/ticket close` `/ticket rename`
 
-### Configuration (9)
-`/configure economy` `/configure tickets` `/configure modlogs` `/configure welcome` `/configure log_channel` `/configure welcome_channel` `/configure vote_channel` `/configure ticket_category` `/configure show`
+### Configuration (16)
+`/configure economy` `/configure tickets` `/configure modlogs` `/configure welcome` `/configure automod` `/configure automod_spam` `/configure automod_mentions` `/configure automod_caps` `/configure automod_links` `/configure automod_words` `/configure automod_banned_words` `/configure log_channel` `/configure welcome_channel` `/configure vote_channel` `/configure ticket_category` `/configure show`
 
-### Utility (7)
-`/help` `/ping` `/stats` `/invite` `/vote` `/servericon` `/roleinfo` `/channelinfo`
+### Utility (11)
+`/help` `/ping` `/stats` `/invite` `/about` `/userinfo` `/serverinfo` `/servericon` `/roleinfo` `/channelinfo`
 
-**Total: 60+ slash commands**
+**Total: 70 slash commands**
 
 ## Categories
 

@@ -12,9 +12,6 @@ import { Colors, footer, timestamp, Ephemeral } from '../../../utils/embed.js';
 import { userEconomy, userWarnings, userInventory, commandLogs } from '../../../db/schema.js';
 import { eq, sql } from 'drizzle-orm';
 
-const OWNER_ID = '1320058519642177668';
-const CO_OWNER_ID = '1209164595139317861';
-
 export const dataDeletionCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('data-deletion')
@@ -24,8 +21,8 @@ export const dataDeletionCommand: SlashCommand = {
     )
     .toJSON(),
 
-  async execute({ bot, db }, interaction) {
-    if (interaction.user.id !== OWNER_ID && interaction.user.id !== CO_OWNER_ID) {
+  async execute({ bot, db, config }, interaction) {
+    if (interaction.user.id !== config.botOwnerID && interaction.user.id !== config.botCoOwnerID) {
       await interaction.reply({ content: '❌ Only the bot owner or co-owner can use this command.', flags: Ephemeral });
       return;
     }

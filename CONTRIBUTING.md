@@ -28,7 +28,7 @@ By participating, you agree to uphold the [Code of Conduct](CODE_OF_CONDUCT.md).
 1. Fork the repository.
 2. Create a feature branch: `git checkout -b feat/my-feature`
 3. Make your changes following the coding conventions below.
-4. Run checks: `go build ./... && go vet ./... && go test ./...`
+4. Run checks: `npm run typecheck`
 5. Commit with a descriptive message.
 6. Open a Pull Request using the PR template.
 
@@ -36,9 +36,10 @@ By participating, you agree to uphold the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Prerequisites
 
-- Go 1.26+
+- Node.js 20+
+- npm
 - A Discord bot token (for full bot mode)
-- (Optional) A Neon PostgreSQL database
+- (Optional) A PostgreSQL database
 
 ### Local Development
 
@@ -46,57 +47,56 @@ By participating, you agree to uphold the [Code of Conduct](CODE_OF_CONDUCT.md).
 git clone https://github.com/watispro5212/PulseKeep.git
 cd PulseKeep
 cp .env.example .env
-# Fill in DISCORD_TOKEN in .env
-go run ./cmd/pulsekeep
+# Fill in DISCORD_TOKEN and DATABASE_URL in .env
+npm install
+npm run dev
 ```
 
 ### Project Structure
 
 ```text
-cmd/pulsekeep/        — Application entrypoint
-internal/api/         — HTTP server (Gin) for health/stats/OAuth
-internal/auth/        — Discord OAuth2 token exchange and API calls
-internal/bot/         — Discord gateway client and command handlers
-  commands/           — Slash command registration
-  economy/            — In-memory economy store with PostgreSQL persistence
-  automod/            — Configurable auto-moderation engine
-  handlers.go         — Event listeners and command dispatch
-  economy_handlers.go — Economy embed builders
-internal/cache/       — Atomic counters for live stats
-internal/config/      — Environment configuration loader
-internal/db/          — PostgreSQL connection and migrations
-web/                  — Cloudflare Pages static website (11 pages)
+src/
+  api/               Express API server (stats, webhooks, health)
+  bot/
+    commands/        Slash command implementations
+      economy/       Economy commands (balance, daily, work, etc.)
+      moderation/    Moderation commands (warn, ban, kick, etc.)
+      tickets/       Ticket system commands
+    automod/         Auto-moderation engine (spam, mentions, caps, links, words)
+    client.ts        Bot class with gateway events and cooldown system
+    types.ts         Discord.js type extensions
+  cache/             In-memory stats cache
+  config.ts          Environment variable loader
+  db/                Drizzle ORM schema and database pool
+web/                 Static website (HTML, CSS, JS)
 ```
 
 ## Coding Conventions
 
 > [!IMPORTANT]
-> Every database error path must degrade gracefully — the web server must keep running.
+> Every database error path must degrade gracefully — the bot must keep running.
 
-- Run `gofmt` before committing.
-- Use `discord.NewEmbed()` builder for all message embeds.
-- Register slash commands in `commands/commands.go`.
-- Add descriptions to `commands/menu.go` categories.
-- Keep economy logic in `economy/store.go`, not in handlers.
+- Run `npm run typecheck` before committing (must pass with zero errors).
+- Use `EmbedBuilder` from discord.js for all message embeds (see `src/utils/embed.ts` for helpers like `formatNumber`, `formatCooldown`).
+- Register slash commands in `src/bot/commands/index.ts` with their category.
+- Keep economy logic in `src/bot/economy/store.ts`, not in command handlers.
 - Prefix component custom IDs with `pulsekeep:namespace:action`.
 - Use descriptive variable names; avoid single-letter names outside loops.
-- Handle all errors; use `log.Printf` for non-critical failures (never `log.Fatalf`).
-- Use ephemeral responses via `WithEphemeral(true)` for confirmations.
+- Handle all errors; use `console.error` for non-critical failures (never `process.exit`).
+- Use `Ephemeral` constant from `src/utils/embed.ts` for ephemeral responses.
 
 ## Testing
 
-- Tests use the standard `testing` package
-- Run all tests: `go test ./...`
-- Economy store tests are in `internal/bot/economy/store_test.go`
-- Add tests for new store methods and edge cases
+- No test framework is configured yet — manual testing via Discord is the current approach.
+- Run `npm run typecheck` to verify TypeScript compilation before submitting changes.
 
 ## Pull Request Process
 
-1. Ensure `go build ./...` and `go vet ./...` pass
+1. Ensure `npm run typecheck` passes with zero errors
 2. Update documentation if you add or change commands
 3. Update `web/commands.html` for new commands
 4. Update `web/changelog.html` with a brief entry under the next version
-5. Update `commands/menu.go` with new command descriptions
+5. Update command registration in `src/bot/commands/index.ts`
 6. PRs require at least one review before merging
 
 ## Questions?

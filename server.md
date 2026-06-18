@@ -765,7 +765,7 @@ Purpose:
 
 This channel tracks every PulseKeep release and update.
 
-Latest: v7.1.0 — DBL voting, new commands, configure system, cache invalidation, bug fixes.
+Latest: v7.5.0 — Auto-moderation engine, new commands (/about, /userinfo, /serverinfo), expanded config, in-memory caching.
 Full history: https://pulsekeep.fly.dev/changelog.html
 
 Only staff can post here.
@@ -794,7 +794,7 @@ For live details, use the website status page: https://pulsekeep.fly.dev/status.
 
 ### ⌨️ `#commands`
 
-**Channel description:** Full command reference. Run `/help` to browse interactively or see the pinned list below for all 50+ commands.
+**Channel description:** Full command reference. Run `/help` to browse interactively or see the pinned list below for all 70+ commands.
 
 Purpose:
 
@@ -808,7 +808,7 @@ Purpose:
 Starter message to pin — full command listing:
 
 <details>
-<summary><strong>📋 Full Command List (50+)</strong></summary>
+<summary><strong>📋 Full Command List (70+)</strong></summary>
 
 **🎮 Economy** — `/balance` `/daily` `/weekly` `/work` `/gamble` `/blackjack` `/slots` `/rob` `/pay` `/search` `/fish` `/mine` `/shop` `/buy` `/inventory` `/use` `/leaderboard` `/tip` `/vote`
 
@@ -2676,7 +2676,7 @@ Before submitting:
 
 - ✅ Bot is online at `https://pulsekeep.fly.dev`
 - ✅ Bot can be invited (Administrator or granular permissions)
-- ✅ 50+ slash commands registered globally
+- ✅ 70+ slash commands registered globally
 - ✅ `/help` works with category filtering
 - ✅ `/ping` works with latency display
 - ✅ `/stats` works with real-time bot metrics
@@ -2712,7 +2712,7 @@ Welcome to the official PulseKeep support server.
 
 🤖 PulseKeep is a Discord bot for moderation, tickets, economy, and server analytics.
 👑 Owner: watispro1 · 👑 Co‑Owner: williamdelilah7_
-⌨️ 50+ slash commands — run /help to browse
+⌨️ 70+ slash commands — run /help to browse
 🎫 Need help? Open a ticket in #ticket-panel
 📊 Service status: https://pulsekeep.fly.dev/status.html
 🗳️ Vote for Pulses: /vote

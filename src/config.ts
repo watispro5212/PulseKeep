@@ -15,7 +15,10 @@ export interface Config {
   dblApiToken: string;
   discordBotID: string;
   discordsWebhookSecret: string;
-  discordsApiKey: string;
+  botOwnerID: string;
+  botCoOwnerID: string;
+  cooldownEconomy: number;
+  cooldownModeration: number;
 }
 
 export function loadConfig(): Config {
@@ -33,6 +36,9 @@ export function loadConfig(): Config {
     dblApiToken: process.env.DBL_API_TOKEN || '',
     discordBotID: process.env.DISCORD_BOT_ID || '',
     discordsWebhookSecret: process.env.DISCORDS_WEBHOOK_SECRET || '',
-    discordsApiKey: process.env.DISCORDS_API_KEY || '',
+    botOwnerID: process.env.BOT_OWNER_ID || '',
+    botCoOwnerID: process.env.BOT_CO_OWNER_ID || '',
+    cooldownEconomy: Number(process.env.COOLDOWN_ECONOMY) || 3,
+    cooldownModeration: Number(process.env.COOLDOWN_MODERATION) || 2,
   };
 }
