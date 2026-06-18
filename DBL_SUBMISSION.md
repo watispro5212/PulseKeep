@@ -16,23 +16,23 @@ Use this as the source copy when submitting PulseKeep to DiscordBotList.
 
 ## Short Description
 
-A Discord bot with moderation, tickets, economy games, and server analytics — all through clean slash commands with a web dashboard.
+Discord bot with moderation, tickets, economy, and server stats — all slash commands, zero prefixes.
 
 ## Long Description
 
-PulseKeep is a versatile Discord bot designed to help server staff teams manage communities effectively. It combines powerful moderation tools, an intuitive ticket system, a deep economy with minigames, and live server analytics — all accessible through Discord's native slash command interface.
+Does the stuff you'd expect: moderation, tickets, economy with mini-games, and a status page. All through slash commands so nobody has to remember weird prefixes.
 
-**Moderation** includes warn/kick/ban/timeout, message purging with filters, lockdown, voice management, role management, slowmode, and announcements. Every action is logged for audit purposes.
+**Moderation** — warn, kick, ban, timeout, purge with filters, lockdown, voice management, role management, slowmode, announcements. Everything gets logged.
 
-**Tickets** use a button-based panel system that creates private channels on demand. Staff can add/remove members, close tickets with logging, and rename channels.
+**Tickets** — button panels that create private channels. Add or remove people, close with logging, rename channels.
 
-**Economy** features daily/weekly rewards, work shifts, gambling with configurable odds, blackjack against an AI dealer, slot machines, fishing and mining minigames, a full item shop, rob/pay interactions, and a search command. Users can vote on DiscordBotList to earn bonus Pulses.
+**Economy** — daily/weekly rewards, work shifts, gamble, blackjack, slots, fishing, mining, item shop, rob/pay, search. Vote on DiscordBotList to earn bonus coins.
 
-**Configuration** is handled entirely through the `/configure` command with 16 subcommands including auto-mod toggles, or via the web dashboard with Discord OAuth2 login.
+**Configuration** — `/configure` with 16 subcommands. Toggle features, set channels, configure auto-mod. All per-server.
 
-**Live Monitoring** includes a public status page with real-time metrics, health checks, and graceful shutdown handling.
+**Live Monitoring** — public status page that updates every 30 seconds. Health checks, graceful shutdown.
 
-PulseKeep is built with TypeScript on discord.js v14, backed by PostgreSQL, and hosted on Fly.io with 99%+ uptime.
+Built with TypeScript + discord.js v14, PostgreSQL, hosted on Fly.io.
 
 ## Full Command List
 

@@ -60,7 +60,7 @@ export const warnCommand: SlashCommand = {
 
     await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
 
-    // Log to mod channel
+    // log it
     const log = new EmbedBuilder()
       .setTitle('Moderation: Warn')
       .setDescription(`**${user.username}** was warned by ${interaction.user}`)

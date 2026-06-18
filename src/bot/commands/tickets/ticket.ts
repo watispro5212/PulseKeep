@@ -82,7 +82,7 @@ export const ticketCommand: SlashCommand = {
           .setColor(Colors.Tickets);
         await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
 
-        // Try to fetch & send a transcript to the configured log channel.
+        // try to send a transcript to the mod channel
         try {
           if ('messages' in channel && interaction.guildId) {
             const messages = await (channel as any).messages.fetch({ limit: 100 }).catch(() => null);

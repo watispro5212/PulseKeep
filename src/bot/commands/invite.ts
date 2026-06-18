@@ -9,8 +9,7 @@ import {
 import type { SlashCommand } from '../types.js';
 import { Colors, Ephemeral, timestamp } from '../../utils/embed.js';
 
-// Minimal permission set — everything PulseKeep actually needs.
-// (Not 8/Administrator — that scares people.)
+// only the perms we actually use — no admin (that'd be sketchy)
 const RECOMMENDED_PERMS = [
   PermissionFlagsBits.ViewChannel,
   PermissionFlagsBits.SendMessages,

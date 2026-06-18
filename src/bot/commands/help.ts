@@ -201,7 +201,7 @@ export const helpCommand: SlashCommand = {
       return;
     }
 
-    // Interactive dropdown
+    // dropdown menu
     const select = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Pick a category…')
@@ -239,7 +239,7 @@ export const helpCommand: SlashCommand = {
     });
 
     collector.on('end', () => {
-      // best-effort disable
+      // best-effort disable (just in case)
     });
   },
 };

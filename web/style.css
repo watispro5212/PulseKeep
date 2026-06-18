@@ -224,29 +224,29 @@ nav a:hover{transform:translateY(-1px)}
 .cmd-group-highlight{border-color:color-mix(in srgb,var(--primary) 30%,transparent);background:rgba(124,92,252,.04)}
 .cmd-group-highlight h3 i{color:var(--cyan)!important}
 
-/* Scroll progress bar */
+/* scroll bar at top */
 #scroll-progress{position:fixed;top:0;left:0;width:0;height:2px;background:linear-gradient(90deg,var(--primary),var(--cyan));z-index:999;transition:width .1s linear}
 
-/* Back to top */
+/* back to top button */
 #back-to-top{position:fixed;bottom:24px;right:24px;width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--bg-card);color:var(--muted);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;transform:translateY(20px);pointer-events:none;transition:var(--transition);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);font-size:1rem}
 #back-to-top.visible{opacity:1;transform:translateY(0);pointer-events:auto}
 #back-to-top:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-dim)}
 
-/* Section dividers */
+/* horizontal rule between sections */
 .section-divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:0;border:none}
 
-/* Staggered card children */
+/* delay card animations so they don't all pop at once */
 .feature-card,.status-card{transition:transform .3s cubic-bezier(.4,0,.2,1),border-color .3s,box-shadow .3s}
 .feature-card:hover i{color:var(--cyan)}
 
-/* Smooth image load */
+/* fade images in */
 img{opacity:0;transition:opacity .4s ease}
 img[src],img[srcset]{opacity:1}
 
-/* Custom focus ring for interactive elements */
+/* keyboard focus outline */
 a:focus-visible,.btn:focus-visible,button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:var(--radius)}
 
-/* Glow text utility */
+/* makes text glow a bit */
 .glow-text{text-shadow:0 0 20px rgba(124,92,252,.3),0 0 60px rgba(124,92,252,.1)}
 
 @media(max-width:900px){

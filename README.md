@@ -1,16 +1,16 @@
 # PulseKeep
 
-A TypeScript Discord bot for moderation, audit logging, support tickets, economy games, and server analytics — all through clean slash commands.
+TypeScript Discord bot. Moderation, tickets, economy games, server stats — all slash commands.
 
 ## Features
 
-- **Moderation Suite** — Warn, kick, ban, timeout, purge, lockdown, voice management, role management, announcements
-- **Support Tickets** — Button-based ticket panels create private channels on demand. Add/remove members, close with logging, rename channels
-- **Economy System** — Daily streaks, blackjack, slots, gambling, fishing, mining, item shop, leaderboard, rob/pay, voting rewards
-- **Auto-Moderation** — Spam detection, mass mention protection, banned words, link blocking, caps enforcement
-- **Configuration** — Toggle features per guild, set log/welcome/vote channels via `/configure` or web dashboard
-- **DiscordBotList Voting** — Users earn Pulses for voting; webhook integration with configurable announcement channels
-- **Live Monitoring** — Health checks, real-time stats API, public status page
+- **Moderation** — warn, kick, ban, mute, purge, lockdown, voice/role management, announcements
+- **Tickets** — button panels that make private channels. Add/remove people, close with logging
+- **Economy** — daily streaks, blackjack, slots, fishing, mining, item shop, leaderboard, rob/pay
+- **Auto-Moderation** — spam detection, mass mentions, banned words, link blocking, caps
+- **Configuration** — toggle features per server via `/configure`
+- **Voting** — earn coins by voting on DiscordBotList, webhook integration
+- **Live Monitoring** — health checks, real-time stats API, public status page
 
 ## Tech Stack
 

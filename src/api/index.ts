@@ -116,7 +116,7 @@ export class ApiServer {
       });
     });
 
-    // DiscordBotList vote webhook
+    // dbl vote webhook
     const dblCors = (req: any, res: any, next: any) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -202,7 +202,7 @@ export class ApiServer {
       res.json({ status: 'ok', reward });
     });
 
-    // Discords.com vote webhook
+    // discords.com vote webhook
     const discordsCors = (req: any, res: any, next: any) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -287,10 +287,10 @@ export class ApiServer {
       res.json({ status: 'ok', reward });
     });
 
-    // Serve static files
+    // static files
     this.app.use(express.static(webDir));
 
-    // SPA fallback
+    // spa fallback
     this.app.use((req, res, next) => {
       if (req.path.startsWith('/api/')) {
         res.status(404).json({ error: 'Not found' });

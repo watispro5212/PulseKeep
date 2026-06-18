@@ -18,13 +18,13 @@ document.addEventListener('DOMContentLoaded', function () {
   const fy = $('footer-year');
   if (fy) fy.textContent = String(new Date().getFullYear());
 
-  // Active nav
+  // highlight current page in nav
   const path = window.location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('header nav a, .mobile-nav a').forEach(a => {
     if (a.getAttribute('href') === path) a.classList.add('active');
   });
 
-  // Scroll progress bar
+  // scroll progress thingy at the top
   const progressBar = $('scroll-progress');
   if (!progressBar) {
     const bar = document.createElement('div');
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // Back to top button
+  // back to top button
   const btt = $('back-to-top');
   if (!btt) {
     const btn = document.createElement('button');
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (el) el.classList.toggle('visible', window.scrollY > 400);
   });
 
-  // Keyboard shortcut: / to focus command search
+  // press / to jump to command search
   window.addEventListener('keydown', (e) => {
     if (e.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) {
       e.preventDefault();
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // Mobile menu
+  // mobile nav
   const toggle = $('mobile-toggle');
   const mnav = $('mobile-nav');
   if (toggle && mnav) {
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Command search
+  // filter command list
   const cmdSearch = $('cmd-search');
   if (cmdSearch) {
     cmdSearch.addEventListener('input', function () {
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Stats fetching with retry
+  // grab stats from the api, retry if it fails
   let statsRetries = 0;
   async function fetchStats() {
     try {
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setInterval(fetchStats, 30000);
   }
 
-  // Scroll reveal
+  // fade stuff in as you scroll
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target) } });

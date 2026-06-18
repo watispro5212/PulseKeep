@@ -37,13 +37,11 @@ export class Bot {
   private statusWebhookURL: string;
   private guildToggles = new Map<string, Record<string, any>>();
   private guildTogglesTtl = new Map<string, number>();
-  // Per-user mod-action tracking for soft anti-spam: serverId:userId -> { count, windowStart }
+  // tracks mod actions per user — stops someone from getting spam-banned
   private modSpam = new Map<string, { count: number; windowStart: number }>();
-  // Command cooldowns: userId:commandName -> timestamp when cooldown expires
+  // userId:cmdName -> when cooldown expires
   private commandCooldowns = new Map<string, number>();
-  // Lightweight event emitter so the API server (separate process via fetch) and other
-  // modules can react to bot-internal state changes. We use a Map-of-listeners
-  // instead of node:events to keep the file dependency-light.
+  // tiny event bus so the API server can react to guild config changes
   private listeners = new Map<string, Set<(...args: any[]) => void>>();
 
   on(event: 'guildConfigUpdated', listener: (guildId: string) => void): this;
@@ -62,11 +60,8 @@ export class Bot {
     }
   }
 
-  /**
-   * Checks and sets a per-user per-command cooldown.
-   * Economy commands: 3s, moderation: 2s, others: 1s.
-   * Returns the remaining cooldown in seconds (0 = not on cooldown).
-   */
+  // returns 0 if not on cooldown, seconds remaining otherwise
+  // economy = 3s, mod = 2s, everything else = 1s
   checkCommandCooldown(userId: string, commandName: string): number {
     const now = Date.now();
     const key = `${userId}:${commandName}`;
@@ -171,7 +166,7 @@ export class Bot {
       this.sendStatusWebhook();
     });
 
-    // Reconnect / network state — surface to logs so we can see drops in Fly.
+    // log disconnects so we can tell when the bot flaps
     this.client.on(Events.ShardDisconnect, (close, shardId) => {
       console.warn(`[Bot] Shard ${shardId} disconnected: ${close?.code} ${close?.reason ?? ''}`);
     });
@@ -211,7 +206,7 @@ export class Bot {
       this.sendStatusWebhook();
     });
 
-    // Welcome messages
+    // welcome messages
     this.client.on(Events.GuildMemberAdd, async (member: GuildMember) => {
       if (member.user.bot) return;
       this.cache.setTotalUserCount(this.cache.getTotalUserCount() + 1);
@@ -237,7 +232,7 @@ export class Bot {
           .setFooter({ text: `Account created` })
           .setTimestamp();
         await channel.send({ embeds: [emb] });
-        // Also log the welcome event to the configured log channel
+        // also log it to the mod channel
         const logEmb = new EmbedBuilder()
           .setTitle('Member Joined')
           .setDescription(`${member.user.tag} (${member.user.id}) — member #${memberCount.toLocaleString()}`)
@@ -254,7 +249,7 @@ export class Bot {
       this.cache.setTotalUserCount(Math.max(0, this.cache.getTotalUserCount() - 1));
     });
 
-    // Voice state logging
+    // voice state logging
     this.client.on(Events.VoiceStateUpdate, (oldState, newState) => {
       const guildId = oldState.guild?.id || newState.guild?.id;
       if (!guildId) return;
@@ -284,7 +279,7 @@ export class Bot {
       }
     });
 
-    // Auto-mod: message filtering
+    // auto-mod
     this.client.on(Events.MessageCreate, async (message) => {
       if (message.author.bot) return;
       if (!message.guildId || !message.guild) return;
@@ -343,7 +338,7 @@ export class Bot {
       if (!interaction.isChatInputCommand()) return;
       const cmdName = interaction.commandName;
 
-      // Guild toggle enforcement
+      // check guild toggles
       if (interaction.guildId) {
         const toggles = await this.getGuildToggles(interaction.guildId);
         if (ECONOMY_COMMANDS.has(cmdName) && toggles.economy === false) {
@@ -368,7 +363,7 @@ export class Bot {
         }
       }
 
-      // Command cooldown check
+      // check cooldown
       if (interaction.user.id !== this.config.botOwnerID && interaction.user.id !== this.config.botCoOwnerID) {
         const remaining = this.checkCommandCooldown(interaction.user.id, cmdName);
         if (remaining > 0) {
@@ -391,7 +386,7 @@ export class Bot {
 
       this.cache.incrementCommandsRun();
 
-      // Log command to DB
+      // log to db
       if (this.db) {
         try {
           await this.db.insert(commandLogs).values({
@@ -420,8 +415,7 @@ export class Bot {
     const cached = this.guildToggles.get(guildId);
     if (cached) {
       const expiresAt = this.guildTogglesTtl.get(guildId) || 0;
-      // 60s TTL — short enough that manual DB edits propagate quickly,
-      // long enough to spare us a SELECT per command.
+      // cache toggles for 60s — stops hammering the db on every message
       if (Date.now() < expiresAt) return cached;
       this.guildToggles.delete(guildId);
       this.guildTogglesTtl.delete(guildId);
@@ -468,7 +462,7 @@ export class Bot {
       return;
     }
 
-    // Check tickets toggle
+    // check ticket toggle
     const toggles = await this.getGuildToggles(guild.id);
     if (toggles.tickets === false) {
       await interaction.editReply({ content: 'The ticket system is disabled in this server.' });
@@ -550,7 +544,7 @@ export class Bot {
 
     await interaction.deferReply({ flags: 64 });
 
-    // Best-effort transcript to the configured log channel.
+    // best-effort transcript to mod channel
     try {
       if ('messages' in channel && interaction.guildId) {
         const messages = await (channel as any).messages.fetch({ limit: 100 }).catch(() => null);

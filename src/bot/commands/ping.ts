@@ -49,7 +49,7 @@ export const pingCommand: SlashCommand = {
 
     const reply = await interaction.reply({ embeds: [timestamp(emb)], components: [row], flags: Ephemeral, fetchReply: true });
 
-    // Refresh button — only the original user can use it, expires after 30s.
+    // refresh button, only works for whoever ran the command, dies after 30s
     const collector = reply.createMessageComponentCollector({ time: 30_000 });
     collector.on('collect', async (i: ButtonInteraction) => {
       if (i.user.id !== interaction.user.id) {

@@ -1,103 +1,78 @@
-# Contributing to PulseKeep
+# Contributing
 
-Thank you for your interest in contributing to PulseKeep.
+By contributing you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## Code of Conduct
+## Bugs
 
-By participating, you agree to uphold the [Code of Conduct](CODE_OF_CONDUCT.md).
+Search [issues](https://github.com/watispro5212/PulseKeep/issues) first. Use the bug report template, include steps to reproduce.
 
-## How to Contribute
+## Features
 
-### Reporting Bugs
+Open a feature request. Say what problem you're solving and how.
 
-> [!NOTE]
-> Check the [issues](https://github.com/watispro5212/PulseKeep/issues) for duplicates before reporting a new bug.
+## Pull Requests
 
-1. Use the **Bug Report** issue template.
-2. Include steps to reproduce, expected behavior, and actual behavior.
-3. Attach logs or screenshots if relevant.
+1. Fork, branch: `git checkout -b feat/my-thing`
+2. Make changes
+3. `npm run typecheck` — must pass
+4. Commit, open PR
 
-### Suggesting Features
+## Setup
 
-1. Open a **Feature Request** issue using the template
-2. Describe the problem you're solving and your proposed solution
-3. Explain how the feature benefits PulseKeep users
-
-### Submitting Changes
-
-1. Fork the repository.
-2. Create a feature branch: `git checkout -b feat/my-feature`
-3. Make your changes following the coding conventions below.
-4. Run checks: `npm run typecheck`
-5. Commit with a descriptive message.
-6. Open a Pull Request using the PR template.
-
-## Development Setup
-
-### Prerequisites
-
-- Node.js 20+
-- npm
-- A Discord bot token (for full bot mode)
-- (Optional) A PostgreSQL database
-
-### Local Development
+- Node.js 20+, npm
+- Discord bot token (for full mode)
+- PostgreSQL (optional)
 
 ```bash
 git clone https://github.com/watispro5212/PulseKeep.git
 cd PulseKeep
 cp .env.example .env
-# Fill in DISCORD_TOKEN and DATABASE_URL in .env
+# edit .env
 npm install
 npm run dev
 ```
 
-### Project Structure
+## Structure
 
-```text
+```
 src/
-  api/               Express API server (stats, webhooks, health)
+  api/               Express server
   bot/
-    commands/        Slash command implementations
-      economy/       Economy commands (balance, daily, work, etc.)
-      moderation/    Moderation commands (warn, ban, kick, etc.)
-      tickets/       Ticket system commands
-    automod/         Auto-moderation engine (spam, mentions, caps, links, words)
-    client.ts        Bot class with gateway events and cooldown system
-    types.ts         Discord.js type extensions
-  cache/             In-memory stats cache
-  config.ts          Environment variable loader
-  db/                Drizzle ORM schema and database pool
-web/                 Static website (HTML, CSS, JS)
+    commands/        Slash commands
+      economy/       Economy stuff
+      moderation/    Moderation stuff
+      tickets/       Ticket stuff
+    automod/         Auto-mod engine
+    client.ts        Bot class, events, cooldowns
+    types.ts         Type extensions
+  cache/             In-memory cache
+  config.ts          Env loader
+  db/                Drizzle schema + pool
+web/                 Static site
 ```
 
-## Coding Conventions
+## Conventions
 
-> [!IMPORTANT]
-> Every database error path must degrade gracefully — the bot must keep running.
-
-- Run `npm run typecheck` before committing (must pass with zero errors).
-- Use `EmbedBuilder` from discord.js for all message embeds (see `src/utils/embed.ts` for helpers like `formatNumber`, `formatCooldown`).
-- Register slash commands in `src/bot/commands/index.ts` with their category.
-- Keep economy logic in `src/bot/economy/store.ts`, not in command handlers.
-- Prefix component custom IDs with `pulsekeep:namespace:action`.
-- Use descriptive variable names; avoid single-letter names outside loops.
-- Handle all errors; use `console.error` for non-critical failures (never `process.exit`).
-- Use `Ephemeral` constant from `src/utils/embed.ts` for ephemeral responses.
+- DB errors must never crash the bot
+- `npm run typecheck` before committing
+- Use `EmbedBuilder` for embeds (see `src/utils/embed.ts` for helpers)
+- Register commands in `src/bot/commands/index.ts`
+- Economy logic in `src/bot/economy/store.ts`
+- Custom IDs: `pulsekeep:namespace:action`
+- Handle errors with `console.error`, never `process.exit`
+- Use `Ephemeral` from `src/utils/embed.ts`
 
 ## Testing
 
-- No test framework is configured yet — manual testing via Discord is the current approach.
-- Run `npm run typecheck` to verify TypeScript compilation before submitting changes.
+No tests yet — manual testing for now.
 
-## Pull Request Process
+## PR Checklist
 
-1. Ensure `npm run typecheck` passes with zero errors
-2. Update documentation if you add or change commands
-3. Update `web/commands.html` for new commands
-4. Update `web/changelog.html` with a brief entry under the next version
-5. Update command registration in `src/bot/commands/index.ts`
-6. PRs require at least one review before merging
+- [ ] `npm run typecheck` passes
+- [ ] Updated `web/commands.html` for new commands
+- [ ] Updated `web/changelog.html`
+- [ ] Updated command registration
+- [ ] At least one review
 
 ## Questions?
 

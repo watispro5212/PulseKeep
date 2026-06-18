@@ -34,8 +34,7 @@ export const serverinfoCommand: SlashCommand = {
       return;
     }
 
-    // Best-effort: fetch full member list to get accurate counts. If we can't
-    // (very large guilds), fall back to the cached member count.
+    // try to get real member counts — huge servers get the cached version
     let memberCount = guild.memberCount;
     let onlineCount: number | null = null;
     try {
