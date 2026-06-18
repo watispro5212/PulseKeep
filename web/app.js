@@ -24,6 +24,52 @@ document.addEventListener('DOMContentLoaded', function () {
     if (a.getAttribute('href') === path) a.classList.add('active');
   });
 
+  // Scroll progress bar
+  const progressBar = $('scroll-progress');
+  if (!progressBar) {
+    const bar = document.createElement('div');
+    bar.id = 'scroll-progress';
+    document.body.prepend(bar);
+  }
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const bar = $('scroll-progress');
+        if (bar) {
+          const h = document.documentElement.scrollHeight - window.innerHeight;
+          bar.style.width = h > 0 ? (window.scrollY / h * 100) + '%' : '0%';
+        }
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+
+  // Back to top button
+  const btt = $('back-to-top');
+  if (!btt) {
+    const btn = document.createElement('button');
+    btn.id = 'back-to-top';
+    btn.setAttribute('aria-label', 'Back to top');
+    btn.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
+    document.body.appendChild(btn);
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+  window.addEventListener('scroll', () => {
+    const el = $('back-to-top');
+    if (el) el.classList.toggle('visible', window.scrollY > 400);
+  });
+
+  // Keyboard shortcut: / to focus command search
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) {
+      e.preventDefault();
+      const cs = $('cmd-search');
+      if (cs) cs.focus();
+    }
+  });
+
   // Mobile menu
   const toggle = $('mobile-toggle');
   const mnav = $('mobile-nav');
@@ -61,11 +107,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Stats fetching
+  // Stats fetching with retry
+  let statsRetries = 0;
   async function fetchStats() {
     try {
-      const res = await fetch(API + '/api/stats');
-      if (!res.ok) throw new Error('API down');
+      const res = await fetch(API + '/api/stats', { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) throw new Error('API returned ' + res.status);
+      statsRetries = 0;
       const d = await res.json();
 
       ['servers','users','commands','uptime'].forEach(key => {
@@ -107,7 +155,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const upEl = $('st-updated');
       if (upEl) upEl.textContent = new Date().toLocaleTimeString();
 
-    } catch {
+    } catch (err) {
+      if (statsRetries < 3) { statsRetries++; return; }
       const dot = $('status-dot');
       const txt = $('status-text');
       if (dot) dot.className = 'dot dot-rose';
