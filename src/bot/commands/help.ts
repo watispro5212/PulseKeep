@@ -214,7 +214,7 @@ export const helpCommand: SlashCommand = {
         })),
       );
 
-    const row = new ActionRowBuilder().addComponents(select);
+    const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select);
 
     const reply = await interaction.reply({
       embeds: [timestamp(buildOverviewEmbed())],

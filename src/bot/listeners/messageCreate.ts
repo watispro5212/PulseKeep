@@ -1,6 +1,7 @@
-import { Events, EmbedBuilder, Colors } from 'discord.js';
+import { Events, EmbedBuilder } from 'discord.js';
 import type { Bot } from '../client.js';
 import { runAutomod } from '../automod/index.js';
+import { Colors } from '../../utils/embed.js';
 
 export function registerMessageCreateListener(bot: Bot) {
   bot.client.on(Events.MessageCreate, async (message) => {
@@ -41,7 +42,7 @@ export function registerMessageCreateListener(bot: Bot) {
       }
       case 'timeout': {
         await message.delete().catch(() => {});
-        await member.timeout(10 * 60 * 1000, reason).catch(() => {});
+        await member.timeout(10 * 60 * 1000, reason ?? undefined).catch(() => {});
         const timeoutEmb = new EmbedBuilder()
           .setTitle('🔇 Auto-Mod Timeout')
           .setDescription(`<@${message.author.id}> has been timed out for **10 minutes**.\n**Reason:** ${reason}`)

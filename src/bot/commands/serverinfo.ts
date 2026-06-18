@@ -1,4 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder, ChannelType, GuildVerificationLevel } from 'discord.js';
+import type { GuildMember, GuildBasedChannel } from 'discord.js';
 import type { SlashCommand } from '../types.js';
 import { Colors, Ephemeral, timestamp } from '../../utils/embed.js';
 
@@ -40,15 +41,15 @@ export const serverinfoCommand: SlashCommand = {
     try {
       await guild.members.fetch({ withPresences: true }).catch(() => null);
       memberCount = guild.members.cache.size || memberCount;
-      const online = guild.members.cache.filter((m) => m.presence?.status === 'online').length;
+      const online = guild.members.cache.filter((m: GuildMember) => m.presence?.status === 'online').length;
       onlineCount = online;
     } catch { /* fall back */ }
 
     const channels = await guild.channels.fetch().catch(() => null);
-    const textCount = channels?.filter((c) => c?.type === ChannelType.GuildText || c?.type === ChannelType.GuildAnnouncement).size ?? 0;
-    const voiceCount = channels?.filter((c) => c?.type === ChannelType.GuildVoice || c?.type === ChannelType.GuildStageVoice).size ?? 0;
-    const categoryCount = channels?.filter((c) => c?.type === ChannelType.GuildCategory).size ?? 0;
-    const forumCount = channels?.filter((c) => c?.type === ChannelType.GuildForum).size ?? 0;
+    const textCount = channels?.filter((c: GuildBasedChannel | null) => c?.type === ChannelType.GuildText || c?.type === ChannelType.GuildAnnouncement).size ?? 0;
+    const voiceCount = channels?.filter((c: GuildBasedChannel | null) => c?.type === ChannelType.GuildVoice || c?.type === ChannelType.GuildStageVoice).size ?? 0;
+    const categoryCount = channels?.filter((c: GuildBasedChannel | null) => c?.type === ChannelType.GuildCategory).size ?? 0;
+    const forumCount = channels?.filter((c: GuildBasedChannel | null) => c?.type === ChannelType.GuildForum).size ?? 0;
     const totalChannels = channels?.size ?? 0;
 
     const roleCount = guild.roles.cache.size - 1; // exclude @everyone

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { EmbedBuilder, ShardingManager } from 'discord.js';
 import type { Config } from '../config.js';
 import type { Cache } from '../cache/index.js';
-import { eq } from 'drizzle-orm';
+import { sql, eq } from 'drizzle-orm';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const webDir = path.resolve(__dirname, '../../web');
@@ -88,7 +88,7 @@ export class ApiServer {
     this.app.get('/api/stats', async (_req, res) => {
       if (this.db && Date.now() - lastDbCheck > 30000) {
         try {
-          await this.db.execute('SELECT 1');
+          await this.db.execute(sql`SELECT 1`);
           dbConnected = true;
         } catch { dbConnected = false; }
         lastDbCheck = Date.now();

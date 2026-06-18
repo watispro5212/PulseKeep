@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package.json package-lock.json tsconfig.json ./
 COPY src/ src/
-RUN npm ci --include=dev && npx tsc
+RUN npm ci && npm run build
 
 FROM node:22-alpine
 

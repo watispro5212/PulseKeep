@@ -39,7 +39,7 @@ export const pingCommand: SlashCommand = {
       )
       .setFooter({ text: 'Times are measured from gateway → bot → response' });
 
-    const row = new ActionRowBuilder().addComponents(
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId('ping_refresh')
         .setLabel('Refresh')
@@ -51,7 +51,7 @@ export const pingCommand: SlashCommand = {
 
     // Refresh button — only the original user can use it, expires after 30s.
     const collector = reply.createMessageComponentCollector({ time: 30_000 });
-    collector.on('collect', async (i) => {
+    collector.on('collect', async (i: ButtonInteraction) => {
       if (i.user.id !== interaction.user.id) {
         await i.reply({ content: 'That button isn\'t yours.', flags: Ephemeral });
         return;

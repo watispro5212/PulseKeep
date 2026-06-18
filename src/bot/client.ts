@@ -296,7 +296,7 @@ export class Bot {
         }
         case 'timeout': {
           await message.delete().catch(() => {});
-          await member.timeout(10 * 60 * 1000, reason).catch(() => {});
+          await member.timeout(10 * 60 * 1000, reason ?? undefined).catch(() => {});
           const timeoutEmb = new EmbedBuilder()
             .setTitle('🔇 Auto-Mod Timeout')
             .setDescription(`<@${message.author.id}> has been timed out for **10 minutes**.\n**Reason:** ${reason}`)
@@ -382,7 +382,7 @@ export class Bot {
     });
   }
 
-  private async getGuildToggles(guildId: string): Promise<Record<string, any>> {
+  async getGuildToggles(guildId: string): Promise<Record<string, any>> {
     const cached = this.guildToggles.get(guildId);
     if (cached) {
       const expiresAt = this.guildTogglesTtl.get(guildId) || 0;
@@ -484,7 +484,7 @@ export class Bot {
       )
       .setColor(Colors.Tickets);
 
-    const row = new ActionRowBuilder().addComponents(
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId('ticket_close_button')
         .setLabel('Close Ticket')

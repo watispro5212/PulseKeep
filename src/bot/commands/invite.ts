@@ -72,7 +72,7 @@ export const inviteCommand: SlashCommand = {
       )
       .setFooter({ text: 'Tip: vote on DBL or Discords.com once a day for free Pulses.' });
 
-    const row = new ActionRowBuilder().addComponents(
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(inviteRecommended).setLabel('Recommended perms').setEmoji('🔗'),
       new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(inviteAdmin).setLabel('Administrator').setEmoji('🔐'),
       new ButtonBuilder().setStyle(ButtonStyle.Link).setURL('https://discord.gg/b9HBphyeuP').setLabel('Support').setEmoji('💬'),

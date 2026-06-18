@@ -1,4 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder, GuildMember } from 'discord.js';
+import type { Role } from 'discord.js';
 import type { SlashCommand } from '../types.js';
 import { Colors, Ephemeral, timestamp } from '../../utils/embed.js';
 
@@ -58,9 +59,9 @@ export const userinfoCommand: SlashCommand = {
     }
 
     const roles = member.roles.cache
-      .filter((r) => r.id !== interaction.guild!.id)
-      .sort((a, b) => b.position - a.position)
-      .map((r) => `<@&${r.id}>`);
+      .filter((r: Role) => r.id !== interaction.guild!.id)
+      .sort((a: Role, b: Role) => b.position - a.position)
+      .map((r: Role) => `<@&${r.id}>`);
 
     const topRole = member.roles.highest;
     const keyPerms: string[] = [];
