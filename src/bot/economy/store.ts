@@ -148,7 +148,7 @@ export function fish(): { name: string; value: number } {
   const idx = weightedRandom(FISH_CATCHES);
   const c = FISH_CATCHES[idx];
   if (!c) return { name: 'Something Weird', value: 0 };
-  const value = c.min + Math.floor(Math.random() * (c.max - c.min));
+  const value = c.min + Math.floor(Math.random() * (c.max - c.min + 1));
   if (c.name === 'Junk Boot' && Math.random() < 0.15) return fish();
   return { name: c.name, value };
 }
@@ -157,7 +157,7 @@ export function mine(): { name: string; value: number } {
   const idx = weightedRandom(MINE_FINDS);
   const c = MINE_FINDS[idx];
   if (!c) return { name: 'Something Weird', value: 0 };
-  const value = c.min + Math.floor(Math.random() * (c.max - c.min));
+  const value = c.min + Math.floor(Math.random() * (c.max - c.min + 1));
   if (c.name === 'Rusty Nail' && Math.random() < 0.15) return mine();
   return { name: c.name, value };
 }
@@ -189,7 +189,7 @@ export function search(): { name: string; value: number } {
   const idx = weightedRandom(SEARCH_PLACES);
   const p = SEARCH_PLACES[idx];
   if (!p) return { name: 'nowhere', value: 0 };
-  const value = p.min + Math.floor(Math.random() * (p.max - p.min));
+  const value = p.min + Math.floor(Math.random() * (p.max - p.min + 1));
   return { name: p.name, value };
 }
 

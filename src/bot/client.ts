@@ -25,7 +25,7 @@ const ECONOMY_COMMANDS = new Set([
   'fish','mine','shop','buy','inventory','leaderboard','tip','vote','search',
 ]);
 
-const TICKET_COMMANDS = new Set(['ticketpanel']);
+const TICKET_COMMANDS = new Set(['ticketpanel', 'ticket']);
 
 export class Bot {
   readonly client: Client;
@@ -232,7 +232,7 @@ export class Bot {
     });
 
     this.client.on(Events.GuildMemberRemove, () => {
-      this.cache.setTotalUserCount(this.cache.getTotalUserCount() - 1);
+      this.cache.setTotalUserCount(Math.max(0, this.cache.getTotalUserCount() - 1));
     });
 
     // Voice state logging

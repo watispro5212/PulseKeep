@@ -44,8 +44,8 @@ export const gambleCommand: SlashCommand = {
     let extraFields: { name: string; value: string; inline: boolean }[] = [];
 
     if (result === 'win') {
-      change = payout;
-      title = `🎉 You won **${payout.toLocaleString()}** Pulses!`;
+      change = payout - amount;
+      title = `🎉 You won **${change.toLocaleString()}** Pulses!`;
       color = Colors.Economy;
       extraFields.push({ name: 'Multiplier', value: `×${multiplier}`, inline: true });
     } else if (result === 'push') {
@@ -53,12 +53,7 @@ export const gambleCommand: SlashCommand = {
       title = `🤝 Push! You got your **${amount.toLocaleString()}** back.`;
       color = Colors.Warning;
     } else {
-      // Check for Lucky Clover
       if ((rec.luckyCloverActive ?? 0) > 0) {
-        await db
-          .update(userEconomy)
-          .set({ luckyCloverActive: (rec.luckyCloverActive ?? 0) - 1 })
-          .where(eq(userEconomy.userId, userId));
         change = 0;
         title = `🍀 Lucky Clover saved you! Your **${amount.toLocaleString()}** was refunded.`;
         color = Colors.Economy;
@@ -72,14 +67,27 @@ export const gambleCommand: SlashCommand = {
 
     const newBalance = rec.balance + change;
 
-    await db
-      .update(userEconomy)
-      .set({
-        balance: newBalance,
-        totalGambled: (rec.totalGambled ?? 0) + amount,
-        transactions: (rec.transactions ?? 0) + 1,
-      })
-      .where(eq(userEconomy.userId, userId));
+    await db.transaction(async (tx: any) => {
+      const reRec = await tx
+        .select()
+        .from(userEconomy)
+        .where(eq(userEconomy.userId, userId))
+        .limit(1);
+      if (result === 'lose' && (rec.luckyCloverActive ?? 0) > 0) {
+        await tx
+          .update(userEconomy)
+          .set({ luckyCloverActive: (reRec[0]?.luckyCloverActive ?? 0) - 1 })
+          .where(eq(userEconomy.userId, userId));
+      }
+      await tx
+        .update(userEconomy)
+        .set({
+          balance: newBalance,
+          totalGambled: (reRec[0]?.totalGambled ?? 0) + amount,
+          transactions: (reRec[0]?.transactions ?? 0) + 1,
+        })
+        .where(eq(userEconomy.userId, userId));
+    });
 
     const emb = new EmbedBuilder()
       .setTitle(title)

@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder, Collection } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
 import { userEconomy } from '../../../db/schema.js';
@@ -6,7 +6,6 @@ import { eq } from 'drizzle-orm';
 import { search, hasXpBoost, applyXpBoost } from '../../economy/store.js';
 
 const SEARCH_COOLDOWN = 15 * 60 * 1000;
-const searchCooldowns = new Collection<string, number>();
 
 export const searchCommand: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -22,21 +21,22 @@ export const searchCommand: SlashCommand = {
     }
 
     const userId = interaction.user.id;
-    const now = Date.now();
-    const lastSearch = searchCooldowns.get(userId);
-    if (lastSearch && now - lastSearch < SEARCH_COOLDOWN) {
-      const remaining = Math.ceil((SEARCH_COOLDOWN - (now - lastSearch)) / 60000);
-      await interaction.reply({ content: `⏳ Still searching! Come back in **${remaining}m**.`, flags: 64 });
-      return;
-    }
-
     const rows = await db
       .select()
       .from(userEconomy)
       .where(eq(userEconomy.userId, userId))
       .limit(1);
-
     const rec = rows[0];
+    const now = new Date();
+    if (rec?.lastSearch) {
+      const elapsed = now.getTime() - new Date(rec.lastSearch).getTime();
+      if (elapsed < SEARCH_COOLDOWN) {
+        const remaining = Math.ceil((SEARCH_COOLDOWN - elapsed) / 60000);
+        await interaction.reply({ content: `⏳ Still searching! Come back in **${remaining}m**.`, flags: 64 });
+        return;
+      }
+    }
+
     const { name, value } = search();
     const boosted = hasXpBoost(rec) ? applyXpBoost(value, rec) : value;
     const publicReply = !!interaction.options.getBoolean('public');
@@ -46,6 +46,7 @@ export const searchCommand: SlashCommand = {
         .update(userEconomy)
         .set({
           balance: rec.balance + boosted,
+          lastSearch: now,
           totalEarned: (rec.totalEarned ?? 0) + boosted,
           transactions: (rec.transactions ?? 0) + 1,
         })
@@ -53,10 +54,8 @@ export const searchCommand: SlashCommand = {
     } else {
       await db
         .insert(userEconomy)
-        .values({ userId, balance: boosted, totalEarned: boosted, transactions: 1 });
+        .values({ userId, balance: boosted, lastSearch: now, totalEarned: boosted, transactions: 1 });
     }
-
-    searchCooldowns.set(userId, now);
 
     const newBalance = rec ? rec.balance + boosted : boosted;
     const desc = boosted !== value

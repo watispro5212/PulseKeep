@@ -179,7 +179,19 @@ export class ApiServer {
           const guildsWithVoteChannel = (allConfigs || []).filter((c: any) => c.voteChannelId);
           for (const cfg of guildsWithVoteChannel) {
             try {
-              const guild = await this.manager.fetchClientValues('guilds.cache.get', cfg.guildId);
+              const guilds = await this.manager.fetchClientValues('guilds.cache');
+              const g = (guilds as any[]).find((g: any) => g.id === cfg.guildId);
+              if (g) {
+                const channel = g.channels.cache.get(cfg.voteChannelId);
+                if (channel?.isTextBased()) {
+                  const emb = new EmbedBuilder()
+                    .setTitle('🗳️ New Vote!')
+                    .setDescription(`<@${userId}> just voted for PulseKeep!\nThanks for the support! 💜`)
+                    .setColor(0x7c5cfc)
+                    .setTimestamp();
+                  await channel.send({ embeds: [emb] }).catch(() => {});
+                }
+              }
             } catch {}
           }
         } catch (err) {
@@ -252,7 +264,19 @@ export class ApiServer {
           const guildsWithVoteChannel = (allConfigs || []).filter((c: any) => c.voteChannelId);
           for (const cfg of guildsWithVoteChannel) {
             try {
-              const guild = await this.manager.fetchClientValues('guilds.cache.get', cfg.guildId);
+              const guilds = await this.manager.fetchClientValues('guilds.cache');
+              const g = (guilds as any[]).find((g: any) => g.id === cfg.guildId);
+              if (g) {
+                const channel = g.channels.cache.get(cfg.voteChannelId);
+                if (channel?.isTextBased()) {
+                  const emb = new EmbedBuilder()
+                    .setTitle('🗳️ New Vote!')
+                    .setDescription(`<@${userId}> just voted for PulseKeep!\nThanks for the support! 💜`)
+                    .setColor(0x7c5cfc)
+                    .setTimestamp();
+                  await channel.send({ embeds: [emb] }).catch(() => {});
+                }
+              }
             } catch {}
           }
         } catch (err) {

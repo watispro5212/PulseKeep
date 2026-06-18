@@ -2,7 +2,7 @@ import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
 import { userEconomy, userInventory } from '../../../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 const XP_BOOST_DURATION_MS = 30 * 60 * 1000;
 
@@ -38,8 +38,7 @@ export const useCommand: SlashCommand = {
     const inv = await db
       .select()
       .from(userInventory)
-      .where(eq(userInventory.userId, userId))
-      .where(eq(userInventory.itemId, itemId))
+      .where(and(eq(userInventory.userId, userId), eq(userInventory.itemId, itemId)))
       .limit(1);
 
     if (!inv.length || !inv[0] || (inv[0].quantity ?? 0) < 1) {
@@ -54,7 +53,7 @@ export const useCommand: SlashCommand = {
     }
 
     if (itemId === 'treasure_map') {
-      const value = def.min + Math.floor(Math.random() * (def.max - def.min));
+      const value = def.min + Math.floor(Math.random() * (def.max - def.min + 1));
 
       await db.transaction(async (tx: any) => {
         const rows = await tx
@@ -134,7 +133,6 @@ export const useCommand: SlashCommand = {
     }
 
     if (itemId === 'xp_boost') {
-      const expiry = new Date(Date.now() + XP_BOOST_DURATION_MS);
       await db.transaction(async (tx: any) => {
         const rows = await tx
           .select()
@@ -142,6 +140,9 @@ export const useCommand: SlashCommand = {
           .where(eq(userEconomy.userId, userId))
           .limit(1);
         const rec = rows[0];
+        const now = Date.now();
+        const existingExpiry = rec?.xpBoostExpiry ? new Date(rec.xpBoostExpiry).getTime() : 0;
+        const expiry = new Date(Math.max(existingExpiry, now) + XP_BOOST_DURATION_MS);
         if (rec) {
           await tx
             .update(userEconomy)

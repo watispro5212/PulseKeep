@@ -59,7 +59,7 @@ export const blackjackCommand: SlashCommand = {
 
     if (playerTotal === 21) {
       result = '🎉 **Blackjack!** You got 21!';
-      change = Math.floor(bet * 2.5);
+      change = Math.floor(bet * 1.5);
     } else if (playerTotal > 21) {
       result = '💥 **Bust!** You went over 21.';
       change = -bet;

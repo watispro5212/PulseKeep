@@ -45,7 +45,7 @@ export const slotsCommand: SlashCommand = {
 
     if (payout > 0) {
       const winnings = Math.floor(bet * payout);
-      change = winnings;
+      change = winnings - bet;
       title = `🎰 **${emojiStr}**\nYou won **${winnings.toLocaleString()}** Pulses! (${payout}x)`;
       color = Colors.Economy;
     } else {

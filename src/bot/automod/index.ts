@@ -1,5 +1,6 @@
 import { EmbedBuilder } from 'discord.js';
 import type { Bot } from '../client.js';
+import { eq } from 'drizzle-orm';
 
 const SPAM_WINDOW_MS = 5000;
 const SPAM_LIMIT = 5;
@@ -79,7 +80,6 @@ export async function runAutomod(
 
   try {
     const { guildConfigs } = await import('../../db/schema.js');
-    const { eq } = await import('drizzle-orm');
     const rows: any[] = await bot.db
       .select()
       .from(guildConfigs)

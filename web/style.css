@@ -212,6 +212,16 @@ nav a:hover{transform:translateY(-1px)}
 .policy-section{margin-bottom:32px}
 
 .spacer{flex:1}
+.text-center{text-align:center}
+.mt-1{margin-top:12px}.mt-2{margin-top:20px}.mt-3{margin-top:32px}
+.pulse-glow{animation:pulseGlow 2.5s ease-in-out infinite}
+@keyframes pulseGlow{0%,100%{box-shadow:0 4px 24px var(--primary-glow)}50%{box-shadow:0 4px 40px var(--primary-glow),0 0 60px rgba(124,92,252,.15)}}
+.grid-overlay{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;mask-image:radial-gradient(ellipse at center,black,transparent 70%);-webkit-mask-image:radial-gradient(ellipse at center,black,transparent 70%)}
+.tag-cyan{background:rgba(34,200,229,0.12);color:var(--cyan);border-color:rgba(34,200,229,0.2)}
+.card-icon{width:44px;height:44px;border-radius:12px;background:var(--primary-dim);display:flex;align-items:center;justify-content:center;margin-bottom:14px;border:1px solid color-mix(in srgb,var(--primary) 20%,transparent)}
+.card-icon i{font-size:1.2rem;color:var(--primary);margin:0!important}
+.cmd-group-highlight{border-color:color-mix(in srgb,var(--primary) 30%,transparent);background:rgba(124,92,252,.04)}
+.cmd-group-highlight h3 i{color:var(--cyan)!important}
 
 @media(max-width:900px){
   .dashboard-layout{grid-template-columns:1fr}

@@ -62,16 +62,22 @@ export const robCommand: SlashCommand = {
     const stealAmount = Math.min(targetRec.balance, 100 + Math.floor(Math.random() * 401));
 
     if (robSuccess()) {
-      const attBalance = rec ? rec.balance + stealAmount : stealAmount;
-      const tgtBalance = targetRec.balance - stealAmount;
       await db.transaction(async (tx: any) => {
+        const attRows = await tx.select().from(userEconomy).where(eq(userEconomy.userId, userId)).limit(1);
+        const tgtRows = await tx.select().from(userEconomy).where(eq(userEconomy.userId, target.id)).limit(1);
+        const attRec = attRows[0];
+        const tgtRec = tgtRows[0];
+        if (!tgtRec || tgtRec.balance < 50) {
+          throw new Error('Target has no pulses');
+        }
+        const actualSteal = Math.min(tgtRec.balance, stealAmount);
         await tx
           .update(userEconomy)
-          .set({ balance: attBalance, lastRob: now, totalEarned: (rec?.totalEarned ?? 0) + stealAmount, transactions: (rec?.transactions ?? 0) + 1 })
+          .set({ balance: (attRec?.balance ?? 0) + actualSteal, lastRob: now, totalEarned: (attRec?.totalEarned ?? 0) + actualSteal, transactions: (attRec?.transactions ?? 0) + 1 })
           .where(eq(userEconomy.userId, userId));
         await tx
           .update(userEconomy)
-          .set({ balance: tgtBalance, transactions: (targetRec.transactions ?? 0) + 1 })
+          .set({ balance: tgtRec.balance - actualSteal, transactions: (tgtRec.transactions ?? 0) + 1 })
           .where(eq(userEconomy.userId, target.id));
       });
 

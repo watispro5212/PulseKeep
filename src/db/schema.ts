@@ -32,6 +32,7 @@ export const userEconomy = pgTable('user_economy', {
   lastRob: timestamp('last_rob'),
   lastFish: timestamp('last_fish'),
   lastMine: timestamp('last_mine'),
+  lastSearch: timestamp('last_search'),
   totalEarned: integer('total_earned').default(0).notNull(),
   totalGambled: integer('total_gambled').default(0).notNull(),
   transactions: integer('transactions').default(0).notNull(),

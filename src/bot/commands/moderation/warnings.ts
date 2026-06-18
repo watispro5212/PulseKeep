@@ -6,7 +6,7 @@ import {
 import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
 import { userWarnings } from '../../../db/schema.js';
-import { eq, desc } from 'drizzle-orm';
+import { and, eq, desc } from 'drizzle-orm';
 
 export const warningsCommand: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -26,8 +26,7 @@ export const warningsCommand: SlashCommand = {
     const rows: any[] = await db
       .select()
       .from(userWarnings)
-      .where(eq(userWarnings.userId, target.id))
-      .where(eq(userWarnings.guildId, interaction.guildId!))
+      .where(and(eq(userWarnings.userId, target.id), eq(userWarnings.guildId, interaction.guildId!)))
       .orderBy(desc(userWarnings.createdAt));
 
     if (rows.length === 0) {

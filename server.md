@@ -2213,222 +2213,259 @@ Check here before reporting a new bug — it may already be fixed!
 
 ## 🧩 Category Permission Defaults
 
-### 📌 Public Info Categories
+> [!IMPORTANT]
+> The tables below mirror Discord's channel permission interface — each row is a permission, each column is a role.  
+> ✅ = **Allowed** (green check), ❌ = **Denied** (red X), — = **Neutral** (gray — uses role default, typically inherited from @everyone / role permissions).  
+> Set these as **category-level permission overwrites** so all child channels inherit them.  
+> The **PulseKeep Bot** role should always be above any member roles in the role list.
 
-Use for:
+---
 
-- START HERE
-- PULSEKEEP INFO
+### 📌 Public Info Categories (START HERE · PULSEKEEP INFO)
 
-Member:
+**Used for:** Welcome, rules, announcements, commands list, FAQ, changelog, status.
 
-- ✅ View Channels
-- ✅ Read Message History
-- ❌ Send Messages in announcement/rules channels
-- ✅ Send Messages in allowed help/community channels
+| Permission | 👤 Member | 🛡️ Staff | 🤖 PulseKeep Bot |
+|---|---|---|---|
+| View Channels | ✅ | ✅ | ✅ |
+| Send Messages | ❌¹ | ✅ | ✅ |
+| Send Messages in Threads | ❌ | ✅ | ✅ |
+| Create Public Threads | ❌ | ✅ | ✅ |
+| Create Private Threads | ❌ | ✅ | ✅ |
+| Embed Links | — | ✅ | ✅ |
+| Attach Files | — | ✅ | ✅ |
+| Add Reactions | ✅ | ✅ | ✅ |
+| Use External Emoji | — | ✅ | ✅ |
+| Use External Stickers | — | — | — |
+| Mention @everyone/@here/@role | ❌ | ✅ | ❌ |
+| Manage Messages | ❌ | ✅ | ✅ |
+| Manage Threads | ❌ | ✅ | — |
+| Read Message History | ✅ | ✅ | ✅ |
+| Send TTS Messages | ❌ | ❌ | ❌ |
+| Use Application Commands | — | — | ✅ |
+| Send Voice Messages | — | — | — |
 
-Staff:
+¹ *Member can only view content; posting is staff/bot only in announcement channels.*
 
-- ✅ Send Messages
-- ✅ Manage Messages
-
-PulseKeep Bot:
-
-- ✅ View Channels
-- ✅ Send Messages
-- ✅ Embed Links
-- ✅ Read Message History
+---
 
 ### 🎫 Support Category
 
-Member:
+**Used for:** Support info, help channel, bug reports, ticket panel.
 
-- ✅ View support info
-- ✅ Send in help/report channels
-- ✅ Click ticket button
-- ❌ Send in `#ticket-panel` after panel is posted
+| Permission | 👤 Member | 🧰 Support Team | 🤖 PulseKeep Bot |
+|---|---|---|---|
+| View Channels | ✅² | ✅ | ✅ |
+| Send Messages | ✅³ | ✅ | ✅ |
+| Send Messages in Threads | ❌ | ✅ | ✅ |
+| Create Public Threads | ❌ | ✅ | ❌ |
+| Create Private Threads | ❌ | ✅ | ❌ |
+| Embed Links | — | ✅ | ✅ |
+| Attach Files | ✅ | ✅ | ✅ |
+| Add Reactions | ✅ | ✅ | ✅ |
+| Use External Emoji | — | ✅ | ✅ |
+| Mention @everyone/@here/@role | ❌ | ✅ | ❌ |
+| Manage Messages | ❌ | ✅ | ✅ |
+| Manage Channels | ❌ | ❌ | ✅⁴ |
+| Read Message History | ✅ | ✅ | ✅ |
+| Send TTS Messages | ❌ | ❌ | ❌ |
+| Use Application Commands | — | — | ✅ |
 
-Support Team:
+² *Member can see support channels but NOT `#ticket-panel` after panels are posted (hide that channel after setup).*  
+³ *Member can send in help/report channels but NOT in `#ticket-panel`.*  
+⁴ *Bot needs Manage Channels to create/delete ticket channels.*
 
-- ✅ View support channels
-- ✅ Send Messages
-- ✅ Manage Messages
-- ✅ Read Message History
-
-PulseKeep Bot:
-
-- ✅ View Channels
-- ✅ Send Messages
-- ✅ Embed Links
-- ✅ Attach Files
-- ✅ Manage Channels
-- ✅ Read Message History
+---
 
 ### 🔒 Staff Category
 
-Member:
+**Used for:** Staff chat, mod chat, support notes, review queue, staff commands.
 
-- ❌ View Channels
+| Permission | 👤 Member | 💬 Support | 🔨 Moderator | 🛡️ Admin | 🤖 PulseKeep Bot |
+|---|---|---|---|---|---|
+| View Channels | ❌ | ✅⁵ | ✅⁶ | ✅ | ✅⁷ |
+| Send Messages | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Send Messages in Threads | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Create Private Threads | ❌ | ✅ | ✅ | ✅ | ❌ |
+| Embed Links | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Attach Files | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Add Reactions | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Mention @everyone/@here/@role | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Manage Messages | ❌ | ✅⁵ | ✅⁶ | ✅ | ✅ |
+| Manage Channels | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Read Message History | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Use Application Commands | ❌ | — | — | — | ✅ |
 
-Support Team:
+⁵ *Support sees `#staff-chat`, `#support-notes`, `#review-queue` but NOT `#mod-chat` or admin-only channels.*  
+⁶ *Moderator sees `#mod-chat`, `#staff-chat`, `#review-queue` but NOT admin-only channels.*  
+⁷ *Bot sees only channels it needs to post to (logs, incident-response).*
 
-- ✅ View selected staff/support channels
-
-Moderator:
-
-- ✅ View mod channels
-
-Admin:
-
-- ✅ View all
-
-PulseKeep Bot:
-
-- ✅ View log/staff channels it needs
+---
 
 ### 🤖 Bot Commands Category
 
-Member:
+**Used for:** Command menu, status checks, economy interaction, ticket demo.
 
-- ✅ View Channels
-- ✅ Send Messages
-- ✅ Read Message History
-- ❌ Manage Messages
+| Permission | 👤 Member | 🛡️ Staff | 🤖 PulseKeep Bot |
+|---|---|---|---|
+| View Channels | ✅ | ✅ | ✅ |
+| Send Messages | ✅ | ✅ | ✅ |
+| Send Messages in Threads | ❌ | ✅ | ✅ |
+| Create Public Threads | ❌ | ✅ | ❌ |
+| Create Private Threads | ❌ | ✅ | ❌ |
+| Embed Links | — | ✅ | ✅ |
+| Attach Files | ✅ | ✅ | ✅ |
+| Add Reactions | ✅ | ✅ | ✅ |
+| Use External Emoji | — | ✅ | ✅ |
+| Mention @everyone/@here/@role | ❌ | ✅ | ❌ |
+| Manage Messages | ❌ | ✅ | ✅ |
+| Read Message History | ✅ | ✅ | ✅ |
+| Send TTS Messages | ❌ | ❌ | ❌ |
+| Use Application Commands | ✅ | ✅ | ✅ |
+| Send Voice Messages | — | — | — |
 
-Staff:
-
-- ✅ Send Messages
-- ✅ Manage Messages
-- ✅ Read Message History
-
-PulseKeep Bot:
-
-- ✅ View Channels
-- ✅ Send Messages
-- ✅ Embed Links
-- ✅ Read Message History
-- ✅ Use Application Commands
+---
 
 ### 🧪 Test Lab Category
 
-Bot Tester / Bug Hunter / Developer / Admin:
+**Used for:** Slash command testing, moderation testing, economy testing, ticket/dashboard/automod testing.
 
-- ✅ View Channels
-- ✅ Send Messages
-- ✅ Read Message History
+| Permission | 👤 Member | 🧪 Bot Tester · 🐞 Bug Hunter | 🧑‍💻 Developer · 🛡️ Admin | 🤖 PulseKeep Bot |
+|---|---|---|---|---|
+| View Channels | ❌ | ✅ | ✅ | ✅ |
+| Send Messages | ❌ | ✅ | ✅ | ✅ |
+| Send Messages in Threads | ❌ | ✅ | ✅ | ✅ |
+| Create Public Threads | ❌ | ✅ | ✅ | ❌ |
+| Create Private Threads | ❌ | ✅ | ✅ | ❌ |
+| Embed Links | ❌ | ✅ | ✅ | ✅ |
+| Attach Files | ❌ | ✅ | ✅ | ✅ |
+| Add Reactions | ❌ | ✅ | ✅ | ✅ |
+| Mention @everyone/@here/@role | ❌ | ❌ | ✅ | ❌ |
+| Manage Messages | ❌ | ✅ | ✅ | ✅ |
+| Kick Members | ❌ | ❌ | ✅⁸ | ✅ |
+| Ban Members | ❌ | ❌ | ✅⁸ | ✅ |
+| Moderate Members | ❌ | ❌ | ✅⁸ | ✅ |
+| Move Members | ❌ | ❌ | ✅ | ❌ |
+| Deafen Members | ❌ | ❌ | ✅ | ❌ |
+| Read Message History | ❌ | ✅ | ✅ | ✅ |
+| Use Application Commands | ❌ | ✅ | ✅ | ✅ |
 
-Member:
+⁸ *Only in moderation test channels — restrict these permissions to specific test channels via channel-level overwrites.*
 
-- ❌ View Channels
-
-PulseKeep Bot:
-
-- ✅ View Channels
-- ✅ Send Messages
-- ✅ Embed Links
-- ✅ Read Message History
-- ✅ Use Application Commands
+---
 
 ### 💬 Community Category
 
-Member:
+**Used for:** General chat, showcase, suggestions, off-topic.
 
-- ✅ View Channels
-- ✅ Send Messages
-- ✅ Read Message History
-- ❌ Manage Messages
+| Permission | 👤 Member | 🛡️ Staff | 🤖 PulseKeep Bot |
+|---|---|---|---|
+| View Channels | ✅ | ✅ | ✅ |
+| Send Messages | ✅ | ✅ | ✅ |
+| Send Messages in Threads | ✅ | ✅ | ✅ |
+| Create Public Threads | ✅ | ✅ | ❌ |
+| Create Private Threads | ❌ | ✅ | ❌ |
+| Embed Links | ✅ | ✅ | ✅ |
+| Attach Files | ✅ | ✅ | ✅ |
+| Add Reactions | ✅ | ✅ | ✅ |
+| Use External Emoji | ✅ | ✅ | ✅ |
+| Use External Stickers | ✅ | ✅ | — |
+| Mention @everyone/@here/@role | ❌ | ✅ | ❌ |
+| Manage Messages | ❌ | ✅ | ✅ |
+| Manage Threads | ❌ | ✅ | — |
+| Read Message History | ✅ | ✅ | ✅ |
+| Send TTS Messages | ❌ | ❌ | ❌ |
+| Use Application Commands | — | — | ✅ |
+| Send Voice Messages | — | — | — |
 
-Staff:
-
-- ✅ View Channels
-- ✅ Send Messages
-- ✅ Manage Messages
-- ✅ Read Message History
-
-PulseKeep Bot:
-
-- ✅ View Channels
-- ✅ Send Messages
-- ✅ Embed Links
-- ✅ Read Message History
+---
 
 ### 🧑‍💻 Contributors Category
 
-Contributor / Bug Hunter / VIP:
+**Used for:** Contributor chat, docs feedback, translation help.
 
-- ✅ View Channels
-- ✅ Send Messages
-- ✅ Read Message History
+| Permission | 👤 Member | 🧱 Contributor · 🐞 Bug Hunter · ⭐ VIP | 🤖 PulseKeep Bot |
+|---|---|---|---|
+| View Channels | ❌ | ✅ | ❌⁹ |
+| Send Messages | ❌ | ✅ | ❌ |
+| Send Messages in Threads | ❌ | ✅ | ❌ |
+| Create Public Threads | ❌ | ✅ | ❌ |
+| Create Private Threads | ❌ | ✅ | ❌ |
+| Embed Links | ❌ | ✅ | ❌ |
+| Attach Files | ❌ | ✅ | ❌ |
+| Add Reactions | ❌ | ✅ | ❌ |
+| Mention @everyone/@here/@role | ❌ | ❌ | ❌ |
+| Manage Messages | ❌ | ❌ | ❌ |
+| Read Message History | ❌ | ✅ | ❌ |
+| Use Application Commands | ❌ | — | ❌ |
 
-Member:
+⁹ *Bot generally doesn't need access here — skip the category entirely unless the bot needs to post automated contributor updates.*
 
-- ❌ View Channels
-
-PulseKeep Bot:
-
-- ✅ View Channels (only if it needs to post here)
-- ✅ Send Messages
-- ✅ Embed Links
-- ✅ Read Message History
+---
 
 ### 🧾 Logs Category
 
-Staff (Support, Mod, Admin, Developer):
+**Used for:** Mod logs, bot logs, ticket logs, vote logs, automod logs, deploy logs.
 
-- ✅ View Channels
-- ❌ Send Messages (read-only — bot posts logs)
+| Permission | 👤 Member | 💬 Support | 🔨 Moderator | 🔐 Security | 🧑‍💻 Developer | 🛡️ Admin | 🤖 PulseKeep Bot |
+|---|---|---|---|---|---|---|---|
+| View Channels | ❌ | ✅¹⁰ | ✅¹⁰ | ✅ | ✅ | ✅ | ✅¹¹ |
+| Send Messages | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Send Messages in Threads | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Embed Links | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Attach Files | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Add Reactions | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Mention @everyone/@here/@role | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Manage Messages | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅¹² |
+| Read Message History | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Use Application Commands | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
-PulseKeep Bot:
+¹⁰ *Support/Mod can VIEW logs (read-only) for audit purposes but cannot send or manage messages.*  
+¹¹ *Bot has full write access to log channels to post embed-rich logs.*  
+¹² *Bot may need Manage Messages to edit/clean up log embeds (optional).*
 
-- ✅ View Channels
-- ✅ Send Messages
-- ✅ Embed Links
-- ✅ Attach Files
-- ✅ Read Message History
-
-Member:
-
-- ❌ View Channels
+---
 
 ### 🚨 Incidents Category
 
-Security Lead / Admin / Developer:
+**Used for:** Incident response, security reports, audit review.
 
-- ✅ View Channels
-- ✅ Send Messages
-- ✅ Manage Messages
-- ✅ Read Message History
+| Permission | 👤 Member | 💬 Support | 🔨 Moderator | 🔐 Security Lead | 🧑‍💻 Developer | 🛡️ Admin | 🤖 PulseKeep Bot |
+|---|---|---|---|---|---|---|---|
+| View `#incident-response` | ❌ | ✅¹³ | ✅¹³ | ✅ | ✅ | ✅ | ✅¹⁴ |
+| View `#security-reports` | ❌ | ❌ | ❌ | ✅ | ✅¹⁵ | ✅ | ❌ |
+| View `#audit-review` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Send Messages (all) | ❌ | ❌¹⁶ | ❌¹⁶ | ✅ | ✅ | ✅ | ✅¹⁴ |
+| Embed Links | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Attach Files | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ |
+| Manage Messages | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ |
+| Read Message History | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Mention @everyone/@here/@role | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ |
 
-Support / Mod:
+¹³ *Support/Mod can monitor `#incident-response` and `#audit-review` but NOT `#security-reports`.*  
+¹⁴ *Bot posts automated alerts to `#incident-response` only.*  
+¹⁵ *Developer access to `#security-reports` is on a per-incident basis — grant/revoke as needed.*  
+¹⁶ *Support/Mod are read-only during active incidents unless explicitly authorized by Security Lead.*
 
-- ✅ View `#incident-response` and `#audit-review`
-- ❌ View `#security-reports` (unless explicitly added)
-- ❌ Send Messages (read-only during active incidents unless authorized)
-
-Member:
-
-- ❌ View all
-
-PulseKeep Bot:
-
-- ✅ View `#incident-response`
-- ✅ Send Messages to `#incident-response`
-- ❌ View `#security-reports` (no bot access needed — human-only)
+---
 
 ### 📦 Archive Category
 
-Staff:
+**Used for:** Resolved tickets, old announcements, old bugs.
 
-- ✅ View Channels
-- ❌ Send Messages (read-only archive)
+| Permission | 👤 Member | 🛡️ Staff | 🤖 PulseKeep Bot |
+|---|---|---|---|
+| View Channels | ❌ | ✅ | ❌¹⁷ |
+| Send Messages | ❌ | ❌ | ❌ |
+| Embed Links | ❌ | ❌ | ❌ |
+| Attach Files | ❌ | ❌ | ❌ |
+| Add Reactions | ❌ | ❌ | ❌ |
+| Manage Messages | ❌ | ❌ | ❌ |
+| Manage Channels | ❌ | ❌ | ❌ |
+| Read Message History | ❌ | ✅ | ❌ |
+| Use Application Commands | ❌ | ❌ | ❌ |
 
-Member:
-
-- ❌ View Channels
-
-PulseKeep Bot:
-
-- ❌ View Channels (no bot access needed)
+¹⁷ *Bot does not need archive access — archives are for staff reference only.*
 
 ---
 

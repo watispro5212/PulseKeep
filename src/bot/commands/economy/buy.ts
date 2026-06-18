@@ -2,7 +2,7 @@ import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
 import { userEconomy, userInventory } from '../../../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { SHOP_ITEMS } from '../../economy/store.js';
 
 export const buyCommand: SlashCommand = {
@@ -52,8 +52,7 @@ export const buyCommand: SlashCommand = {
     const existing = await db
       .select()
       .from(userInventory)
-      .where(eq(userInventory.userId, userId))
-      .where(eq(userInventory.itemId, itemId))
+      .where(and(eq(userInventory.userId, userId), eq(userInventory.itemId, itemId)))
       .limit(1);
 
     if (existing.length > 0 && existing[0]) {

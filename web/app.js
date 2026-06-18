@@ -18,6 +18,12 @@ document.addEventListener('DOMContentLoaded', function () {
   const fy = $('footer-year');
   if (fy) fy.textContent = String(new Date().getFullYear());
 
+  // Active nav
+  const path = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('header nav a, .mobile-nav a').forEach(a => {
+    if (a.getAttribute('href') === path) a.classList.add('active');
+  });
+
   // Mobile menu
   const toggle = $('mobile-toggle');
   const mnav = $('mobile-nav');
@@ -66,7 +72,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const el = $('stat-' + key);
         if (!el) return;
         const val = key === 'servers' ? d.guilds : key === 'users' ? d.users : key === 'commands' ? d.commandsRun : formatUptime(d.uptime);
-        el.textContent = val ?? '--';
+        if (key !== 'uptime' && typeof val === 'number') {
+          animateCounter(el, val);
+        } else {
+          el.textContent = val ?? '--';
+        }
       });
 
       const dot = $('status-dot');
@@ -112,6 +122,21 @@ document.addEventListener('DOMContentLoaded', function () {
       const upEl = $('st-updated');
       if (upEl) upEl.textContent = '--';
     }
+  }
+
+  function animateCounter(el, target) {
+    const current = parseInt(el.textContent.replace(/,/g,''), 10);
+    if (isNaN(current) || current === target) { el.textContent = target.toLocaleString(); return; }
+    const duration = 1200;
+    const start = performance.now();
+    const from = current;
+    function tick(now) {
+      const p = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(from + (target - from) * ease).toLocaleString();
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
   }
 
   function formatUptime(s) {

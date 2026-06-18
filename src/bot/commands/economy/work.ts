@@ -44,7 +44,7 @@ export const workCommand: SlashCommand = {
     }
 
     const job = WORK_JOBS[Math.floor(Math.random() * WORK_JOBS.length)]!;
-    const earned = job.pay[0]! + Math.floor(Math.random() * (job.pay[1]! - job.pay[0]!));
+    const earned = job.pay[0]! + Math.floor(Math.random() * (job.pay[1]! - job.pay[0]! + 1));
     const boosted = hasXpBoost(rec) ? applyXpBoost(earned, rec) : earned;
     const flavor = WORK_FLAVOR[Math.floor(Math.random() * WORK_FLAVOR.length)];
     const publicReply = !!interaction.options.getBoolean('public');
