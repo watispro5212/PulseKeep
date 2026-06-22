@@ -135,7 +135,7 @@ export const createServerCommand: SlashCommand = {
 
   async execute({ config }, interaction) {
     if (interaction.user.id !== config.botOwnerID && interaction.user.id !== config.botCoOwnerID) {
-      await interaction.reply({ content: 'This command is restricted to the bot owner.', flags: 64 });
+      await interaction.reply({ content: `This command is restricted to the bot owner. Your ID: \`${interaction.user.id}\` — expected: \`${config.botOwnerID}\``, flags: 64 });
       return;
     }
 

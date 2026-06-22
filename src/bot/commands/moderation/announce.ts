@@ -4,7 +4,7 @@ import {
   PermissionFlagsBits,
 } from 'discord.js';
 import type { SlashCommand } from '../../types.js';
-import { Colors } from '../../../utils/embed.js';
+import { Colors, timestamp } from '../../../utils/embed.js';
 
 export const announceCommand: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -39,12 +39,11 @@ export const announceCommand: SlashCommand = {
     };
 
     try {
-      const emb = new EmbedBuilder()
+      const emb = timestamp(new EmbedBuilder()
         .setTitle(title)
         .setDescription(message)
         .setColor(colors[colorChoice] ?? Colors.Moderation)
-        .setFooter({ text: `Announcement by ${interaction.user.username}` })
-        .setTimestamp(new Date());
+        .setFooter({ text: `Announcement by ${interaction.user.username}` }));
 
       await interaction.reply({ embeds: [emb] });
     } catch (err) {

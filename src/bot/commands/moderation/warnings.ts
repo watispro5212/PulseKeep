@@ -21,6 +21,10 @@ export const warningsCommand: SlashCommand = {
       await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
+    if (!interaction.guild) {
+      await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
+      return;
+    }
 
     const target = interaction.options.getUser('user', true);
     const rows: any[] = await db

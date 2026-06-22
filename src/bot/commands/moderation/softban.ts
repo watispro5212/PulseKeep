@@ -35,7 +35,13 @@ export const softbanCommand: SlashCommand = {
 
     let dmFailed = false;
     try {
-      await target.send(`You have been softbanned from **${interaction.guild.name}**.\nReason: ${reason}`);
+      const dm = new EmbedBuilder()
+        .setTitle(`Softbanned from ${interaction.guild.name}`)
+        .setDescription(`You have been softbanned from **${interaction.guild.name}**.`)
+        .addFields({ name: 'Reason', value: reason })
+        .setColor(Colors.Moderation)
+        .setTimestamp();
+      await target.send({ embeds: [dm] });
     } catch {
       dmFailed = true;
     }

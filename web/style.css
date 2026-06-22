@@ -257,14 +257,7 @@ a:focus-visible,.btn:focus-visible,button:focus-visible{outline:2px solid var(--
 .team-card .team-social a{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);transition:var(--transition)}
 .team-card .team-social a:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-dim)}
 
-@media(max-width:900px){
-  .dashboard-layout{grid-template-columns:1fr}
-  .dashboard-sidebar{display:none;position:fixed;inset:0;z-index:100;background:var(--bg);padding:24px;border:none}
-  .dashboard-sidebar.open{display:flex}
-  .dash-sidebar-toggle{display:flex;align-items:center;justify-content:center}
-  .dash-sidebar-close{display:inline-flex;align-items:center;justify-content:center}
-  .dashboard-main{padding:24px 16px}
-}
+
 @media(max-width:768px){
   header nav{display:none}
   .mobile-toggle{display:flex;align-items:center;justify-content:center}

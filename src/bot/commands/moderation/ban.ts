@@ -25,6 +25,12 @@ export const banCommand: SlashCommand = {
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
     const days = interaction.options.getInteger('days') ?? 0;
 
+    const member = await interaction.guild.members.fetch(target.id).catch(() => null);
+    if (member && !member.bannable) {
+      await interaction.reply({ content: '❌ I cannot ban that user. Check role hierarchy.', flags: 64 });
+      return;
+    }
+
     let dmFailed = false;
     try {
       const dm = new EmbedBuilder()

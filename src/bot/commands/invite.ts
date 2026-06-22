@@ -33,17 +33,17 @@ const RECOMMENDED_PERMS = [
 
 const ADMIN_PERMS = PermissionFlagsBits.Administrator.toString();
 
-const BOT_ID = '1507498795569512598';
-const inviteRecommended = `https://discord.com/oauth2/authorize?client_id=${BOT_ID}&permissions=${RECOMMENDED_PERMS}&scope=bot%20applications.commands`;
-const inviteAdmin = `https://discord.com/oauth2/authorize?client_id=${BOT_ID}&permissions=${ADMIN_PERMS}&scope=bot%20applications.commands`;
-
 export const inviteCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('invite')
     .setDescription('Get invite links for PulseKeep')
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ config }, interaction) {
+    const botID = config.discordBotID || '1507498795569512598';
+    const inviteRecommended = `https://discord.com/oauth2/authorize?client_id=${botID}&permissions=${RECOMMENDED_PERMS}&scope=bot%20applications.commands`;
+    const inviteAdmin = `https://discord.com/oauth2/authorize?client_id=${botID}&permissions=${ADMIN_PERMS}&scope=bot%20applications.commands`;
+
     const emb = new EmbedBuilder()
       .setTitle('Invite PulseKeep')
       .setDescription(
@@ -64,8 +64,8 @@ export const inviteCommand: SlashCommand = {
           inline: false,
         },
         { name: '💬 Support Server', value: 'https://discord.gg/b9HBphyeuP', inline: true },
-        { name: '⭐ DiscordBotList', value: 'https://discordbotlist.com/bots/' + BOT_ID, inline: true },
-        { name: '🤖 Discords.com', value: 'https://discords.com/bots/bot/' + BOT_ID, inline: true },
+        { name: '⭐ DiscordBotList', value: 'https://discordbotlist.com/bots/' + botID, inline: true },
+        { name: '🤖 Discords.com', value: 'https://discords.com/bots/bot/' + botID, inline: true },
         { name: '🌐 Website', value: 'https://pulsekeep.fly.dev', inline: true },
         { name: '📦 GitHub', value: 'https://github.com/watispro5212/PulseKeep', inline: true },
       )
