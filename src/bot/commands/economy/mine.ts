@@ -52,23 +52,26 @@ export const mineCommand: SlashCommand = {
     const boosted = hasXpBoost(rec) ? applyXpBoost(value, rec) : value;
     const publicReply = !!interaction.options.getBoolean('public');
 
-    if (rec) {
-      await db
-        .update(userEconomy)
-        .set({
-          balance: rec.balance + boosted,
-          lastMine: now,
-          totalEarned: (rec.totalEarned ?? 0) + boosted,
-          transactions: (rec.transactions ?? 0) + 1,
-        })
-        .where(eq(userEconomy.userId, userId));
-    } else {
-      await db
-        .insert(userEconomy)
-        .values({ userId, balance: boosted, lastMine: now, totalEarned: boosted, transactions: 1 });
-    }
+    await db.transaction(async (tx: any) => {
+      const reRec = await tx.select().from(userEconomy).where(eq(userEconomy.userId, userId)).limit(1);
+      if (reRec[0]) {
+        await tx
+          .update(userEconomy)
+          .set({
+            balance: reRec[0].balance + boosted,
+            lastMine: now,
+            totalEarned: (reRec[0].totalEarned ?? 0) + boosted,
+            transactions: (reRec[0].transactions ?? 0) + 1,
+          })
+          .where(eq(userEconomy.userId, userId));
+      } else {
+        await tx
+          .insert(userEconomy)
+          .values({ userId, balance: boosted, lastMine: now, totalEarned: boosted, transactions: 1 });
+      }
+    });
 
-    const newBalance = rec ? rec.balance + boosted : boosted;
+    const newBalance = (rec?.balance ?? 0) + boosted;
     const desc = boosted !== value
       ? `⚡ XP Boost! You found **${name}** worth **${boosted.toLocaleString()}** Pulses (${value.toLocaleString()} ×2)!`
       : `You found **${name}** worth **${boosted.toLocaleString()}** Pulses!`;

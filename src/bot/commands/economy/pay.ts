@@ -52,15 +52,22 @@ export const payCommand: SlashCommand = {
     const recv = recvRows[0];
 
     await db.transaction(async (tx: any) => {
+      const sRows = await tx.select().from(userEconomy).where(eq(userEconomy.userId, senderId)).limit(1);
+      const sRec = sRows[0];
+      if (!sRec || sRec.balance < amount) {
+        throw new Error('Insufficient funds');
+      }
       await tx
         .update(userEconomy)
-        .set({ balance: sender.balance - amount, transactions: (sender.transactions ?? 0) + 1 })
+        .set({ balance: sRec.balance - amount, transactions: (sRec.transactions ?? 0) + 1 })
         .where(eq(userEconomy.userId, senderId));
 
-      if (recv) {
+      const rRows = await tx.select().from(userEconomy).where(eq(userEconomy.userId, recipient.id)).limit(1);
+      const rRec = rRows[0];
+      if (rRec) {
         await tx
           .update(userEconomy)
-          .set({ balance: recv.balance + amount, totalEarned: (recv.totalEarned ?? 0) + amount, transactions: (recv.transactions ?? 0) + 1 })
+          .set({ balance: rRec.balance + amount, totalEarned: (rRec.totalEarned ?? 0) + amount, transactions: (rRec.transactions ?? 0) + 1 })
           .where(eq(userEconomy.userId, recipient.id));
       } else {
         await tx

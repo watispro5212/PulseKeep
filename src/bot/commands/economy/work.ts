@@ -50,27 +50,30 @@ export const workCommand: SlashCommand = {
     const publicReply = !!interaction.options.getBoolean('public');
 
     try {
-      if (rec) {
-        await db
-          .update(userEconomy)
-          .set({
-            balance: rec.balance + boosted,
-            lastWork: now,
-            totalEarned: (rec.totalEarned ?? 0) + boosted,
-            transactions: (rec.transactions ?? 0) + 1,
-          })
-          .where(eq(userEconomy.userId, userId));
-      } else {
-        await db
-          .insert(userEconomy)
-          .values({ userId, balance: boosted, lastWork: now, totalEarned: boosted, transactions: 1 });
-      }
+      await db.transaction(async (tx: any) => {
+        const reRec = await tx.select().from(userEconomy).where(eq(userEconomy.userId, userId)).limit(1);
+        if (reRec[0]) {
+          await tx
+            .update(userEconomy)
+            .set({
+              balance: reRec[0].balance + boosted,
+              lastWork: now,
+              totalEarned: (reRec[0].totalEarned ?? 0) + boosted,
+              transactions: (reRec[0].transactions ?? 0) + 1,
+            })
+            .where(eq(userEconomy.userId, userId));
+        } else {
+          await tx
+            .insert(userEconomy)
+            .values({ userId, balance: boosted, lastWork: now, totalEarned: boosted, transactions: 1 });
+        }
+      });
     } catch (err) {
       await interaction.reply({ content: '❌ Failed to save earnings. Please try again.', flags: 64 });
       return;
     }
 
-    const newBalance = rec ? rec.balance + boosted : boosted;
+    const newBalance = (rec?.balance ?? 0) + boosted;
     const titleDesc = boosted !== earned
       ? `⚡ XP Boost active! You ${flavor} **${boosted.toLocaleString()}** Pulses (${earned.toLocaleString()} ×2)!`
       : `You ${flavor} **${boosted.toLocaleString()}** Pulses!`;

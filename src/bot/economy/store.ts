@@ -214,7 +214,9 @@ export function applyXpBoost(earned: number, rec: any): number {
 export function formatCooldown(elapsed: number, cooldown: number): string {
   const remaining = cooldown - elapsed;
   if (remaining <= 0) return 'Available now';
-  const mins = Math.ceil(remaining / 60000);
+  const secs = Math.ceil(remaining / 1000);
+  if (secs < 60) return `${secs}s`;
+  const mins = Math.ceil(secs / 60);
   if (mins >= 60) {
     const hrs = Math.floor(mins / 60);
     return `${hrs}h ${mins % 60}m`;

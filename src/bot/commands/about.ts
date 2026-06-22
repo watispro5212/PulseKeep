@@ -8,7 +8,7 @@ export const aboutCommand: SlashCommand = {
     .setDescription('About PulseKeep — version, license, and links')
     .toJSON(),
 
-  async execute({ cache, config }, interaction) {
+  async execute({ cache }, interaction) {
     const uptime = Math.floor((Date.now() - cache.getStartedAt().getTime()) / 1000);
     const days = Math.floor(uptime / 86400);
     const hours = Math.floor((uptime % 86400) / 3600);
@@ -38,7 +38,6 @@ export const aboutCommand: SlashCommand = {
       )
       .setFooter({ text: 'Built with care by the PulseKeep team.' });
 
-    void config;
     await interaction.reply({ embeds: [timestamp(emb)], flags: Ephemeral });
   },
 };

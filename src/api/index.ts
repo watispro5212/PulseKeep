@@ -192,7 +192,9 @@ export class ApiServer {
                   await channel.send({ embeds: [emb] }).catch(() => {});
                 }
               }
-            } catch {}
+            } catch (innerErr) {
+              console.error('[DBL] Channel send error:', innerErr);
+            }
           }
         } catch (err) {
           console.error('[DBL] Channel announce error:', err);
@@ -277,7 +279,9 @@ export class ApiServer {
                   await channel.send({ embeds: [emb] }).catch(() => {});
                 }
               }
-            } catch {}
+            } catch (innerErr) {
+              console.error('[Discords] Channel send error:', innerErr);
+            }
           }
         } catch (err) {
           console.error('[Discords] Channel announce error:', err);

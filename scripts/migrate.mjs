@@ -1,11 +1,20 @@
+import 'dotenv/config';
 import pg from 'pg';
 const { Pool } = pg;
+
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  console.error('DATABASE_URL not set. Create a .env file with DATABASE_URL.');
+  process.exit(1);
+}
+
 const pool = new Pool({
-  connectionString: 'postgresql://postgres.khcbyncbppidvtipaeoj:Quan52%40watispro1@aws-1-us-east-1.pooler.supabase.com:6543/postgres',
+  connectionString: DATABASE_URL,
   max: 1,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 10000,
 });
-const sql = `
+
+const bootstrapSQL = `
 DO $$
 BEGIN
   CREATE TABLE IF NOT EXISTS bot_stats (id integer PRIMARY KEY, guild_count integer DEFAULT 0 NOT NULL, user_count integer DEFAULT 0 NOT NULL, commands_run integer DEFAULT 0 NOT NULL, updated_at timestamp DEFAULT now() NOT NULL);
@@ -27,10 +36,32 @@ BEGIN
 END
 $$;
 `;
+
+const migrationSQL = `
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS welcome_channel_id varchar(20);
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS vote_channel_id varchar(20);
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_enabled boolean DEFAULT true NOT NULL;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_spam_enabled boolean DEFAULT true NOT NULL;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_mention_enabled boolean DEFAULT true NOT NULL;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_link_enabled boolean DEFAULT true NOT NULL;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_caps_enabled boolean DEFAULT true NOT NULL;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_words_enabled boolean DEFAULT true NOT NULL;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_banned_words text;
+  ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS last_search timestamp;
+  ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS last_vote timestamp;
+  ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS xp_boost_expiry timestamp;
+  ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS lucky_clover_active integer DEFAULT 0 NOT NULL;
+`;
+
 try {
-  await pool.query(sql);
-  console.log('Migration complete');
+  console.log('Running bootstrap migration...');
+  await pool.query(bootstrapSQL);
+  console.log('Bootstrap complete. Running column migrations...');
+  await pool.query(migrationSQL);
+  console.log('Migration complete — all columns added.');
 } catch (e) {
   console.error('Migration error:', e);
+  process.exit(1);
+} finally {
+  await pool.end();
 }
-await pool.end();

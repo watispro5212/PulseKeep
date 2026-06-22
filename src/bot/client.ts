@@ -21,8 +21,8 @@ import { eq } from 'drizzle-orm';
 import { guildConfigs, commandLogs } from '../db/schema.js';
 
 const ECONOMY_COMMANDS = new Set([
-  'balance','daily','weekly','work','gamble','blackjack','slots','rob',
-  'fish','mine','shop','buy','inventory','leaderboard','tip','vote','search',
+  'balance','daily','weekly','work','gamble','blackjack','slots','rob','pay',
+  'fish','mine','shop','buy','inventory','use','leaderboard','tip','vote','search',
 ]);
 
 const TICKET_COMMANDS = new Set(['ticketpanel', 'ticket']);
@@ -67,9 +67,8 @@ export class Bot {
     const key = `${userId}:${commandName}`;
     const expire = this.commandCooldowns.get(key);
     if (expire && now < expire) return (expire - now) / 1000;
-    const ECONOMY = new Set(['balance','daily','weekly','work','gamble','blackjack','slots','rob','pay','fish','mine','shop','buy','inventory','use','leaderboard','tip','vote','search']);
     const MOD = new Set(['warn','mute','kick','ban','softban','purge','clean','slowmode','lock','unlock','nick','role','move','vckick','announce']);
-    const seconds = ECONOMY.has(commandName) ? this.config.cooldownEconomy : MOD.has(commandName) ? this.config.cooldownModeration : 1;
+    const seconds = ECONOMY_COMMANDS.has(commandName) ? this.config.cooldownEconomy : MOD.has(commandName) ? this.config.cooldownModeration : 1;
     this.commandCooldowns.set(key, now + seconds * 1000);
     return 0;
   }
@@ -394,7 +393,9 @@ export class Bot {
             userId: interaction.user.id,
             commandName: cmdName,
           });
-        } catch {}
+        } catch (logErr) {
+          console.error(`[CommandLog] Failed to log command ${cmdName}:`, logErr);
+        }
       }
 
       try {
@@ -478,7 +479,9 @@ export class Bot {
           .where(eq(guildConfigs.guildId, guild.id))
           .limit(1);
         if (rows[0]?.ticketCategoryId) categoryId = rows[0].ticketCategoryId;
-      } catch {}
+      } catch (ticketErr) {
+        console.error('[Ticket] Failed to fetch ticket category:', ticketErr);
+      }
     }
 
     const existing = guild.channels.cache.find(

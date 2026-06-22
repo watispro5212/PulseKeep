@@ -12,7 +12,7 @@ export const Colors = {
 } as const;
 
 export function footer(emb: EmbedBuilder): EmbedBuilder {
-  return emb.setFooter({ text: `PulseKeep v7.4.0` });
+  return emb.setFooter({ text: `PulseKeep v7.0.0` });
 }
 
 export function timestamp(emb: EmbedBuilder): EmbedBuilder {

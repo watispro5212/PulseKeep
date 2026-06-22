@@ -43,21 +43,24 @@ export const weeklyCommand: SlashCommand = {
     const boosted = reward !== baseReward;
     const publicReply = !!interaction.options.getBoolean('public');
 
-    if (rec) {
-      await db
-        .update(userEconomy)
-        .set({
-          balance: rec.balance + reward,
-          lastWeeklyClaim: now,
-          totalEarned: (rec.totalEarned ?? 0) + reward,
-          transactions: (rec.transactions ?? 0) + 1,
-        })
-        .where(eq(userEconomy.userId, userId));
-    } else {
-      await db
-        .insert(userEconomy)
-        .values({ userId, balance: reward, lastWeeklyClaim: now, totalEarned: reward, transactions: 1 });
-    }
+    await db.transaction(async (tx: any) => {
+      const reRec = await tx.select().from(userEconomy).where(eq(userEconomy.userId, userId)).limit(1);
+      if (reRec[0]) {
+        await tx
+          .update(userEconomy)
+          .set({
+            balance: reRec[0].balance + reward,
+            lastWeeklyClaim: now,
+            totalEarned: (reRec[0].totalEarned ?? 0) + reward,
+            transactions: (reRec[0].transactions ?? 0) + 1,
+          })
+          .where(eq(userEconomy.userId, userId));
+      } else {
+        await tx
+          .insert(userEconomy)
+          .values({ userId, balance: reward, lastWeeklyClaim: now, totalEarned: reward, transactions: 1 });
+      }
+    });
 
     const emb = new EmbedBuilder()
       .setTitle(boosted ? 'Weekly Reward ⚡ (x2)' : 'Weekly Reward')

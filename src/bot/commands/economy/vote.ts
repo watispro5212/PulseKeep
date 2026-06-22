@@ -91,21 +91,24 @@ export const voteCommand: SlashCommand = {
 
     const reward = VOTE_REWARD + Math.floor(Math.random() * 251);
     try {
-      if (rec) {
-        await db
-          .update(userEconomy)
-          .set({
-            balance: (rec.balance ?? 0) + reward,
-            lastVote: now,
-            totalEarned: (rec.totalEarned ?? 0) + reward,
-            transactions: (rec.transactions ?? 0) + 1,
-          })
-          .where(eq(userEconomy.userId, interaction.user.id));
-      } else {
-        await db
-          .insert(userEconomy)
-          .values({ userId: interaction.user.id, balance: reward, lastVote: now, totalEarned: reward, transactions: 1 });
-      }
+      await db.transaction(async (tx: any) => {
+        const reRec = await tx.select().from(userEconomy).where(eq(userEconomy.userId, interaction.user.id)).limit(1);
+        if (reRec[0]) {
+          await tx
+            .update(userEconomy)
+            .set({
+              balance: (reRec[0].balance ?? 0) + reward,
+              lastVote: now,
+              totalEarned: (reRec[0].totalEarned ?? 0) + reward,
+              transactions: (reRec[0].transactions ?? 0) + 1,
+            })
+            .where(eq(userEconomy.userId, interaction.user.id));
+        } else {
+          await tx
+            .insert(userEconomy)
+            .values({ userId: interaction.user.id, balance: reward, lastVote: now, totalEarned: reward, transactions: 1 });
+        }
+      });
     } catch (err) {
       await interaction.reply({ content: `❌ Failed to save vote reward. Please try again.`, flags: 64 });
       return;

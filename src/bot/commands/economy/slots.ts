@@ -54,16 +54,21 @@ export const slotsCommand: SlashCommand = {
       color = Colors.Error;
     }
 
-    const newBalance = rec.balance + change;
+    await db.transaction(async (tx: any) => {
+      const reRec = await tx.select().from(userEconomy).where(eq(userEconomy.userId, userId)).limit(1);
+      if (reRec[0]) {
+        await tx
+          .update(userEconomy)
+          .set({
+            balance: reRec[0].balance + change,
+            totalGambled: (reRec[0].totalGambled ?? 0) + bet,
+            transactions: (reRec[0].transactions ?? 0) + 1,
+          })
+          .where(eq(userEconomy.userId, userId));
+      }
+    });
 
-    await db
-      .update(userEconomy)
-      .set({
-        balance: newBalance,
-        totalGambled: (rec.totalGambled ?? 0) + bet,
-        transactions: (rec.transactions ?? 0) + 1,
-      })
-      .where(eq(userEconomy.userId, userId));
+    const newBalance = rec.balance + change;
 
     const emb = new EmbedBuilder()
       .setTitle('Slot Machine')

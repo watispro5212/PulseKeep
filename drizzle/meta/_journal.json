@@ -8,6 +8,13 @@
       "when": 1781155962610,
       "tag": "0000_soft_longshot",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782164871257,
+      "tag": "0001_chemical_blue_marvel",
+      "breakpoints": true
     }
   ]
 }

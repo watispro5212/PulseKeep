@@ -92,17 +92,24 @@ export const robCommand: SlashCommand = {
         await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
       }
     } else {
-      const fine = Math.min(rec?.balance ?? 0, 200);
-      if (fine > 0 && rec) {
-        await db
-          .update(userEconomy)
-          .set({ balance: rec.balance - fine, lastRob: now })
-          .where(eq(userEconomy.userId, userId));
-      }
+      let fineAmount = 0;
+      await db.transaction(async (tx: any) => {
+        const attRows = await tx.select().from(userEconomy).where(eq(userEconomy.userId, userId)).limit(1);
+        const attRec = attRows[0];
+        if (attRec) {
+          fineAmount = Math.min(attRec.balance, 200);
+          if (fineAmount > 0) {
+            await tx
+              .update(userEconomy)
+              .set({ balance: attRec.balance - fineAmount, lastRob: now })
+              .where(eq(userEconomy.userId, userId));
+          }
+        }
+      });
 
       const emb = new EmbedBuilder()
         .setTitle(`🚔 Robbery Failed!`)
-        .setDescription(`You got caught and fined **${fine.toLocaleString()}** Pulses.`)
+        .setDescription(`You got caught and fined **${fineAmount.toLocaleString()}** Pulses.`)
         .setColor(Colors.Error);
 
       if (publicReply) {

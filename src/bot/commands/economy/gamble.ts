@@ -65,34 +65,38 @@ export const gambleCommand: SlashCommand = {
       }
     }
 
-    const newBalance = rec.balance + change;
-
     await db.transaction(async (tx: any) => {
       const reRec = await tx
         .select()
         .from(userEconomy)
         .where(eq(userEconomy.userId, userId))
         .limit(1);
-      if (result === 'lose' && (rec.luckyCloverActive ?? 0) > 0) {
+      const current = reRec[0];
+      if (!current) return;
+      const actualLuckyClover = (current.luckyCloverActive ?? 0);
+      if (result === 'lose' && actualLuckyClover > 0) {
         await tx
           .update(userEconomy)
-          .set({ luckyCloverActive: (reRec[0]?.luckyCloverActive ?? 0) - 1 })
+          .set({ luckyCloverActive: actualLuckyClover - 1 })
           .where(eq(userEconomy.userId, userId));
       }
+      const balanceChange = (result === 'lose' && actualLuckyClover > 0) ? 0 : change;
       await tx
         .update(userEconomy)
         .set({
-          balance: newBalance,
-          totalGambled: (reRec[0]?.totalGambled ?? 0) + amount,
-          transactions: (reRec[0]?.transactions ?? 0) + 1,
+          balance: current.balance + balanceChange,
+          totalGambled: (current.totalGambled ?? 0) + amount,
+          transactions: (current.transactions ?? 0) + 1,
         })
         .where(eq(userEconomy.userId, userId));
     });
 
+    const finalBalance = rec.balance + change;
+
     const emb = new EmbedBuilder()
       .setTitle(title)
       .addFields(
-        { name: 'New Balance', value: `💰 ${newBalance.toLocaleString()}`, inline: true },
+        { name: 'New Balance', value: `💰 ${finalBalance.toLocaleString()}`, inline: true },
         { name: 'Bet', value: `${amount.toLocaleString()}`, inline: true },
         ...extraFields,
       )

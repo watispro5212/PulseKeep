@@ -188,7 +188,7 @@ export const helpCommand: SlashCommand = {
 
     if (filter) {
       if (filter === 'overview' || filter === 'configuration') {
-        const emb = filter === 'overview' ? buildOverviewEmbed() : buildCategoryEmbed(categories.find(c => c.id === 'config')!);
+        const emb = filter === 'overview' ? buildOverviewEmbed() : buildCategoryEmbed(categories.find(c => c.id === 'config') ?? categories[0]!);
         await interaction.reply({ embeds: [timestamp(emb)], flags: Ephemeral });
         return;
       }
