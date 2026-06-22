@@ -99,6 +99,39 @@ fly deploy
 - **Configuration** — configure (economy, tickets, modlogs, welcome, automod, automod_spam, automod_mentions, automod_caps, automod_links, automod_words, automod_banned_words, log_channel, welcome_channel, vote_channel, ticket_category, show)
 - **Utility** — help, ping, stats, invite, about, userinfo, serverinfo, servericon, roleinfo, channelinfo
 
+## What's New — v7.6.0
+
+Stuff that changed recently:
+
+- Shop command tells you when the DB is down instead of making up a fake balance
+- API rate limiter won't leak memory anymore — old IPs get cleaned out every 2 minutes
+- Auto-mod spam cleaner won't stack duplicate timers if the module reloads
+- Rob cooldown now applies even when you fail with zero balance (no more infinite retries)
+- HSTS header added, robots.txt so search engines find the sitemap
+- Status page retries API calls with backoff (2s, 4s) instead of 3 instant spams
+- Mobile hero panel no longer puts stats above the headline
+- OG tags added to changelog, privacy, terms, and 404 pages so link previews work
+- `prefers-reduced-motion` respected for accessibility
+
+## What's New — v7.5.0
+
+The previous batch:
+
+- Blackjack went from auto-play to actual interactive Hit/Stand buttons
+- Cooldown display fixed for fish/mine — shows seconds when under a minute
+- Every economy command wrapped in DB transactions to kill race conditions
+- Pay, rob, and gamble all re-fetch balances inside transactions now
+- Migration scripts cleaned up — no more hardcoded DB passwords
+- Empty catch blocks across API + bot code now log errors
+- Pay and use respect the economy toggle now
+- Version unified to v7.0.0 across the board
+- Drizzle migration generated — adds 13 missing columns to the database (automod toggles, channel IDs, xp boost fields)
+- npm run db:migrate and db:generate scripts added
+- /about cleaned up — removed an unused variable that was doing nothing
+- Help command crash fixed — was using a bad non-null assertion that blew up when no commands matched
+- Team page redesigned with proper cards and social links
+- Privacy + terms pages got staggered scroll animations
+
 ## Links
 
 - Website: https://pulsekeep.fly.dev

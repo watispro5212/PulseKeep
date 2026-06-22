@@ -17,15 +17,25 @@ interface SpamTracker {
 }
 
 const spamTracking = new Map<string, SpamTracker>();
+let spamCleanupInterval: ReturnType<typeof setInterval> | null = null;
 
-const spamCleanup = setInterval(() => {
-  const now = Date.now();
-  for (const [key, val] of spamTracking) {
-    if (now - val.lastMsg > 30000) spamTracking.delete(key);
+export function startSpamCleanup() {
+  if (spamCleanupInterval) return;
+  spamCleanupInterval = setInterval(() => {
+    const now = Date.now();
+    for (const [key, val] of spamTracking) {
+      if (now - val.lastMsg > 30000) spamTracking.delete(key);
+    }
+  }, 60000);
+  if (spamCleanupInterval.unref) spamCleanupInterval.unref();
+}
+
+export function stopSpamCleanup() {
+  if (spamCleanupInterval) {
+    clearInterval(spamCleanupInterval);
+    spamCleanupInterval = null;
   }
-}, 60000);
-
-if (spamCleanup.unref) spamCleanup.unref();
+}
 
 function checkSpam(guildId: string, userId: string): boolean {
   const key = `${guildId}:${userId}`;

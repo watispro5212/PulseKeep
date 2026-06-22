@@ -156,7 +156,12 @@ document.addEventListener('DOMContentLoaded', function () {
       if (upEl) upEl.textContent = new Date().toLocaleTimeString();
 
     } catch (err) {
-      if (statsRetries < 3) { statsRetries++; return; }
+      statsRetries++;
+      if (statsRetries < 3) {
+        const delay = Math.pow(2, statsRetries) * 1000;
+        setTimeout(fetchStats, delay);
+        return;
+      }
       const dot = $('status-dot');
       const txt = $('status-text');
       if (dot) dot.className = 'dot dot-rose';

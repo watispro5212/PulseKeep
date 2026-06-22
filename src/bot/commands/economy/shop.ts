@@ -12,15 +12,16 @@ export const shopCommand: SlashCommand = {
     .toJSON(),
 
   async execute({ db }, interaction) {
-    let balance = 500;
-    if (db) {
-      const rows = await db
-        .select()
-        .from(userEconomy)
-        .where(eq(userEconomy.userId, interaction.user.id))
-        .limit(1);
-      if (rows.length > 0 && rows[0]) balance = rows[0].balance;
+    if (!db) {
+      await interaction.reply({ content: 'Database unavailable.', flags: 64 });
+      return;
     }
+    const rows = await db
+      .select()
+      .from(userEconomy)
+      .where(eq(userEconomy.userId, interaction.user.id))
+      .limit(1);
+    const balance = rows[0]?.balance ?? 500;
 
     const items = SHOP_ITEMS.map(
       (item) => `**${item.name}** — ${item.price.toLocaleString()} Pulses\n└ ${item.description}`,

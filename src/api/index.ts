@@ -43,6 +43,12 @@ export class ApiServer {
     });
 
     const rateBuckets = new Map<string, { count: number; resetAt: number }>();
+    setInterval(() => {
+      const now = Date.now();
+      for (const [ip, bucket] of rateBuckets) {
+        if (now > bucket.resetAt) rateBuckets.delete(ip);
+      }
+    }, 120_000);
     this.app.use((req, res, next) => {
       if (req.path.startsWith('/api/')) {
         const ip = req.ip || req.socket.remoteAddress || 'unknown';

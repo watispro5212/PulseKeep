@@ -98,12 +98,10 @@ export const robCommand: SlashCommand = {
         const attRec = attRows[0];
         if (attRec) {
           fineAmount = Math.min(attRec.balance, 200);
-          if (fineAmount > 0) {
-            await tx
-              .update(userEconomy)
-              .set({ balance: attRec.balance - fineAmount, lastRob: now })
-              .where(eq(userEconomy.userId, userId));
-          }
+          await tx
+            .update(userEconomy)
+            .set({ balance: attRec.balance - fineAmount, lastRob: now })
+            .where(eq(userEconomy.userId, userId));
         }
       });
 

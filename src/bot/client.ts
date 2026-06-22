@@ -18,6 +18,7 @@ import type { Config } from '../config.js';
 import type { SlashCommand } from './types.js';
 import { Colors, footer, timestamp } from '../utils/embed.js';
 import { eq } from 'drizzle-orm';
+import { startSpamCleanup } from './automod/index.js';
 import { guildConfigs, commandLogs } from '../db/schema.js';
 
 const ECONOMY_COMMANDS = new Set([
@@ -150,6 +151,7 @@ export class Bot {
     this.rest = new REST({ version: '10' }).setToken(token);
 
     this.registerListeners();
+    startSpamCleanup();
   }
 
   private registerListeners() {
