@@ -43,6 +43,6 @@ export const vckickCommand: SlashCommand = {
       .setTitle('Moderation: Voice Kick')
       .setDescription(`${interaction.user} disconnected **${target.username}** from voice`)
       .setColor(Colors.Moderation).setTimestamp();
-    bot.logToChannel(interaction.guildId!, log);
+    await bot.logToChannel(interaction.guildId!, log);
   },
 };

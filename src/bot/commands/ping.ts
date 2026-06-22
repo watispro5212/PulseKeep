@@ -22,7 +22,7 @@ export const pingCommand: SlashCommand = {
     .setDescription("Check the bot's latency")
     .toJSON(),
 
-  async execute(ctx, interaction) {
+  async execute({ cache }, interaction) {
     const sentTs = Date.now();
     const replyTs = interaction.createdTimestamp;
     const roundTrip = sentTs - replyTs;
@@ -34,7 +34,7 @@ export const pingCommand: SlashCommand = {
       .addFields(
         { name: 'Round-trip', value: `${healthEmoji(roundTrip)} **${roundTrip}ms**`, inline: true },
         { name: 'WebSocket', value: `${healthEmoji(ws)} **${ws}ms**`, inline: true },
-        { name: 'Avg Latency', value: `${healthEmoji(Math.round(ctx.cache.getAvgLatency()))} **${Math.round(ctx.cache.getAvgLatency())}ms**`, inline: true },
+          { name: 'Avg Latency', value: `${healthEmoji(Math.round(cache.getAvgLatency()))} **${Math.round(cache.getAvgLatency())}ms**`, inline: true },
       )
       .setFooter({ text: 'Times are measured from gateway → bot → response' });
 
@@ -63,7 +63,7 @@ export const pingCommand: SlashCommand = {
         .addFields(
           { name: 'Round-trip', value: `${healthEmoji(rt)} **${rt}ms**`, inline: true },
           { name: 'WebSocket', value: `${healthEmoji(ws2)} **${ws2}ms**`, inline: true },
-          { name: 'Avg Latency', value: `${healthEmoji(Math.round(ctx.cache.getAvgLatency()))} **${Math.round(ctx.cache.getAvgLatency())}ms**`, inline: true },
+        { name: 'Avg Latency', value: `${healthEmoji(Math.round(cache.getAvgLatency()))} **${Math.round(cache.getAvgLatency())}ms**`, inline: true },
         )
         .setFooter({ text: 'Refreshed' });
       await i.update({ embeds: [timestamp(emb2)], components: [row] });

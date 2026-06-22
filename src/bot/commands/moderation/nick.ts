@@ -49,7 +49,7 @@ export const nickCommand: SlashCommand = {
         .setTitle('Moderation: Nickname')
         .setDescription(`${interaction.user} changed ${target}'s nickname ${changed}`)
         .setColor(Colors.Moderation).setTimestamp();
-      bot.logToChannel(interaction.guildId!, log);
+      await bot.logToChannel(interaction.guildId!, log);
     } catch (err) {
       await interaction.reply({ content: `❌ Failed to change nickname: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }

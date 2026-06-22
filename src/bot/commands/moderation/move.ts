@@ -61,6 +61,6 @@ export const moveCommand: SlashCommand = {
       .setTitle('Moderation: Move')
       .setDescription(`${interaction.user} moved **${target.username}** from ${oldChannel} to ${channel}`)
       .setColor(Colors.Moderation).setTimestamp();
-    bot.logToChannel(interaction.guildId!, log);
+    await bot.logToChannel(interaction.guildId!, log);
   },
 };

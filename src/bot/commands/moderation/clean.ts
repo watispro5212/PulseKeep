@@ -70,7 +70,7 @@ export const cleanCommand: SlashCommand = {
         .setTitle('Moderation: Clean')
         .setDescription(`**${deleted.size}** messages cleaned in ${channel} by ${interaction.user}${targetUser ? ` (user: ${targetUser})` : ''}${botsOnly ? ' (bots)' : ''}${attachmentsOnly ? ' (attachments)' : ''}`)
         .setColor(Colors.Moderation).setTimestamp();
-      bot.logToChannel(interaction.guildId!, log);
+      await bot.logToChannel(interaction.guildId!, log);
     } catch (err) {
       await interaction.editReply({ content: `❌ Failed to clean messages: ${err instanceof Error ? err.message : err}` });
     }

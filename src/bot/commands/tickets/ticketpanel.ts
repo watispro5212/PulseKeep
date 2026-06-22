@@ -22,7 +22,7 @@ export const ticketpanelCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({}, interaction) {
     const title = interaction.options.getString('title', true);
     const description = interaction.options.getString('description') ?? 'Click the button below to open a support ticket.';
 

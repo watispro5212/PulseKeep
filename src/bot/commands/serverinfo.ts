@@ -27,7 +27,7 @@ export const serverinfoCommand: SlashCommand = {
     .setDescription('Server details: members, channels, roles, boosts, verification')
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({}, interaction) {
     const guild = interaction.guild;
     if (!guild) {
       await interaction.reply({ content: 'This command can only be used in a server.', flags: Ephemeral });

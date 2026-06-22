@@ -21,6 +21,10 @@ export const warnCommand: SlashCommand = {
       await interaction.reply({ content: 'Database unavailable.', flags: 64 });
       return;
     }
+    if (!interaction.guild) {
+      await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
+      return;
+    }
 
     const user = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason') ?? 'No reason provided';
@@ -71,6 +75,6 @@ export const warnCommand: SlashCommand = {
       )
       .setColor(Colors.Moderation)
       .setTimestamp();
-    bot.logToChannel(interaction.guildId!, log);
+    await bot.logToChannel(interaction.guildId!, log);
   },
 };

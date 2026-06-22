@@ -26,6 +26,10 @@ export const clearwarnsCommand: SlashCommand = {
       await interaction.reply({ content: 'Database unavailable.', flags: Ephemeral });
       return;
     }
+    if (!interaction.guild) {
+      await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
+      return;
+    }
 
     const target = interaction.options.getUser('user', true);
 

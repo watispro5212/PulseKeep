@@ -72,7 +72,7 @@ export const roleCommand: SlashCommand = {
           .setTitle('Moderation: Role Added')
           .setDescription(`${interaction.user} added ${role} to ${target}`)
           .setColor(Colors.Moderation).setTimestamp();
-        bot.logToChannel(interaction.guildId!, log);
+        await bot.logToChannel(interaction.guildId!, log);
       } else {
         await member.roles.remove(role);
         const emb = new EmbedBuilder()
@@ -84,7 +84,7 @@ export const roleCommand: SlashCommand = {
           .setTitle('Moderation: Role Removed')
           .setDescription(`${interaction.user} removed ${role} from ${target}`)
           .setColor(Colors.Moderation).setTimestamp();
-        bot.logToChannel(interaction.guildId!, log);
+        await bot.logToChannel(interaction.guildId!, log);
       }
     } catch (err) {
       await interaction.reply({ content: `❌ Failed to ${sub} role: ${err instanceof Error ? err.message : err}`, flags: 64 });

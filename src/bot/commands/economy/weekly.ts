@@ -21,13 +21,18 @@ export const weeklyCommand: SlashCommand = {
     const userId = interaction.user.id;
     const now = new Date();
 
-    const rows = await db
-      .select()
-      .from(userEconomy)
-      .where(eq(userEconomy.userId, userId))
-      .limit(1);
-
-    const rec = rows[0];
+    let rec: any;
+    try {
+      const rows = await db
+        .select()
+        .from(userEconomy)
+        .where(eq(userEconomy.userId, userId))
+        .limit(1);
+      rec = rows[0];
+    } catch (err) {
+      await interaction.reply({ content: `❌ Database error. Please try again.`, flags: 64 });
+      return;
+    }
 
     if (rec?.lastWeeklyClaim) {
       const elapsed = now.getTime() - new Date(rec.lastWeeklyClaim).getTime();

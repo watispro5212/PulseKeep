@@ -9,7 +9,7 @@ export const tipCommand: SlashCommand = {
     .setDescription('Get a random economy tip')
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({}, interaction) {
     const tip = ECONOMY_TIPS[Math.floor(Math.random() * ECONOMY_TIPS.length)] ?? 'Use /daily every 24h for free Pulses!';
 
     const emb = new EmbedBuilder()

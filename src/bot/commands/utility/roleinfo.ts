@@ -9,7 +9,7 @@ export const roleinfoCommand: SlashCommand = {
     .addRoleOption((o) => o.setName('role').setDescription('Role to inspect').setRequired(true))
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({}, interaction) {
     const role = interaction.options.getRole('role', true);
 
     const perms: string[] = [];

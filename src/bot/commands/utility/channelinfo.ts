@@ -18,7 +18,7 @@ export const channelinfoCommand: SlashCommand = {
     .addChannelOption((o) => o.setName('channel').setDescription('Channel to inspect'))
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({}, interaction) {
     const channel = interaction.options.getChannel('channel') ?? interaction.channel;
     if (!channel) {
       await interaction.reply({ content: 'Could not find channel.', flags: 64 });

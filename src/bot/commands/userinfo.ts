@@ -33,7 +33,7 @@ export const userinfoCommand: SlashCommand = {
     .addUserOption((o) => o.setName('user').setDescription('User to inspect (defaults to you)'))
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({}, interaction) {
     const user = interaction.options.getUser('user') ?? interaction.user;
     const member = (interaction.guild?.members.cache.get(user.id) as GuildMember | undefined)
       ?? (interaction.guild ? await interaction.guild.members.fetch(user.id).catch(() => null) : null);

@@ -35,7 +35,7 @@ export const purgeCommand: SlashCommand = {
         .setTitle('Moderation: Purge')
         .setDescription(`**${messages.size}** messages purged in ${channel} by ${interaction.user}`)
         .setColor(Colors.Moderation).setTimestamp();
-      bot.logToChannel(interaction.guildId!, log);
+      await bot.logToChannel(interaction.guildId!, log);
     } catch (err) {
       await interaction.reply({ content: `❌ Failed to purge messages: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }

@@ -8,7 +8,7 @@ export const servericonCommand: SlashCommand = {
     .setDescription('Get the server\'s icon')
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({}, interaction) {
     const guild = interaction.guild;
     if (!guild) {
       await interaction.reply({ content: 'This command can only be used in a server.', flags: 64 });

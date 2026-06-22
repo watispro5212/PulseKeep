@@ -25,7 +25,7 @@ export const announceCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({}, interaction) {
     const title = interaction.options.getString('title', true);
     const message = interaction.options.getString('message', true);
     const colorChoice = interaction.options.getString('color') ?? 'purple';

@@ -73,6 +73,6 @@ export const kickCommand: SlashCommand = {
       )
         .setColor(Colors.Moderation)
         .setTimestamp();
-    bot.logToChannel(interaction.guildId!, log);
+    await bot.logToChannel(interaction.guildId!, log);
   },
 };

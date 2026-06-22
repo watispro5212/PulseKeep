@@ -115,7 +115,7 @@ export const createServerCommand: SlashCommand = {
 
     results.push('');
     results.push('**Phase 2: Deleting existing channels...**');
-    const existingChannels = [...guild.channels.cache.values()];
+    const existingChannels = [...guild.channels.cache.values()].filter(c => c.id !== guild.rulesChannelId && c.id !== guild.publicUpdatesChannelId);
     for (const ch of existingChannels) {
       try {
         await ch.delete('PulseKeep server rebuild');

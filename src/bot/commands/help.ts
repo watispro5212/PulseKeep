@@ -183,7 +183,7 @@ export const helpCommand: SlashCommand = {
     )
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({}, interaction) {
     const filter = interaction.options.getString('category');
 
     if (filter) {

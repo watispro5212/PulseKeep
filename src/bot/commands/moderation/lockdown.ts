@@ -14,6 +14,10 @@ export const lockCommand: SlashCommand = {
     .toJSON(),
 
   async execute({ bot }, interaction) {
+    if (!interaction.guild) {
+      await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
+      return;
+    }
     const channel = interaction.channel;
     if (!channel || !('permissionOverwrites' in channel)) {
       await interaction.reply({ content: 'This channel cannot be locked.', flags: 64 });
@@ -33,7 +37,7 @@ export const lockCommand: SlashCommand = {
         .setTitle('Moderation: Lock')
         .setDescription(`${channel} locked by ${interaction.user}`)
         .setColor(Colors.Moderation).setTimestamp();
-      bot.logToChannel(interaction.guildId!, log);
+      await bot.logToChannel(interaction.guildId!, log);
     } catch (err) {
       await interaction.reply({ content: `❌ Failed to lock channel: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }
@@ -48,6 +52,10 @@ export const unlockCommand: SlashCommand = {
     .toJSON(),
 
   async execute({ bot }, interaction) {
+    if (!interaction.guild) {
+      await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
+      return;
+    }
     const channel = interaction.channel;
     if (!channel || !('permissionOverwrites' in channel)) {
       await interaction.reply({ content: 'This channel cannot be unlocked.', flags: 64 });
@@ -67,7 +75,7 @@ export const unlockCommand: SlashCommand = {
         .setTitle('Moderation: Unlock')
         .setDescription(`${channel} unlocked by ${interaction.user}`)
         .setColor(Colors.Moderation).setTimestamp();
-      bot.logToChannel(interaction.guildId!, log);
+      await bot.logToChannel(interaction.guildId!, log);
     } catch (err) {
       await interaction.reply({ content: `❌ Failed to unlock channel: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }

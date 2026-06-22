@@ -138,14 +138,13 @@ export class ApiServer {
       console.log('[DBL] Webhook received:', JSON.stringify({ id: req.body?.id, username: req.body?.username }));
       const auth = req.headers.authorization || req.body?.auth;
       if (!auth || auth !== this.config.dblWebhookSecret) {
-        console.log('[DBL] Auth mismatch');
+        console.warn('[DBL] Auth mismatch from', req.ip);
         res.status(401).json({ error: 'Unauthorized' });
         return;
       }
       const userId = req.body?.id;
-      const type = req.body?.type;
       if (!userId) {
-        console.log('[DBL] Missing user field');
+        console.warn('[DBL] Missing user field in payload');
         res.json({ status: 'ignored', reason: 'missing user' });
         return;
       }
@@ -178,10 +177,10 @@ export class ApiServer {
       } catch (err) {
         console.error('[DBL] DB error:', err);
       }
-      if (this.manager) {
+      if (this.manager && this.db) {
         try {
           const { guildConfigs } = await import('../db/schema.js');
-          const allConfigs: any[] = await this.db?.select().from(guildConfigs);
+          const allConfigs: any[] = await this.db.select().from(guildConfigs);
           const guildsWithVoteChannel = (allConfigs || []).filter((c: any) => c.voteChannelId);
           for (const cfg of guildsWithVoteChannel) {
             try {
@@ -228,7 +227,7 @@ export class ApiServer {
       const userId = req.body?.user;
       console.log('[Discords] Webhook received:', JSON.stringify({ bot: botId, user: userId }));
       if (!this.config.discordsWebhookSecret || auth !== this.config.discordsWebhookSecret) {
-        console.log('[Discords] Auth mismatch');
+        console.warn('[Discords] Auth mismatch from', req.ip);
         res.status(401).json({ error: 'Unauthorized' });
         return;
       }
@@ -265,10 +264,10 @@ export class ApiServer {
       } catch (err) {
         console.error('[Discords] DB error:', err);
       }
-      if (this.manager) {
+      if (this.manager && this.db) {
         try {
           const { guildConfigs } = await import('../db/schema.js');
-          const allConfigs: any[] = await this.db?.select().from(guildConfigs);
+          const allConfigs: any[] = await this.db.select().from(guildConfigs);
           const guildsWithVoteChannel = (allConfigs || []).filter((c: any) => c.voteChannelId);
           for (const cfg of guildsWithVoteChannel) {
             try {

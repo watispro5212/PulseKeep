@@ -28,7 +28,7 @@ export const ticketCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     const sub = interaction.options.getSubcommand();
 
     const channel = interaction.channel;
@@ -72,7 +72,6 @@ export const ticketCommand: SlashCommand = {
         break;
       }
       case 'close': {
-        const { bot } = _ctx;
         const emb = new EmbedBuilder()
           .setTitle('Ticket Closed')
           .setDescription(
