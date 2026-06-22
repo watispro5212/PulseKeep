@@ -16,7 +16,7 @@ export const slowmodeCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     const seconds = interaction.options.getInteger('seconds', true);
     const channel = interaction.channel;
     if (!channel || !('setRateLimitPerUser' in channel)) {
@@ -33,6 +33,11 @@ export const slowmodeCommand: SlashCommand = {
           : `Slowmode **disabled** in ${channel}.`)
         .setColor(Colors.Moderation);
       await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+      const log = new EmbedBuilder()
+        .setTitle('Moderation: Slowmode')
+        .setDescription(`${channel} slowmode set to **${seconds}s** by ${interaction.user}`)
+        .setColor(Colors.Moderation).setTimestamp();
+      bot.logToChannel(interaction.guildId!, log);
     } catch (err) {
       await interaction.reply({ content: `❌ Failed to set slowmode: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }

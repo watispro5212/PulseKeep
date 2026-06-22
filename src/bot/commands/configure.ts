@@ -95,6 +95,14 @@ export const configureCommand: SlashCommand = {
         .limit(1);
 
       const cfg = rows[0] || {};
+      const autoToggles = [
+        `Spam: ${cfg.automodSpamEnabled !== false ? '✅' : '❌'}`,
+        `Mentions: ${cfg.automodMentionEnabled !== false ? '✅' : '❌'}`,
+        `Caps: ${cfg.automodCapsEnabled !== false ? '✅' : '❌'}`,
+        `Links: ${cfg.automodLinkEnabled !== false ? '✅' : '❌'}`,
+        `Words: ${cfg.automodWordsEnabled !== false ? '✅' : '❌'}`,
+        cfg.automodBannedWords ? `Banned: \`${cfg.automodBannedWords.slice(0, 60)}${cfg.automodBannedWords.length > 60 ? '...' : ''}\`` : null,
+      ].filter(Boolean).join('\n');
       const emb = new EmbedBuilder()
         .setTitle('Server Configuration')
         .setDescription(`Settings for **${interaction.guild?.name || guildId}**`)
@@ -103,7 +111,8 @@ export const configureCommand: SlashCommand = {
           { name: 'Tickets', value: cfg.ticketsEnabled !== false ? '✅ Enabled' : '❌ Disabled', inline: true },
           { name: 'Mod Logs', value: cfg.modlogsEnabled !== false ? '✅ Enabled' : '❌ Disabled', inline: true },
           { name: 'Welcome', value: cfg.welcomeEnabled === true ? '✅ Enabled' : '❌ Disabled', inline: true },
-          { name: 'Auto-Mod', value: cfg.automodEnabled !== false ? '✅ Enabled' : '❌ Disabled', inline: true },
+          { name: 'Auto-Mod', value: cfg.automodEnabled !== false ? '✅ Enabled' : '❌ Disabled', inline: false },
+          { name: 'Auto-Mod Filters', value: autoToggles || 'None set', inline: false },
           { name: 'Welcome Channel', value: cfg.welcomeChannelId ? `<#${cfg.welcomeChannelId}>` : 'Not set', inline: true },
           { name: 'Vote Channel', value: cfg.voteChannelId ? `<#${cfg.voteChannelId}>` : 'Not set', inline: true },
           { name: 'Log Channel', value: cfg.logChannelId ? `<#${cfg.logChannelId}>` : 'Not set', inline: true },
@@ -165,6 +174,10 @@ export const configureCommand: SlashCommand = {
         break;
       case 'log_channel': {
         const channel = interaction.options.getChannel('channel', true);
+        if (!channel.isTextBased() || channel.isVoiceBased()) {
+          await interaction.reply({ content: '❌ Please select a text channel for logs.', flags: 64 });
+          return;
+        }
         updateData.logChannelId = channel.id;
         break;
       }
@@ -179,11 +192,19 @@ export const configureCommand: SlashCommand = {
       }
       case 'welcome_channel': {
         const wc = interaction.options.getChannel('channel', true);
+        if (!wc.isTextBased() || wc.isVoiceBased()) {
+          await interaction.reply({ content: '❌ Please select a text channel for welcome messages.', flags: 64 });
+          return;
+        }
         updateData.welcomeChannelId = wc.id;
         break;
       }
       case 'vote_channel': {
         const vc = interaction.options.getChannel('channel', true);
+        if (!vc.isTextBased() || vc.isVoiceBased()) {
+          await interaction.reply({ content: '❌ Please select a text channel for vote announcements.', flags: 64 });
+          return;
+        }
         updateData.voteChannelId = vc.id;
         break;
       }

@@ -13,7 +13,7 @@ export const lockCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     const channel = interaction.channel;
     if (!channel || !('permissionOverwrites' in channel)) {
       await interaction.reply({ content: 'This channel cannot be locked.', flags: 64 });
@@ -29,6 +29,11 @@ export const lockCommand: SlashCommand = {
         .setDescription(`🔒 ${channel} has been locked.`)
         .setColor(Colors.Moderation);
       await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+      const log = new EmbedBuilder()
+        .setTitle('Moderation: Lock')
+        .setDescription(`${channel} locked by ${interaction.user}`)
+        .setColor(Colors.Moderation).setTimestamp();
+      bot.logToChannel(interaction.guildId!, log);
     } catch (err) {
       await interaction.reply({ content: `❌ Failed to lock channel: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }
@@ -42,7 +47,7 @@ export const unlockCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     const channel = interaction.channel;
     if (!channel || !('permissionOverwrites' in channel)) {
       await interaction.reply({ content: 'This channel cannot be unlocked.', flags: 64 });
@@ -58,6 +63,11 @@ export const unlockCommand: SlashCommand = {
         .setDescription(`🔓 ${channel} has been unlocked.`)
         .setColor(Colors.Moderation);
       await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+      const log = new EmbedBuilder()
+        .setTitle('Moderation: Unlock')
+        .setDescription(`${channel} unlocked by ${interaction.user}`)
+        .setColor(Colors.Moderation).setTimestamp();
+      bot.logToChannel(interaction.guildId!, log);
     } catch (err) {
       await interaction.reply({ content: `❌ Failed to unlock channel: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }

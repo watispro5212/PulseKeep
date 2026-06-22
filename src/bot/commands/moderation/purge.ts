@@ -16,7 +16,7 @@ export const purgeCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     const amount = interaction.options.getInteger('amount', true);
     const channel = interaction.channel;
     if (!channel || !channel.isTextBased()) {
@@ -31,6 +31,11 @@ export const purgeCommand: SlashCommand = {
         .setDescription(`Deleted **${messages.size}** messages in ${channel}.`)
         .setColor(Colors.Moderation);
       await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+      const log = new EmbedBuilder()
+        .setTitle('Moderation: Purge')
+        .setDescription(`**${messages.size}** messages purged in ${channel} by ${interaction.user}`)
+        .setColor(Colors.Moderation).setTimestamp();
+      bot.logToChannel(interaction.guildId!, log);
     } catch (err) {
       await interaction.reply({ content: `❌ Failed to purge messages: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }

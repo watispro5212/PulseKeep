@@ -349,7 +349,7 @@ export class Bot {
           await interaction.reply({
             embeds: [new EmbedBuilder()
               .setTitle('Feature Disabled')
-              .setDescription('The economy system is disabled in this server. An admin can enable it from the dashboard.')
+              .setDescription('The economy system is disabled in this server. An admin can enable it with /configure economy.')
               .setColor(Colors.Warning)],
             flags: 64,
           });
@@ -359,7 +359,7 @@ export class Bot {
           await interaction.reply({
             embeds: [new EmbedBuilder()
               .setTitle('Feature Disabled')
-              .setDescription('The ticket system is disabled in this server. An admin can enable it from the dashboard.')
+              .setDescription('The ticket system is disabled in this server. An admin can enable it with /configure tickets.')
               .setColor(Colors.Warning)],
             flags: 64,
           });

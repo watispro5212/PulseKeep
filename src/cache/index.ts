@@ -4,7 +4,6 @@ export class Cache {
   private commandsRun = 0;
   private avgLatencyValue = 0;
   private startedAt = new Date();
-  private latencies: number[] = [];
   private botGuilds: { id: string; name: string }[] = [];
   private shardStats = new Map<number, { guilds: number; users: number; commandsRun: number; avgLatency: number; uptime: number }>();
 
@@ -25,11 +24,6 @@ export class Cache {
 
   setBotGuilds(guilds: { id: string; name: string }[]) { this.botGuilds = guilds; }
   getBotGuilds(): { id: string; name: string }[] { return this.botGuilds; }
-
-  addLatency(ms: number) {
-    this.latencies.push(ms);
-    if (this.latencies.length > 100) this.latencies.shift();
-  }
 
   getShardCount(): number { return this.shardStats.size; }
 

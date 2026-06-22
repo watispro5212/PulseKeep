@@ -14,7 +14,7 @@ export const vckickCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.MoveMembers)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     if (!interaction.guild) {
       await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
       return;
@@ -39,5 +39,10 @@ export const vckickCommand: SlashCommand = {
       .setColor(Colors.Moderation);
 
     await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    const log = new EmbedBuilder()
+      .setTitle('Moderation: Voice Kick')
+      .setDescription(`${interaction.user} disconnected **${target.username}** from voice`)
+      .setColor(Colors.Moderation).setTimestamp();
+    bot.logToChannel(interaction.guildId!, log);
   },
 };

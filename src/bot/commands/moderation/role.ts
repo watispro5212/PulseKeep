@@ -23,7 +23,7 @@ export const roleCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     if (!interaction.guild) {
       await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
       return;
@@ -68,6 +68,11 @@ export const roleCommand: SlashCommand = {
           .setDescription(`Added ${role} to ${target}.`)
           .setColor(Colors.Moderation);
         await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+        const log = new EmbedBuilder()
+          .setTitle('Moderation: Role Added')
+          .setDescription(`${interaction.user} added ${role} to ${target}`)
+          .setColor(Colors.Moderation).setTimestamp();
+        bot.logToChannel(interaction.guildId!, log);
       } else {
         await member.roles.remove(role);
         const emb = new EmbedBuilder()
@@ -75,6 +80,11 @@ export const roleCommand: SlashCommand = {
           .setDescription(`Removed ${role} from ${target}.`)
           .setColor(Colors.Moderation);
         await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+        const log = new EmbedBuilder()
+          .setTitle('Moderation: Role Removed')
+          .setDescription(`${interaction.user} removed ${role} from ${target}`)
+          .setColor(Colors.Moderation).setTimestamp();
+        bot.logToChannel(interaction.guildId!, log);
       }
     } catch (err) {
       await interaction.reply({ content: `❌ Failed to ${sub} role: ${err instanceof Error ? err.message : err}`, flags: 64 });

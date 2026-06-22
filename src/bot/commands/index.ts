@@ -9,6 +9,7 @@ import { configureCommand } from './configure.js';
 import { aboutCommand } from './about.js';
 import { userinfoCommand } from './userinfo.js';
 import { serverinfoCommand } from './serverinfo.js';
+import { createServerCommand } from './createserver.js';
 
 export const commands = [
   helpCommand,
@@ -18,6 +19,7 @@ export const commands = [
   configureCommand,
   userinfoCommand,
   serverinfoCommand,
+  createServerCommand,
   ...economyCommands,
   ...moderationCommands,
   ...utilityCommands,

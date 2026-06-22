@@ -41,29 +41,37 @@ export const buyCommand: SlashCommand = {
       return;
     }
 
-    await db
-      .update(userEconomy)
-      .set({
-        balance: rec.balance - item.price,
-        transactions: (rec.transactions ?? 0) + 1,
-      })
-      .where(eq(userEconomy.userId, userId));
+    try {
+      await db.transaction(async (tx: any) => {
+        const fresh = await tx.select().from(userEconomy).where(eq(userEconomy.userId, userId)).limit(1);
+        const current = fresh[0];
+        if (!current || current.balance < item.price) {
+          throw new Error('Insufficient balance.');
+        }
+        await tx
+          .update(userEconomy)
+          .set({ balance: current.balance - item.price, transactions: (current.transactions ?? 0) + 1 })
+          .where(eq(userEconomy.userId, userId));
 
-    const existing = await db
-      .select()
-      .from(userInventory)
-      .where(and(eq(userInventory.userId, userId), eq(userInventory.itemId, itemId)))
-      .limit(1);
-
-    if (existing.length > 0 && existing[0]) {
-      await db
-        .update(userInventory)
-        .set({ quantity: existing[0].quantity + 1 })
-        .where(eq(userInventory.id, existing[0].id));
-    } else {
-      await db
-        .insert(userInventory)
-        .values({ userId, itemId: item.id, itemName: item.name, quantity: 1 });
+        const existing = await tx
+          .select()
+          .from(userInventory)
+          .where(and(eq(userInventory.userId, userId), eq(userInventory.itemId, itemId)))
+          .limit(1);
+        if (existing[0]) {
+          await tx
+            .update(userInventory)
+            .set({ quantity: existing[0].quantity + 1 })
+            .where(eq(userInventory.id, existing[0].id));
+        } else {
+          await tx
+            .insert(userInventory)
+            .values({ userId, itemId: item.id, itemName: item.name, quantity: 1 });
+        }
+      });
+    } catch {
+      await interaction.reply({ content: '❌ Purchase failed. Insufficient balance or an error occurred.', flags: 64 });
+      return;
     }
 
     const emb = new EmbedBuilder()

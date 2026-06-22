@@ -21,7 +21,7 @@ export const cleanCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     const amount = interaction.options.getInteger('amount', true);
     const targetUser = interaction.options.getUser('user');
     const botsOnly = interaction.options.getBoolean('bots');
@@ -66,6 +66,11 @@ export const cleanCommand: SlashCommand = {
         .setColor(Colors.Moderation);
 
       await interaction.editReply({ embeds: [footer(timestamp(emb))] });
+      const log = new EmbedBuilder()
+        .setTitle('Moderation: Clean')
+        .setDescription(`**${deleted.size}** messages cleaned in ${channel} by ${interaction.user}${targetUser ? ` (user: ${targetUser})` : ''}${botsOnly ? ' (bots)' : ''}${attachmentsOnly ? ' (attachments)' : ''}`)
+        .setColor(Colors.Moderation).setTimestamp();
+      bot.logToChannel(interaction.guildId!, log);
     } catch (err) {
       await interaction.editReply({ content: `❌ Failed to clean messages: ${err instanceof Error ? err.message : err}` });
     }

@@ -15,7 +15,7 @@ export const nickCommand: SlashCommand = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageNicknames)
     .toJSON(),
 
-  async execute(_ctx, interaction) {
+  async execute({ bot }, interaction) {
     if (!interaction.guild) {
       await interaction.reply({ content: '❌ This command must be used in a server.', flags: 64 });
       return;
@@ -44,6 +44,12 @@ export const nickCommand: SlashCommand = {
         )
         .setColor(Colors.Moderation);
       await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+      const changed = nickname ? `to **${nickname}**` : '(reset)';
+      const log = new EmbedBuilder()
+        .setTitle('Moderation: Nickname')
+        .setDescription(`${interaction.user} changed ${target}'s nickname ${changed}`)
+        .setColor(Colors.Moderation).setTimestamp();
+      bot.logToChannel(interaction.guildId!, log);
     } catch (err) {
       await interaction.reply({ content: `❌ Failed to change nickname: ${err instanceof Error ? err.message : err}`, flags: 64 });
     }

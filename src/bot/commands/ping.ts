@@ -27,7 +27,6 @@ export const pingCommand: SlashCommand = {
     const replyTs = interaction.createdTimestamp;
     const roundTrip = sentTs - replyTs;
     const ws = Math.round(interaction.client.ws.ping);
-    ctx.cache.addLatency(roundTrip);
 
     const emb = new EmbedBuilder()
       .setTitle('🏓 Pong!')
