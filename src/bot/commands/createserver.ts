@@ -117,11 +117,6 @@ const CATEGORIES: { name: string; channels: { name: string; type: ChannelType; t
   },
 ];
 
-const GUILD_ONLY_VIEW = [
-  PermissionFlagsBits.ViewChannel,
-  PermissionFlagsBits.ReadMessageHistory,
-];
-
 const GUILD_FULL_SEND = [
   PermissionFlagsBits.ViewChannel,
   PermissionFlagsBits.SendMessages,
@@ -135,8 +130,7 @@ const GUILD_FULL_SEND = [
 export const createServerCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('createserver')
-    .setDescription('Build the PulseKeep support server layout (owner only)')
-    .setDefaultMemberPermissions(0n)
+    .setDescription('Wipe and rebuild the entire server layout (owner only)')
     .toJSON(),
 
   async execute({ config }, interaction) {
@@ -145,7 +139,7 @@ export const createServerCommand: SlashCommand = {
       return;
     }
 
-    await interaction.deferReply({ flags: 64 });
+    await interaction.deferReply();
 
     const guild = interaction.guild;
     if (!guild) {
@@ -155,10 +149,37 @@ export const createServerCommand: SlashCommand = {
 
     const results: string[] = [];
     const errors: string[] = [];
-
     const everyone = guild.roles.everyone;
 
-    // Step 1: Create roles
+    // Step 0: Delete everything
+    results.push('**Phase 1: Deleting existing channels and roles...**');
+
+    const existingChannels = [...guild.channels.cache.values()].filter(c => c.id !== guild.rulesChannelId && c.id !== guild.publicUpdatesChannelId);
+    for (const ch of existingChannels) {
+      try {
+        await ch.delete('PulseKeep server rebuild');
+        results.push(`  ✅ Deleted ${ch.name}`);
+      } catch (err: any) {
+        errors.push(`  ❌ Failed to delete channel #${ch.name}: ${err.message}`);
+      }
+    }
+
+    const botMember = guild.members.me;
+    const botRoleId = botMember?.roles.highest.id;
+    const deletableRoles = [...guild.roles.cache.values()]
+      .filter(r => r.id !== everyone.id && r.id !== botRoleId && r.id !== guild.roles.premiumSubscriberRole?.id && r.managed === false);
+    for (const role of deletableRoles) {
+      try {
+        await role.delete('PulseKeep server rebuild');
+        results.push(`  ✅ Deleted role ${role.name}`);
+      } catch (err: any) {
+        errors.push(`  ❌ Failed to delete role ${role.name}: ${err.message}`);
+      }
+    }
+
+    results.push('');
+    results.push('**Phase 2: Creating roles...**');
+
     const createdRoles = new Map<string, string>();
     for (const r of ROLES) {
       try {
@@ -169,13 +190,15 @@ export const createServerCommand: SlashCommand = {
           reason: r.reason,
         });
         createdRoles.set(r.name, role.id);
-        results.push(`✅ Created role ${r.name}`);
+        results.push(`  ✅ Created role ${r.name}`);
       } catch (err: any) {
-        errors.push(`❌ Failed to create role ${r.name}: ${err.message}`);
+        errors.push(`  ❌ Failed to create role ${r.name}: ${err.message}`);
       }
     }
 
-    // Step 2: Create categories and channels
+    results.push('');
+    results.push('**Phase 3: Creating categories and channels...**');
+
     for (const cat of CATEGORIES) {
       let categoryId: string | null = null;
       try {
@@ -185,9 +208,9 @@ export const createServerCommand: SlashCommand = {
           reason: 'PulseKeep support server layout',
         });
         categoryId = category.id;
-        results.push(`✅ Created category ${cat.name}`);
+        results.push(`  ✅ Created category ${cat.name}`);
       } catch (err: any) {
-        errors.push(`❌ Failed to create category ${cat.name}: ${err.message}`);
+        errors.push(`  ❌ Failed to create category ${cat.name}: ${err.message}`);
         continue;
       }
 
@@ -210,26 +233,24 @@ export const createServerCommand: SlashCommand = {
             permissionOverwrites: overwrites,
             reason: 'PulseKeep support server layout',
           });
-          results.push(`  ✅ Created channel #${ch.name}`);
+          results.push(`    ✅ Created #${ch.name}`);
         } catch (err: any) {
-          errors.push(`  ❌ Failed to create channel #${ch.name}: ${err.message}`);
+          errors.push(`    ❌ Failed to create #${ch.name}: ${err.message}`);
         }
       }
     }
 
     const summary = [
-      `**Server layout creation complete!**`,
+      `**Server rebuild complete!**`,
       ``,
-      `**Results:**`,
       ...results,
       ``,
-      errors.length > 0 ? `**Errors:**\n${errors.join('\n')}` : '**No errors.**',
+      errors.length > 0 ? `**Errors (${errors.length}):**\n${errors.join('\n')}` : '**No errors.**',
     ].join('\n');
 
     await interaction.editReply({ content: summary.slice(0, 1900) });
-
     if (summary.length > 1900) {
-      await interaction.followUp({ content: summary.slice(1900, 3900), flags: 64 });
+      await interaction.followUp({ content: summary.slice(1900, 3900) });
     }
   },
 };
