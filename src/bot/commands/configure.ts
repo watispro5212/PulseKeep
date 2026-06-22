@@ -53,6 +53,55 @@ export const configureCommand: SlashCommand = {
         .addStringOption((o) => o.setName('words').setDescription('Comma-separated banned words').setRequired(true)),
     )
     .addSubcommand((s) =>
+      s.setName('automod_spam_limit').setDescription('Max messages in spam window')
+        .addIntegerOption((o) => o.setName('limit').setDescription('Number of messages').setRequired(true).setMinValue(2).setMaxValue(50)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_spam_window').setDescription('Spam detection window in seconds')
+        .addIntegerOption((o) => o.setName('seconds').setDescription('Time window').setRequired(true).setMinValue(1).setMaxValue(120)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_mention_limit').setDescription('Max mentions before action')
+        .addIntegerOption((o) => o.setName('limit').setDescription('Number of mentions').setRequired(true).setMinValue(1).setMaxValue(50)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_caps_ratio').setDescription('Caps percentage threshold (0-100)')
+        .addIntegerOption((o) => o.setName('percent').setDescription('Percentage of caps').setRequired(true).setMinValue(10).setMaxValue(100)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_caps_min_length').setDescription('Min message length for caps check')
+        .addIntegerOption((o) => o.setName('length').setDescription('Min characters').setRequired(true).setMinValue(3).setMaxValue(100)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_timeout_duration').setDescription('Timeout duration in minutes')
+        .addIntegerOption((o) => o.setName('minutes').setDescription('Minutes').setRequired(true).setMinValue(1).setMaxValue(40320)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_action').setDescription('Set action for a specific rule')
+        .addStringOption((o) => o.setName('rule').setDescription('Rule to configure').setRequired(true)
+          .addChoices(
+            { name: 'Spam', value: 'spam' },
+            { name: 'Mentions', value: 'mentions' },
+            { name: 'Caps', value: 'caps' },
+            { name: 'Links', value: 'links' },
+            { name: 'Banned Words', value: 'words' },
+          ))
+        .addStringOption((o) => o.setName('action').setDescription('Action to take').setRequired(true)
+          .addChoices(
+            { name: 'Warn', value: 'warn' },
+            { name: 'Delete', value: 'delete' },
+            { name: 'Timeout', value: 'timeout' },
+          )),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_exempt_roles').setDescription('Role IDs exempt from automod (comma-sep)')
+        .addStringOption((o) => o.setName('roles').setDescription('Comma-separated role IDs').setRequired(true)),
+    )
+    .addSubcommand((s) =>
+      s.setName('automod_allowed_domains').setDescription('Domains allowed through link filter (comma-sep)')
+        .addStringOption((o) => o.setName('domains').setDescription('Comma-separated domains (e.g. discord.com,github.com)').setRequired(true)),
+    )
+    .addSubcommand((s) =>
       s.setName('log_channel').setDescription('Set the moderation log channel')
         .addChannelOption((o) => o.setName('channel').setDescription('The channel for logs').setRequired(true)),
     )
@@ -103,6 +152,21 @@ export const configureCommand: SlashCommand = {
         `Words: ${cfg.automodWordsEnabled !== false ? '✅' : '❌'}`,
         cfg.automodBannedWords ? `Banned: \`${cfg.automodBannedWords.slice(0, 60)}${cfg.automodBannedWords.length > 60 ? '...' : ''}\`` : null,
       ].filter(Boolean).join('\n');
+      const autoThresholds = [
+        `Spam limit: ${cfg.automodSpamLimit ?? 5} msgs / ${(cfg.automodSpamWindow ?? 5000) / 1000}s`,
+        `Mention limit: ${cfg.automodMentionLimit ?? 5}`,
+        `Caps: ≥${cfg.automodCapsRatio ?? 70}% / min ${cfg.automodCapsMinLength ?? 10} chars`,
+        `Timeout: ${cfg.automodTimeoutDuration ?? 10} min`,
+        cfg.automodExemptRoles ? `Exempt roles: ${cfg.automodExemptRoles}` : null,
+        cfg.automodAllowedDomains ? `Allowed domains: \`${cfg.automodAllowedDomains.slice(0, 60)}${cfg.automodAllowedDomains.length > 60 ? '...' : ''}\`` : null,
+      ].filter(Boolean).join('\n');
+      const autoActions = [
+        `Spam → ${cfg.automodSpamAction || 'warn'}`,
+        `Mentions → ${cfg.automodMentionAction || 'timeout'}`,
+        `Caps → ${cfg.automodCapsAction || 'delete'}`,
+        `Links → ${cfg.automodLinkAction || 'delete'}`,
+        `Words → ${cfg.automodWordsAction || 'delete'}`,
+      ].join('\n');
       const emb = new EmbedBuilder()
         .setTitle('Server Configuration')
         .setDescription(`Settings for **${interaction.guild?.name || guildId}**`)
@@ -113,6 +177,8 @@ export const configureCommand: SlashCommand = {
           { name: 'Welcome', value: cfg.welcomeEnabled === true ? '✅ Enabled' : '❌ Disabled', inline: true },
           { name: 'Auto-Mod', value: cfg.automodEnabled !== false ? '✅ Enabled' : '❌ Disabled', inline: false },
           { name: 'Auto-Mod Filters', value: autoToggles || 'None set', inline: false },
+          { name: 'Auto-Mod Thresholds', value: autoThresholds || 'Default', inline: false },
+          { name: 'Auto-Mod Actions', value: autoActions, inline: false },
           { name: 'Welcome Channel', value: cfg.welcomeChannelId ? `<#${cfg.welcomeChannelId}>` : 'Not set', inline: true },
           { name: 'Vote Channel', value: cfg.voteChannelId ? `<#${cfg.voteChannelId}>` : 'Not set', inline: true },
           { name: 'Log Channel', value: cfg.logChannelId ? `<#${cfg.logChannelId}>` : 'Not set', inline: true },
@@ -171,6 +237,44 @@ export const configureCommand: SlashCommand = {
         break;
       case 'automod_banned_words':
         updateData.automodBannedWords = interaction.options.getString('words', true);
+        break;
+      case 'automod_spam_limit':
+        updateData.automodSpamLimit = interaction.options.getInteger('limit', true);
+        break;
+      case 'automod_spam_window':
+        updateData.automodSpamWindow = interaction.options.getInteger('seconds', true) * 1000;
+        break;
+      case 'automod_mention_limit':
+        updateData.automodMentionLimit = interaction.options.getInteger('limit', true);
+        break;
+      case 'automod_caps_ratio':
+        updateData.automodCapsRatio = interaction.options.getInteger('percent', true);
+        break;
+      case 'automod_caps_min_length':
+        updateData.automodCapsMinLength = interaction.options.getInteger('length', true);
+        break;
+      case 'automod_timeout_duration':
+        updateData.automodTimeoutDuration = interaction.options.getInteger('minutes', true);
+        break;
+      case 'automod_action': {
+        const rule = interaction.options.getString('rule', true) as keyof typeof colMap;
+        const action = interaction.options.getString('action', true);
+        const colMap = {
+          spam: 'automodSpamAction',
+          mentions: 'automodMentionAction',
+          caps: 'automodCapsAction',
+          links: 'automodLinkAction',
+          words: 'automodWordsAction',
+        } as const;
+        const col = colMap[rule];
+        if (col) updateData[col] = action;
+        break;
+      }
+      case 'automod_exempt_roles':
+        updateData.automodExemptRoles = interaction.options.getString('roles', true);
+        break;
+      case 'automod_allowed_domains':
+        updateData.automodAllowedDomains = interaction.options.getString('domains', true);
         break;
       case 'log_channel': {
         const channel = interaction.options.getChannel('channel', true);

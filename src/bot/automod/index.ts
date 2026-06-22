@@ -2,12 +2,6 @@ import { EmbedBuilder } from 'discord.js';
 import type { Bot } from '../client.js';
 import { eq } from 'drizzle-orm';
 
-const SPAM_WINDOW_MS = 5000;
-const SPAM_LIMIT = 5;
-const MASS_MENTION_LIMIT = 5;
-const CAPS_RATIO = 0.7;
-const CAPS_MIN_LENGTH = 10;
-
 const URL_PATTERN = /https?:\/\/[^\s]+/gi;
 
 interface SpamTracker {
@@ -37,19 +31,19 @@ export function stopSpamCleanup() {
   }
 }
 
-function checkSpam(guildId: string, userId: string): boolean {
+function checkSpam(guildId: string, userId: string, limit: number, windowMs: number): boolean {
   const key = `${guildId}:${userId}`;
   const now = Date.now();
   const cur = spamTracking.get(key);
 
-  if (!cur || now - cur.firstMsg > SPAM_WINDOW_MS) {
+  if (!cur || now - cur.firstMsg > windowMs) {
     spamTracking.set(key, { count: 1, firstMsg: now, lastMsg: now });
     return false;
   }
 
   cur.count++;
   cur.lastMsg = now;
-  return cur.count > SPAM_LIMIT;
+  return cur.count > limit;
 }
 
 function countMentions(content: string): number {
@@ -59,11 +53,11 @@ function countMentions(content: string): number {
   return userMentions + roleMentions + everyoneMention;
 }
 
-function hasExcessiveCaps(content: string): boolean {
+function hasExcessiveCaps(content: string, ratio: number, minLength: number): boolean {
   const letters = content.replace(/[^a-zA-Z]/g, '');
-  if (letters.length < CAPS_MIN_LENGTH) return false;
+  if (letters.length < minLength) return false;
   const upper = letters.replace(/[^A-Z]/g, '').length;
-  return upper / letters.length >= CAPS_RATIO;
+  return upper / letters.length >= ratio;
 }
 
 function hasBannedWord(content: string, bannedWords: string[]): boolean {
@@ -71,8 +65,23 @@ function hasBannedWord(content: string, bannedWords: string[]): boolean {
   return bannedWords.some(w => lower.includes(w));
 }
 
-function hasLink(content: string): boolean {
-  return URL_PATTERN.test(content);
+function hasLink(content: string, allowedDomains: string[]): boolean {
+  const matches = content.match(URL_PATTERN);
+  if (!matches) return false;
+  if (allowedDomains.length === 0) return true;
+  return matches.some(url => {
+    try {
+      const host = new URL(url).hostname.replace(/^www\./, '');
+      return !allowedDomains.some(d => host === d || host.endsWith('.' + d));
+    } catch {
+      return true;
+    }
+  });
+}
+
+function isExempt(memberRoles: string[], exemptRoleIds: string[]): boolean {
+  if (exemptRoleIds.length === 0) return false;
+  return memberRoles.some(r => exemptRoleIds.includes(r));
 }
 
 export async function runAutomod(
@@ -82,7 +91,7 @@ export async function runAutomod(
   userId: string,
   content: string,
   memberRoles: string[],
-): Promise<{ action: string | null; reason: string | null }> {
+): Promise<{ action: string | null; reason: string | null; timeoutMinutes?: number }> {
   if (!bot.db || !guildId) return { action: null, reason: null };
 
   const toggles = await bot.getGuildToggles(guildId);
@@ -99,14 +108,31 @@ export async function runAutomod(
     const cfg = rows[0];
     if (!cfg) return { action: null, reason: null };
 
+    const spamLimit = cfg.automodSpamLimit ?? 5;
+    const spamWindow = cfg.automodSpamWindow ?? 5000;
+    const mentionLimit = cfg.automodMentionLimit ?? 5;
+    const capsRatio = (cfg.automodCapsRatio ?? 70) / 100;
+    const capsMinLength = cfg.automodCapsMinLength ?? 10;
     const bannedWords = (cfg.automodBannedWords || '').split(',').map((w: string) => w.trim().toLowerCase()).filter(Boolean);
+    const allowedDomains = (cfg.automodAllowedDomains || '').split(',').map((d: string) => d.trim().toLowerCase().replace(/^www\./, '')).filter(Boolean);
+    const exemptRoles = (cfg.automodExemptRoles || '').split(',').map((r: string) => r.trim()).filter(Boolean);
+    const spamAction = cfg.automodSpamAction || 'warn';
+    const mentionAction = cfg.automodMentionAction || 'timeout';
+    const capsAction = cfg.automodCapsAction || 'delete';
+    const linkAction = cfg.automodLinkAction || 'delete';
+    const wordsAction = cfg.automodWordsAction || 'delete';
+    const timeoutDuration = cfg.automodTimeoutDuration ?? 10;
+
+    if (exemptRoles.length > 0 && isExempt(memberRoles, exemptRoles)) {
+      return { action: null, reason: null };
+    }
 
     const checks: { enabled: boolean; check: () => boolean; action: string; reason: string }[] = [
-      { enabled: cfg.automodSpamEnabled !== false, check: () => checkSpam(guildId, userId), action: 'warn', reason: 'Spam detected (excessive messages)' },
-      { enabled: cfg.automodMentionEnabled !== false, check: () => countMentions(content) > MASS_MENTION_LIMIT, action: 'timeout', reason: 'Mass mention detected' },
-      { enabled: cfg.automodCapsEnabled !== false, check: () => hasExcessiveCaps(content), action: 'delete', reason: 'Excessive caps lock' },
-      { enabled: cfg.automodLinkEnabled !== false, check: () => hasLink(content), action: 'delete', reason: 'Link blocked by automod' },
-      { enabled: cfg.automodWordsEnabled !== false && bannedWords.length > 0, check: () => hasBannedWord(content, bannedWords), action: 'delete', reason: 'Banned word detected' },
+      { enabled: cfg.automodSpamEnabled !== false, check: () => checkSpam(guildId, userId, spamLimit, spamWindow), action: spamAction, reason: `Spam detected (${spamLimit} msgs in ${spamWindow / 1000}s)` },
+      { enabled: cfg.automodMentionEnabled !== false, check: () => countMentions(content) > mentionLimit, action: mentionAction, reason: `Mass mention detected (${countMentions(content)} mentions, limit ${mentionLimit})` },
+      { enabled: cfg.automodCapsEnabled !== false, check: () => hasExcessiveCaps(content, capsRatio, capsMinLength), action: capsAction, reason: 'Excessive caps lock' },
+      { enabled: cfg.automodLinkEnabled !== false, check: () => hasLink(content, allowedDomains), action: linkAction, reason: allowedDomains.length > 0 ? 'Link not in allowed domains' : 'Link blocked by automod' },
+      { enabled: cfg.automodWordsEnabled !== false && bannedWords.length > 0, check: () => hasBannedWord(content, bannedWords), action: wordsAction, reason: 'Banned word detected' },
     ];
 
     for (const check of checks) {
@@ -119,7 +145,7 @@ export async function runAutomod(
           .setTimestamp();
         await bot.logToChannel(guildId, logEmbed);
 
-        return { action: check.action, reason: check.reason };
+        return { action: check.action, reason: check.reason, timeoutMinutes: check.action === 'timeout' ? timeoutDuration : undefined };
       }
     }
   } catch (err) {

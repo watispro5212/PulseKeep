@@ -292,7 +292,7 @@ export class Bot {
       const isMod = member.permissions.has('ManageMessages') || member.permissions.has('Administrator');
       if (isMod) return;
       const { runAutomod } = await import('./automod/index.js');
-      const { action, reason } = await runAutomod(
+      const { action, reason, timeoutMinutes } = await runAutomod(
         this, message.guildId, message.channelId,
         message.author.id, message.content, member.roles.cache.map(r => r.id),
       );
@@ -314,7 +314,7 @@ export class Bot {
         }
         case 'timeout': {
           await message.delete().catch(() => {});
-          await member.timeout(10 * 60 * 1000, reason ?? undefined).catch(() => {});
+          await member.timeout((timeoutMinutes ?? 10) * 60 * 1000, reason ?? undefined).catch(() => {});
           const timeoutEmb = new EmbedBuilder()
             .setTitle('🔇 Auto-Mod Timeout')
             .setDescription(`<@${message.author.id}> has been timed out for **10 minutes**.\n**Reason:** ${reason}`)
