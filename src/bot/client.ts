@@ -12,6 +12,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ActivityType,
 } from 'discord.js';
 import type { Cache } from '../cache/index.js';
 import type { Config } from '../config.js';
@@ -165,6 +166,8 @@ export class Bot {
         this.client.guilds.cache.reduce((sum: number, g: any) => sum + (g.memberCount || 0), 0)
       );
       this.sendStatusWebhook();
+      this.updatePresence();
+      setInterval(() => this.updatePresence(), 300_000);
     });
 
     // log disconnects so we can tell when the bot flaps
@@ -598,6 +601,20 @@ export class Bot {
     } catch (err) {
       console.error('Failed to register commands:', err);
     }
+  }
+
+  private updatePresence() {
+    const guilds = this.cache.getGuildsCount();
+    const users = this.cache.getTotalUserCount();
+    const cmds = this.cache.getCommandsRun();
+    const activities = [
+      { text: `/help on ${guilds} servers`, type: ActivityType.Watching },
+      { text: `${users.toLocaleString()} users`, type: ActivityType.Watching },
+      { text: `${cmds.toLocaleString()} commands run`, type: ActivityType.Playing },
+      { text: 'pulsekeep.fly.dev', type: ActivityType.Playing },
+    ];
+    const activity = activities[Math.floor(Math.random() * activities.length)]!;
+    this.client.user?.setPresence({ activities: [{ name: activity.text, type: activity.type }], status: 'online' });
   }
 
   private async sendStatusWebhook() {
