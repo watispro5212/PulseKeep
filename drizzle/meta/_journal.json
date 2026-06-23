@@ -15,6 +15,13 @@
       "when": 1782164871257,
       "tag": "0001_chemical_blue_marvel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782174936115,
+      "tag": "0002_hot_grandmaster",
+      "breakpoints": true
     }
   ]
 }

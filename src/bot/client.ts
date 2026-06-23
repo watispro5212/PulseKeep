@@ -45,6 +45,9 @@ export class Bot {
   private commandCooldowns = new Map<string, number>();
   // tiny event bus so the API server can react to guild config changes
   private listeners = new Map<string, Set<(...args: any[]) => void>>();
+  // message cache for edit/delete logging — FIFO, capped at 500
+  private messageCache = new Map<string, { content: string; authorId: string; authorTag: string; channelId: string; attachments: string[] }>();
+  private readonly MAX_CACHE_SIZE = 500;
 
   on(event: 'guildConfigUpdated', listener: (guildId: string) => void): this;
   on(event: string, listener: (...args: any[]) => void): this;
@@ -239,22 +242,43 @@ export class Bot {
         // also log it to the mod channel
         const logEmb = new EmbedBuilder()
           .setTitle('Member Joined')
-          .setDescription(`${member.user.tag} (${member.user.id}) — member #${memberCount.toLocaleString()}`)
+          .setDescription(`${member.user.username} (${member.user.id}) — member #${memberCount.toLocaleString()}`)
           .setThumbnail(member.user.displayAvatarURL({ size: 128 }))
           .setColor(Colors.Utility)
           .setTimestamp();
-        this.logToChannel(member.guild.id, logEmb);
+        await this.logToChannel(member.guild.id, logEmb);
       } catch (err) {
         console.error(`[Welcome] Failed to send welcome message in guild ${member.guild.id}:`, err);
       }
     });
 
-    this.client.on(Events.GuildMemberRemove, () => {
+    this.client.on(Events.GuildMemberRemove, async (member) => {
       this.cache.setTotalUserCount(Math.max(0, this.cache.getTotalUserCount() - 1));
+      if (member.partial || !member.guild) return;
+      const m = member as GuildMember;
+      const toggles = await this.getGuildToggles(m.guild.id);
+      if (toggles.modlogsEnabled === false || !toggles.logChannelId) return;
+      const dur = m.joinedAt
+        ? `${Math.floor((Date.now() - m.joinedAt.getTime()) / 86400000)}d`
+        : 'Unknown';
+      const emb = new EmbedBuilder()
+        .setTitle('Member Left')
+        .setDescription(`${m.user.username} (\`${m.user.id}\`)`)
+        .addFields(
+          { name: 'Joined', value: m.joinedAt ? `<t:${Math.floor(m.joinedAt.getTime() / 1000)}:R>` : 'Unknown', inline: true },
+          { name: 'Account', value: `<t:${Math.floor(m.user.createdTimestamp / 1000)}:R>`, inline: true },
+          { name: 'Stay Duration', value: dur, inline: true },
+        )
+        .setThumbnail(m.user.displayAvatarURL({ size: 128 }))
+        .setColor(Colors.Moderation)
+        .setTimestamp();
+      const roleStr = m.roles.cache.filter(r => r.id !== m.guild.id).map(r => r.name).join(', ').slice(0, 1024);
+      if (roleStr) emb.addFields({ name: `Roles (${m.roles.cache.size - 1})`, value: roleStr, inline: false });
+      await this.logToChannel(m.guild.id, emb);
     });
 
     // voice state logging
-    this.client.on(Events.VoiceStateUpdate, (oldState, newState) => {
+    this.client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
       const guildId = oldState.guild?.id || newState.guild?.id;
       if (!guildId) return;
       const userId = oldState.id || newState.id;
@@ -267,20 +291,73 @@ export class Bot {
           .setDescription(`<@${userId}> joined voice channel <#${newChannel}>`)
           .setColor(Colors.Utility)
           .setTimestamp();
-        this.logToChannel(guildId, logEmb);
+        await this.logToChannel(guildId, logEmb);
       } else if (oldChannel && !newChannel) {
         const logEmb = new EmbedBuilder()
           .setDescription(`<@${userId}> left voice channel <#${oldChannel}>`)
           .setColor(Colors.Utility)
           .setTimestamp();
-        this.logToChannel(guildId, logEmb);
+        await this.logToChannel(guildId, logEmb);
       } else if (oldChannel && newChannel && oldChannel !== newChannel) {
         const logEmb = new EmbedBuilder()
           .setDescription(`<@${userId}> moved from <#${oldChannel}> to <#${newChannel}>`)
           .setColor(Colors.Utility)
           .setTimestamp();
-        this.logToChannel(guildId, logEmb);
+        await this.logToChannel(guildId, logEmb);
       }
+    });
+
+    // message cache — capture every guild message for edit/delete logging
+    this.client.on(Events.MessageCreate, (message) => {
+      if (!message.guildId || message.author.bot) return;
+      this.messageCache.set(message.id, {
+        content: message.content,
+        authorId: message.author.id,
+        authorTag: message.author.username,
+        channelId: message.channelId,
+        attachments: [...message.attachments.values()].map(a => a.url),
+      });
+      if (this.messageCache.size > this.MAX_CACHE_SIZE) {
+        const key = this.messageCache.keys().next().value;
+        if (key) this.messageCache.delete(key);
+      }
+    });
+
+    // log deleted messages
+    this.client.on(Events.MessageDelete, async (message) => {
+      if (!message.guildId) return;
+      const cached = this.messageCache.get(message.id);
+      if (!cached) return;
+      const toggles = await this.getGuildToggles(message.guildId);
+      if (toggles.modlogsEnabled === false || !toggles.logChannelId) return;
+      const emb = new EmbedBuilder()
+        .setTitle('Message Deleted')
+        .setDescription(`**Author:** <@${cached.authorId}> (\`${cached.authorId}\`)\n**Channel:** <#${cached.channelId}>`)
+        .setColor(Colors.Moderation)
+        .setTimestamp();
+      if (cached.content) emb.addFields({ name: 'Content', value: cached.content.slice(0, 1024), inline: false });
+      if (cached.attachments.length > 0) emb.addFields({ name: 'Attachments', value: cached.attachments.join('\n').slice(0, 1024), inline: false });
+      await this.logToChannel(message.guildId, emb);
+      this.messageCache.delete(message.id);
+    });
+
+    // log edited messages
+    this.client.on(Events.MessageUpdate, async (oldMessage, newMessage) => {
+      if (!newMessage.guildId) return;
+      if (!oldMessage || !newMessage || !('content' in oldMessage) || !('content' in newMessage)) return;
+      if (oldMessage.content === newMessage.content) return;
+      const toggles = await this.getGuildToggles(newMessage.guildId);
+      if (toggles.modlogsEnabled === false || !toggles.logChannelId) return;
+      const emb = new EmbedBuilder()
+        .setTitle('Message Edited')
+        .setDescription(`**Author:** <@${newMessage.author!.id}> (\`${newMessage.author!.id}\`)\n**Channel:** <#${newMessage.channelId}>`)
+        .addFields(
+          { name: 'Before', value: (oldMessage.content || '*no content*').slice(0, 1024) },
+          { name: 'After', value: (newMessage.content || '*no content*').slice(0, 1024) },
+        )
+        .setColor(Colors.Utility)
+        .setTimestamp();
+      await this.logToChannel(newMessage.guildId, emb);
     });
 
     // auto-mod
@@ -307,9 +384,8 @@ export class Bot {
             .setDescription(`**Reason:** ${reason}`)
             .setColor(Colors.Warning)
             .setTimestamp();
-          await message.channel.send({ content: `<@${message.author.id}>`, embeds: [warnEmb] }).then(m => {
-            setTimeout(() => m.delete().catch(() => {}), 5000);
-          });
+          const warnMsg = await message.channel.send({ content: `<@${message.author.id}>`, embeds: [warnEmb] });
+          setTimeout(() => warnMsg.delete().catch(() => {}), 5000);
           break;
         }
         case 'timeout': {
@@ -320,9 +396,8 @@ export class Bot {
             .setDescription(`<@${message.author.id}> has been timed out for **10 minutes**.\n**Reason:** ${reason}`)
             .setColor(Colors.Moderation)
             .setTimestamp();
-          await message.channel.send({ embeds: [timeoutEmb] }).then(m => {
-            setTimeout(() => m.delete().catch(() => {}), 8000);
-          });
+          const timeoutMsg = await message.channel.send({ embeds: [timeoutEmb] });
+          setTimeout(() => timeoutMsg.delete().catch(() => {}), 8000);
           break;
         }
       }
@@ -559,14 +634,14 @@ export class Bot {
         if (messages && messages.size > 0) {
           const transcript = messages
             .sort((a: any, b: any) => a.createdTimestamp - b.createdTimestamp)
-            .map((m: any) => `[${new Date(m.createdTimestamp).toISOString()}] ${m.author?.tag ?? 'unknown'}: ${m.content ?? ''}`)
+            .map((m: any) => `[${new Date(m.createdTimestamp).toISOString()}] ${m.author?.username ?? 'unknown'}: ${m.content ?? ''}`)
             .join('\n')
             .slice(0, 6000);
           const transcriptEmb = new EmbedBuilder()
             .setTitle(`Ticket transcript — #${channel.name}`)
             .setDescription('```\n' + transcript + '\n```')
             .setColor(Colors.Tickets)
-            .setFooter({ text: `${messages.size} message(s) • closed by ${interaction.user.tag}` });
+            .setFooter({ text: `${messages.size} message(s) • closed by ${interaction.user.username}` });
           await this.logToChannel(interaction.guildId, transcriptEmb);
         }
       }

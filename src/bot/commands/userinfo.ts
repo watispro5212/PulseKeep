@@ -86,7 +86,7 @@ export const userinfoCommand: SlashCommand = {
       .setColor(topRole?.color || Colors.Utility)
       .setThumbnail(user.displayAvatarURL({ size: 256 }))
       .addFields(
-        { name: 'Username', value: `${user.tag}`, inline: true },
+        { name: 'Username', value: `${user.username}`, inline: true },
         { name: 'User ID', value: user.id, inline: true },
         { name: 'Status', value: `${statusEmoji(presenceStatus)} ${statusLabel}`, inline: true },
         { name: 'Account Created', value: `${formatDate(user.createdAt)} (${relativeDate(user.createdAt)})`, inline: true },
@@ -96,7 +96,7 @@ export const userinfoCommand: SlashCommand = {
         { name: 'Key Permissions', value: keyPerms.length > 0 ? keyPerms.join(', ') : 'None', inline: false },
         { name: 'Boosting Since', value: member.premiumSince ? formatDate(member.premiumSince) : 'Not boosting', inline: true },
       )
-      .setFooter({ text: `Requested by ${interaction.user.tag}` });
+      .setFooter({ text: `Requested by ${interaction.user.username}` });
 
     await interaction.reply({ embeds: [timestamp(emb)], flags: Ephemeral });
   },

@@ -77,7 +77,7 @@ export const serverinfoCommand: SlashCommand = {
         { name: 'NSFW Filter', value: guild.nsfwLevel === 0 ? 'Default' : guild.nsfwLevel === 1 ? 'Less restrictive' : 'More restrictive', inline: true },
         { name: 'Preferred Locale', value: guild.preferredLocale ?? 'en-US', inline: true },
       )
-      .setFooter({ text: `Requested by ${interaction.user.tag}` });
+      .setFooter({ text: `Requested by ${interaction.user.username}` });
 
     if (guild.description) emb.setDescription(guild.description);
 

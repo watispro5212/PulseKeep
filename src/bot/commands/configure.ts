@@ -137,13 +137,18 @@ export const configureCommand: SlashCommand = {
         return;
       }
       const { guildConfigs } = await import('../../db/schema.js');
-      const rows: any[] = await db
-        .select()
-        .from(guildConfigs)
-        .where(eq(guildConfigs.guildId, guildId))
-        .limit(1);
+      let cfg: any = {};
+      try {
+        const rows: any[] = await db
+          .select()
+          .from(guildConfigs)
+          .where(eq(guildConfigs.guildId, guildId))
+          .limit(1);
+        cfg = rows[0] || {};
+      } catch {
+        cfg = {};
+      }
 
-      const cfg = rows[0] || {};
       const autoToggles = [
         `Spam: ${cfg.automodSpamEnabled !== false ? '✅' : '❌'}`,
         `Mentions: ${cfg.automodMentionEnabled !== false ? '✅' : '❌'}`,
@@ -196,11 +201,17 @@ export const configureCommand: SlashCommand = {
 
     const { guildConfigs } = await import('../../db/schema.js');
 
-    const existing: any[] = await db
-      .select()
-      .from(guildConfigs)
-      .where(eq(guildConfigs.guildId, guildId))
-      .limit(1);
+    let existing: any[] = [];
+    try {
+      existing = await db
+        .select()
+        .from(guildConfigs)
+        .where(eq(guildConfigs.guildId, guildId))
+        .limit(1);
+    } catch {
+      await interaction.reply({ content: '❌ Database schema outdated. Ask the bot owner to run `npm run db:migrate`.', flags: 64 });
+      return;
+    }
 
     let updateData: any = {};
 
@@ -314,15 +325,20 @@ export const configureCommand: SlashCommand = {
       }
     }
 
-    if (existing.length > 0) {
-      await db
-        .update(guildConfigs)
-        .set({ ...updateData, updatedAt: new Date() })
-        .where(eq(guildConfigs.guildId, guildId));
-    } else {
-      await db
-        .insert(guildConfigs)
-        .values({ guildId, ...updateData });
+    try {
+      if (existing.length > 0) {
+        await db
+          .update(guildConfigs)
+          .set({ ...updateData, updatedAt: new Date() })
+          .where(eq(guildConfigs.guildId, guildId));
+      } else {
+        await db
+          .insert(guildConfigs)
+          .values({ guildId, ...updateData });
+      }
+    } catch {
+      await interaction.reply({ content: '❌ Failed to save configuration. Database error.', flags: 64 });
+      return;
     }
 
     bot.invalidateGuildToggles(guildId);

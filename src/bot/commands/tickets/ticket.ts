@@ -88,14 +88,14 @@ export const ticketCommand: SlashCommand = {
             if (messages && messages.size > 0) {
               const transcript = messages
                 .sort((a: any, b: any) => a.createdTimestamp - b.createdTimestamp)
-                .map((m: any) => `[${new Date(m.createdTimestamp).toISOString()}] ${m.author?.tag ?? 'unknown'}: ${m.content ?? ''}`)
+                .map((m: any) => `[${new Date(m.createdTimestamp).toISOString()}] ${m.author?.username ?? 'unknown'}: ${m.content ?? ''}`)
                 .join('\n')
                 .slice(0, 6000); // hard cap so we don't explode a single embed field
               const transcriptEmb = new EmbedBuilder()
                 .setTitle(`Ticket transcript — #${channel.name}`)
                 .setDescription('```\n' + transcript + '\n```')
                 .setColor(Colors.Tickets)
-                .setFooter({ text: `${messages.size} message(s) • closed by ${interaction.user.tag}` });
+                .setFooter({ text: `${messages.size} message(s) • closed by ${interaction.user.username}` });
               if (bot) await bot.logToChannel(interaction.guildId, transcriptEmb);
             }
           }
