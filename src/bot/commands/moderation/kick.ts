@@ -2,6 +2,11 @@ import {
   SlashCommandBuilder,
   EmbedBuilder,
   PermissionFlagsBits,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+  type MessageComponentInteraction,
 } from 'discord.js';
 import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
@@ -33,6 +38,39 @@ export const kickCommand: SlashCommand = {
       return;
     }
 
+    const confirmId = 'confirm_kick';
+    const cancelId = 'cancel_kick';
+    const confirm = new ButtonBuilder()
+      .setCustomId(confirmId)
+      .setLabel(`Kick ${target.username}`)
+      .setStyle(ButtonStyle.Danger);
+    const cancel = new ButtonBuilder()
+      .setCustomId(cancelId)
+      .setLabel('Cancel')
+      .setStyle(ButtonStyle.Secondary);
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(confirm, cancel);
+
+    const prompt = new EmbedBuilder()
+      .setTitle('⚠️ Confirm Kick')
+      .setDescription(`Kick **${target.username}** (\`${target.id}\`)?\n**Reason:** ${reason}`)
+      .setColor(Colors.Warning);
+
+    await interaction.reply({ embeds: [footer(timestamp(prompt))], components: [row], flags: 64 });
+
+    const reply = await interaction.fetchReply();
+    const collected = await reply.awaitMessageComponent({
+      componentType: ComponentType.Button,
+      time: 15000,
+      filter: (i: MessageComponentInteraction) => i.user.id === interaction.user.id,
+    }).catch(() => null);
+
+    if (!collected || collected.customId === cancelId) {
+      await interaction.editReply({ content: '❌ Cancelled.', embeds: [], components: [] });
+      return;
+    }
+
+    await collected.deferUpdate();
+
     let dmFailed = false;
     try {
       const dm = new EmbedBuilder()
@@ -49,7 +87,7 @@ export const kickCommand: SlashCommand = {
     try {
       await member.kick(reason);
     } catch (err) {
-      await interaction.reply({ content: `❌ Failed to kick that member: ${err instanceof Error ? err.message : err}`, flags: 64 });
+      await interaction.editReply({ content: `❌ Failed to kick that member: ${err instanceof Error ? err.message : err}`, components: [] });
       return;
     }
 
@@ -62,7 +100,7 @@ export const kickCommand: SlashCommand = {
       )
       .setColor(Colors.Moderation);
     if (dmFailed) emb.setFooter({ text: '⚠️ Could not DM the user (DMs may be closed).' });
-    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    await interaction.editReply({ embeds: [footer(timestamp(emb))], components: [] });
 
     const log = new EmbedBuilder()
       .setTitle('Moderation: Kick')

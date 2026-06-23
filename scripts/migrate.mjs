@@ -51,6 +51,19 @@ const migrationSQL = `
   ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS last_vote timestamp;
   ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS xp_boost_expiry timestamp;
   ALTER TABLE user_economy ADD COLUMN IF NOT EXISTS lucky_clover_active integer DEFAULT 0 NOT NULL;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_spam_limit integer DEFAULT 5;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_spam_window integer DEFAULT 5000;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_mention_limit integer DEFAULT 5;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_caps_ratio integer DEFAULT 70;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_caps_min_length integer DEFAULT 10;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_timeout_duration integer DEFAULT 10;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_spam_action varchar(10) DEFAULT 'warn';
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_mention_action varchar(10) DEFAULT 'timeout';
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_caps_action varchar(10) DEFAULT 'delete';
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_link_action varchar(10) DEFAULT 'delete';
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_words_action varchar(10) DEFAULT 'delete';
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_exempt_roles text;
+  ALTER TABLE guild_configs ADD COLUMN IF NOT EXISTS automod_allowed_domains text;
 `;
 
 try {

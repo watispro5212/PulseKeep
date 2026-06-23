@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
 import { userEconomy } from '../../../db/schema.js';
@@ -6,9 +6,12 @@ import { eq } from 'drizzle-orm';
 
 const VOTE_REWARD = 500;
 const VOTE_COOLDOWN = 12 * 60 * 60 * 1000;
+const DBL_URL = 'https://discordbotlist.com/bots/1507498795569512598';
+const DISCORDS_URL = 'https://discords.com/bots/bots/1507498795569512598';
 
 async function checkDblVote(userId: string, botId: string, apiToken: string): Promise<boolean | null> {
   try {
+    if (!botId) return null;
     const res = await fetch(`https://discordbotlist.com/api/v1/bots/${botId}/votes/${userId}`, {
       headers: { Authorization: `Bot ${apiToken}` },
     });
@@ -23,20 +26,22 @@ async function checkDblVote(userId: string, botId: string, apiToken: string): Pr
 export const voteCommand: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName('vote')
-    .setDescription('Vote for PulseKeep on DiscordBotList and earn Pulses')
+    .setDescription('Vote for PulseKeep on bot lists and earn Pulses')
     .toJSON(),
 
   async execute({ db, config }, interaction) {
-    const voteUrl = 'https://discordbotlist.com/bots/1507498795569512598';
     const now = new Date();
+    const linksRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder().setLabel('DiscordBotList').setStyle(ButtonStyle.Link).setURL(DBL_URL),
+      new ButtonBuilder().setLabel('Discords.com').setStyle(ButtonStyle.Link).setURL(DISCORDS_URL),
+    );
 
     if (!db) {
       const emb = new EmbedBuilder()
         .setTitle('📊 Vote for PulseKeep')
-        .setDescription('Support us by voting on DiscordBotList!')
-        .addFields({ name: 'Vote', value: `[Click here to vote](${voteUrl})`, inline: false })
+        .setDescription('Support us by voting on bot lists! Vote every 12 hours to earn **500+ Pulses**.')
         .setColor(Colors.Economy);
-      await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+      await interaction.reply({ embeds: [footer(timestamp(emb))], components: [linksRow], flags: 64 });
       return;
     }
 
@@ -48,8 +53,8 @@ export const voteCommand: SlashCommand = {
         .where(eq(userEconomy.userId, interaction.user.id))
         .limit(1);
       rec = rows[0];
-    } catch (err) {
-      await interaction.reply({ content: `❌ Database error checking vote status. Please try again.`, flags: 64 });
+    } catch {
+      await interaction.reply({ content: '❌ Database error checking vote status.', flags: 64 });
       return;
     }
 
@@ -59,10 +64,9 @@ export const voteCommand: SlashCommand = {
         const remaining = Math.ceil((VOTE_COOLDOWN - elapsed) / 3600000);
         const emb = new EmbedBuilder()
           .setTitle('📊 Vote for PulseKeep')
-          .setDescription(`You can claim again in **${remaining}h**. Vote on DiscordBotList to earn **${VOTE_REWARD.toLocaleString()}** Pulses!`)
-          .addFields({ name: 'Vote', value: `[Click here to vote](${voteUrl})`, inline: false })
+          .setDescription(`You can claim again in **${remaining}h**. Vote to earn **${VOTE_REWARD.toLocaleString()}** Pulses!`)
           .setColor(Colors.Utility);
-        await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+        await interaction.reply({ embeds: [footer(timestamp(emb))], components: [linksRow], flags: 64 });
         return;
       }
     }
@@ -72,19 +76,17 @@ export const voteCommand: SlashCommand = {
       if (voted === null) {
         const emb = new EmbedBuilder()
           .setTitle('📊 Vote Check Unavailable')
-          .setDescription(`Could not verify vote status with DiscordBotList right now. You can still try claiming!\n\nIf you've voted, click the link below to vote and then try again.`)
-          .addFields({ name: 'Vote', value: `[Click here to vote](${voteUrl})`, inline: false })
+          .setDescription('Could not verify vote status right now. Try claiming anyway!')
           .setColor(Colors.Warning);
-        await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+        await interaction.reply({ embeds: [footer(timestamp(emb))], components: [linksRow], flags: 64 });
         return;
       }
       if (!voted) {
         const emb = new EmbedBuilder()
           .setTitle('📊 Vote First')
-          .setDescription(`You haven't voted yet! Vote for PulseKeep on DiscordBotList, then use this command again to claim your reward.`)
-          .addFields({ name: 'Vote', value: `[Click here to vote](${voteUrl})`, inline: false })
+          .setDescription("You haven't voted yet! Vote on either site, then use `/vote` again to claim.")
           .setColor(Colors.Warning);
-        await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+        await interaction.reply({ embeds: [footer(timestamp(emb))], components: [linksRow], flags: 64 });
         return;
       }
     }
@@ -109,18 +111,15 @@ export const voteCommand: SlashCommand = {
             .values({ userId: interaction.user.id, balance: reward, lastVote: now, totalEarned: reward, transactions: 1 });
         }
       });
-    } catch (err) {
-      await interaction.reply({ content: `❌ Failed to save vote reward. Please try again.`, flags: 64 });
+    } catch {
+      await interaction.reply({ content: '❌ Failed to save vote reward.', flags: 64 });
       return;
     }
 
     const emb = new EmbedBuilder()
       .setTitle('📊 Vote Reward Claimed!')
       .setDescription(`Thanks for voting! You earned **${reward.toLocaleString()}** Pulses.`)
-      .addFields(
-        { name: 'Vote Again', value: `[Click here to vote](${voteUrl}) — ${VOTE_COOLDOWN / 3600000}h cooldown`, inline: false },
-      )
       .setColor(Colors.Economy);
-    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    await interaction.reply({ embeds: [footer(timestamp(emb))], components: [linksRow], flags: 64 });
   },
 };

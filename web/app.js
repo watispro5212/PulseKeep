@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // filter command list
   const cmdSearch = $('cmd-search');
   if (cmdSearch) {
+    cmdSearch.placeholder = cmdSearch.placeholder || "Search commands\u2026 (press \"/\" to focus)";
     cmdSearch.addEventListener('input', function () {
       const q = this.value.toLowerCase().trim();
       qsa('.cmd-group').forEach(g => {
@@ -106,6 +107,17 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   }
+
+  // copy command name on click
+  document.querySelectorAll('span[data-name]').forEach(el => {
+    el.addEventListener('click', function () {
+      const name = this.dataset.name || this.textContent;
+      navigator.clipboard.writeText('/' + name).then(() => {
+        toast('Copied /' + name, 'success');
+      }).catch(() => {});
+    });
+    el.style.cursor = 'pointer';
+  });
 
   // grab stats from the api, retry if it fails
   let statsRetries = 0;

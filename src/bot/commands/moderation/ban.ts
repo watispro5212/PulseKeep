@@ -2,6 +2,11 @@ import {
   SlashCommandBuilder,
   EmbedBuilder,
   PermissionFlagsBits,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+  type MessageComponentInteraction,
 } from 'discord.js';
 import type { SlashCommand } from '../../types.js';
 import { Colors, footer, timestamp } from '../../../utils/embed.js';
@@ -31,6 +36,39 @@ export const banCommand: SlashCommand = {
       return;
     }
 
+    const confirmId = 'confirm_ban';
+    const cancelId = 'cancel_ban';
+    const confirm = new ButtonBuilder()
+      .setCustomId(confirmId)
+      .setLabel(`Ban ${target.username}`)
+      .setStyle(ButtonStyle.Danger);
+    const cancel = new ButtonBuilder()
+      .setCustomId(cancelId)
+      .setLabel('Cancel')
+      .setStyle(ButtonStyle.Secondary);
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(confirm, cancel);
+
+    const prompt = new EmbedBuilder()
+      .setTitle('⚠️ Confirm Ban')
+      .setDescription(`Ban **${target.username}** (\`${target.id}\`)?\n**Reason:** ${reason}${days > 0 ? `\n**Delete messages from last ${days} day(s)**` : ''}`)
+      .setColor(Colors.Warning);
+
+    await interaction.reply({ embeds: [footer(timestamp(prompt))], components: [row], flags: 64 });
+
+    const reply = await interaction.fetchReply();
+    const collected = await reply.awaitMessageComponent({
+      componentType: ComponentType.Button,
+      time: 15000,
+      filter: (i: MessageComponentInteraction) => i.user.id === interaction.user.id,
+    }).catch(() => null);
+
+    if (!collected || collected.customId === cancelId) {
+      await interaction.editReply({ content: '❌ Cancelled.', embeds: [], components: [] });
+      return;
+    }
+
+    await collected.deferUpdate();
+
     let dmFailed = false;
     try {
       const dm = new EmbedBuilder()
@@ -47,7 +85,7 @@ export const banCommand: SlashCommand = {
     try {
       await interaction.guild.members.ban(target, { reason, deleteMessageSeconds: days * 86400 });
     } catch (err) {
-      await interaction.reply({ content: `❌ Failed to ban that user: ${err instanceof Error ? err.message : err}`, flags: 64 });
+      await interaction.editReply({ content: `❌ Failed to ban that user: ${err instanceof Error ? err.message : err}`, components: [] });
       return;
     }
 
@@ -60,7 +98,7 @@ export const banCommand: SlashCommand = {
       )
       .setColor(Colors.Moderation);
     if (dmFailed) emb.setFooter({ text: '⚠️ Could not DM the user (DMs may be closed).' });
-    await interaction.reply({ embeds: [footer(timestamp(emb))], flags: 64 });
+    await interaction.editReply({ embeds: [footer(timestamp(emb))], components: [] });
 
     const log = new EmbedBuilder()
       .setTitle('Moderation: Ban')

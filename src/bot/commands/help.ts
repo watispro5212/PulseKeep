@@ -33,6 +33,7 @@ const categories: CommandCategory[] = [
     blurb: 'Earn Pulses, play games, buy items, climb the leaderboard.',
     commands: [
       { name: 'balance', desc: "Check your or another user's Pulses balance.", usage: '/balance [user]' },
+      { name: 'cooldowns', desc: 'Check all your economy cooldowns at a glance.' },
       { name: 'daily', desc: 'Claim your 24h daily reward — streak bonuses at 7, 14, 21, 30, 50, 100 days.', usage: '/daily [public]' },
       { name: 'weekly', desc: 'Claim a bigger weekly reward.', usage: '/weekly' },
       { name: 'work', desc: 'Pick a job and earn 80–800 Pulses/hour.', usage: '/work' },
